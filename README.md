@@ -10,6 +10,9 @@
 
 AppManager is a Libadwaita-powered desktop utility that makes installing and uninstalling AppImages on GNOME 45–49 painless. Double-click any `.AppImage` to open a macOS-style drag-and-drop sheet, pick between portable or extracted modes, and AppManager will move/extract the payload, wire up desktop entries, copy icons, and keep Nautilus context menus in sync.
 
+<img width="493" height="320" alt="Screenshot From 2025-11-20 10-44-56" src="https://github.com/user-attachments/assets/69d2ff59-b816-46fb-a581-851f0c3c7921" />
+
+
 ## Features
 
 - 📦 **Drag-and-drop installer** — mimics the familiar App→Applications flow, showing the AppImage icon on the left and your `~/Applications` folder on the right.
