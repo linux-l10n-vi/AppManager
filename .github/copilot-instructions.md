@@ -9,7 +9,7 @@ You are an expert Vala/GTK developer working on AppManager, a Libadwaita utility
 - **Extensions (`extensions/`)**: Nautilus extension (`nautilus_extension.vala`) that links directly against `src/core` sources.
 - **Data Persistence**:
   - Registry: `~/.local/share/app-manager/installations.json` (JSON-GLib).
-  - Settings: `org.github.AppManager.gschema.xml` (GSettings).
+  - Settings: `com.github.AppManager.gschema.xml` (GSettings).
 
 ## Build & Development
 - **Build System**: Meson + Ninja.

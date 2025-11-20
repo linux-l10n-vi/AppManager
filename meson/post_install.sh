@@ -14,8 +14,8 @@ HOME_RELATIVE_FILES=(
   "bin/${APP_ID}"
   "share/applications/${DESKTOP_ID}"
   "share/metainfo/app-manager.metainfo.xml"
-  "share/glib-2.0/schemas/org.github.AppManager.gschema.xml"
-  "share/icons/hicolor/scalable/apps/org.github.AppManager.svg"
+  "share/glib-2.0/schemas/com.github.AppManager.gschema.xml"
+  "share/icons/hicolor/scalable/apps/com.github.AppManager.svg"
 )
 LIB_SEARCH_PATTERNS=(
   "lib/nautilus/extensions-4/libnautilus-app-manager.so"

@@ -1,6 +1,6 @@
 namespace AppManager.Core {
-    public const string APPLICATION_ID = "org.github.AppManager";
-    public const string ORGANIZATION = "org.github";
+    public const string APPLICATION_ID = "com.github.AppManager";
+    public const string ORGANIZATION = "com.github";
     public const string APPLICATION_NAME = "AppManager";
     public const string REGISTRY_FILENAME = "installations.json";
     public const string DATA_DIRNAME = "app-manager";

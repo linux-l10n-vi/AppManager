@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="org.github.AppManager" path="/org/github/AppManager/">
+  <schema id="com.github.AppManager" path="/com/github/AppManager/">
     <key name="default-install-mode" type="s">
       <default>'portable'</default>
       <summary>Preferred installation mode</summary>

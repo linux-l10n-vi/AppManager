@@ -15,7 +15,7 @@ install_data('app-manager.metainfo.xml',
   install_dir: join_paths(get_option('datadir'), 'metainfo')
 )
 
-gsettings_schemas = files('org.github.AppManager.gschema.xml')
+gsettings_schemas = files('com.github.AppManager.gschema.xml')
 schema_dir = join_paths(get_option('datadir'), 'glib-2.0', 'schemas')
 
 install_data(gsettings_schemas,
@@ -24,6 +24,6 @@ install_data(gsettings_schemas,
 
 meson.add_install_script(join_paths(meson.project_source_root(), 'meson', 'post_install.sh'), schema_dir)
 
-install_data('icons/org.github.AppManager.svg',
+install_data('icons/com.github.AppManager.svg',
   install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'apps')
 )

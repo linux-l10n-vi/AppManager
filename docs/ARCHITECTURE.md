@@ -19,7 +19,7 @@ AppManager is a Libadwaita + GTK4 Vala application that provides a rich, guided 
 
 3. **Data & Integration Assets (`data/`)**
    - `app-manager.desktop` registers the app as the default handler for the `application/x-iso9660-appimage` MIME type and exposes a regular launcher for opening preferences.
-   - `org.github.appmanager.gschema.xml` defines GSettings keys used by the app.
+   - `com.github.AppManager.gschema.xml` defines GSettings keys used by the app.
    - `app-manager.metainfo.xml`, icons, and Nautilus extension desktop hooks are also stored here.
 
 4. **Build System (Meson + Ninja)**

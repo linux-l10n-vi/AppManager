@@ -367,6 +367,18 @@ namespace AppManager.Core {
             } else {
                 desired = Path.build_filename(parent, slug + get_path_extension(current_path));
             }
+
+            if (desired == current_path) {
+                return current_path;
+            }
+
+            if (File.new_for_path(desired).query_exists()) {
+                var current_slug = derive_slug_from_path(current_path, is_extracted);
+                if (current_slug != slug) {
+                    return current_path;
+                }
+            }
+
             var final_target = Utils.FileUtils.unique_path(desired);
             if (final_target == current_path) {
                 return current_path;
