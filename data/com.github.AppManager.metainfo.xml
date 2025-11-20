@@ -9,7 +9,7 @@
   <description>
     <p>AppManager lets you install or uninstall AppImages with a familiar drag-and-drop workflow inspired by macOS. It handles desktop integration, icon extraction, executable bits, and Nautilus context menus.</p>
   </description>
-  <launchable type="desktop-id">app-manager.desktop</launchable>
+  <launchable type="desktop-id">com.github.AppManager.desktop</launchable>
   <url type="homepage">https://github.com/kem-a/AppManager</url>
   <provides>
     <binary>app-manager</binary>

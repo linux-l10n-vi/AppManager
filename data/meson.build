@@ -3,7 +3,7 @@ desktop_conf.set('bindir', join_paths(get_option('prefix'), get_option('bindir')
 
 desktop_file = configure_file(
   input: 'app-manager.desktop.in',
-  output: 'app-manager.desktop',
+  output: 'com.github.AppManager.desktop',
   configuration: desktop_conf
 )
 
@@ -11,7 +11,7 @@ install_data(desktop_file,
   install_dir: join_paths(get_option('datadir'), 'applications')
 )
 
-install_data('app-manager.metainfo.xml',
+install_data('com.github.AppManager.metainfo.xml',
   install_dir: join_paths(get_option('datadir'), 'metainfo')
 )
 

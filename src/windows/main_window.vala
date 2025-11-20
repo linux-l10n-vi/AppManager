@@ -270,11 +270,11 @@ namespace AppManager {
                 about_dialog.application_name = APPLICATION_NAME;
                 about_dialog.application_icon = APPLICATION_ID;
                 about_dialog.version = APPLICATION_VERSION;
-                about_dialog.developer_name = "Arnis";
-                about_dialog.website = "https://github.com/arnis/AppManager";
-                about_dialog.issue_url = "https://github.com/arnis/AppManager/issues";
+                about_dialog.developer_name = "Arnis Kemlers";
+                about_dialog.website = "https://github.com/kem-a/AppManager";
+                about_dialog.issue_url = "https://github.com/kem-a/AppManager/issues";
                 about_dialog.license_type = Gtk.License.GPL_3_0;
-                about_dialog.copyright = "© 2025 Arnis";
+                about_dialog.copyright = "© 2025 Arnis Kemlers";
             }
             about_dialog.present(this);
         }

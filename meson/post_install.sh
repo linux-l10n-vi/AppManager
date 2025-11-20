@@ -9,11 +9,11 @@ set -euo pipefail
 # - perform minimal, safe relocation when using --destdir with a home path
 
 APP_ID='app-manager'
-DESKTOP_ID='app-manager.desktop'
+DESKTOP_ID='com.github.AppManager.desktop'
 HOME_RELATIVE_FILES=(
   "bin/${APP_ID}"
   "share/applications/${DESKTOP_ID}"
-  "share/metainfo/app-manager.metainfo.xml"
+  "share/metainfo/com.github.AppManager.metainfo.xml"
   "share/glib-2.0/schemas/com.github.AppManager.gschema.xml"
   "share/icons/hicolor/scalable/apps/com.github.AppManager.svg"
 )
@@ -129,6 +129,14 @@ if command -v update-desktop-database >/dev/null 2>&1; then
   DB_DIR="${FINAL_ROOT%/}/share/applications"
   if [ -d "$DB_DIR" ]; then
     update-desktop-database "$DB_DIR" || true
+  fi
+fi
+
+# Update icon cache (best-effort)
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+  ICON_DIR="${FINAL_ROOT%/}/share/icons/hicolor"
+  if [ -d "$ICON_DIR" ]; then
+    gtk-update-icon-cache -f -t "$ICON_DIR" || true
   fi
 fi
 
