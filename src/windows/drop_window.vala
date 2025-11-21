@@ -235,7 +235,7 @@ namespace AppManager {
         private void notify_up_to_date(InstallationRecord record) {
             var installed_version = record.version ?? I18n.tr("Unknown version");
             var target_version = resolved_app_version ?? installed_version;
-            var title = I18n.tr("%s is up to date").printf(record.name);
+            var title = I18n.tr("App is up to date");
             
             var image = new Gtk.Image();
             image.set_pixel_size(64);
@@ -249,8 +249,13 @@ namespace AppManager {
 
             var dialog = new DialogWindow(app_ref, this, title, image);
             
-            var body_markup = GLib.Markup.escape_text(I18n.tr("Installed version %s is newer or the same as %s.").printf(installed_version, target_version), -1);
-            dialog.append_body(create_wrapped_label(body_markup, true));
+            var app_name_markup = "<b>%s</b>".printf(GLib.Markup.escape_text(record.name, -1));
+            dialog.append_body(create_wrapped_label(app_name_markup, true));
+            
+            var version_label = create_wrapped_label(I18n.tr("Installed version %s is newer or the same as %s.").printf(installed_version, target_version), false);
+            version_label.add_css_class("dim-label");
+            dialog.append_body(version_label);
+            
             dialog.add_option("close", I18n.tr("Close"));
             dialog.present();
         }
@@ -333,24 +338,12 @@ namespace AppManager {
 
         private Gtk.Widget build_upgrade_dialog_content(InstallationRecord record) {
             var column = new Gtk.Box(Gtk.Orientation.VERTICAL, 10);
-            column.margin_top = 16;
+            column.margin_top = 0;
             column.margin_bottom = 8;
             column.margin_start = 12;
             column.margin_end = 12;
             column.halign = Gtk.Align.FILL;
             column.hexpand = true;
-
-            var image = new Gtk.Image();
-            image.set_pixel_size(64);
-            image.halign = Gtk.Align.CENTER;
-            image.valign = Gtk.Align.START;
-            var record_icon = load_record_icon(record);
-            if (record_icon != null) {
-                image.set_from_paintable(record_icon);
-            } else {
-                image.set_from_icon_name("application-x-executable");
-            }
-            column.append(image);
 
             var name_label = new Gtk.Label(null);
             name_label.use_markup = true;
@@ -392,7 +385,7 @@ namespace AppManager {
 
             var dialog = new DialogWindow(app_ref, this, I18n.tr("Upgrade %s?").printf(record.name), image);
             dialog.append_body(build_upgrade_dialog_content(record));
-            dialog.add_option("upgrade", I18n.tr("Upgrade"));
+            dialog.add_option("upgrade", I18n.tr("Upgrade"), true);
             dialog.add_option("cancel", I18n.tr("Cancel"));
 
             install_prompt_visible = true;
@@ -486,7 +479,7 @@ namespace AppManager {
             set_drag_spinner_install_active(false);
             cleanup_staging_dir(staging_dir);
             remove_source_appimage();
-            var title = upgraded ? I18n.tr("Upgraded %s").printf(record.name) : I18n.tr("Installed %s").printf(record.name);
+            var title = upgraded ? I18n.tr("Successfully Upgraded") : I18n.tr("Successfully Installed");
             
             var image = new Gtk.Image();
             image.set_pixel_size(64);
@@ -499,9 +492,14 @@ namespace AppManager {
             }
 
             var dialog = new DialogWindow(app_ref, this, title, image);
+            var app_name_markup = "<b>%s</b>".printf(GLib.Markup.escape_text(record.name, -1));
+            dialog.append_body(create_wrapped_label(app_name_markup, true));
+            
             var version_text = record.version ?? I18n.tr("Unknown version");
-            var body_markup = GLib.Markup.escape_text(I18n.tr("Version %s").printf(version_text), -1);
-            dialog.append_body(create_wrapped_label(body_markup, true));
+            var version_label = create_wrapped_label(I18n.tr("Version %s").printf(version_text), false);
+            version_label.add_css_class("dim-label");
+            dialog.append_body(version_label);
+            
             dialog.add_option("done", I18n.tr("Done"));
             dialog.option_selected.connect((response) => {
                 this.close();
