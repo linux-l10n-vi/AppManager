@@ -20,6 +20,7 @@ core_sources = files(
   'src/core/installation_record.vala',
   'src/core/installation_registry.vala',
   'src/core/app_image_metadata.vala',
+  'src/core/app_image_assets.vala',
   'src/core/installer.vala',
   'src/core/i18n.vala',
   'src/utils/file_utils.vala'

@@ -713,8 +713,7 @@ namespace AppManager {
         private Gdk.Paintable? extract_icon_from_appimage(string path) throws Error {
             var temp_dir = Utils.FileUtils.create_temp_dir("appmgr-icon-");
             try {
-                run_7z({"x", path, "-o" + temp_dir, "-y"});
-                var icon_path = find_icon(temp_dir);
+                var icon_path = AppImageAssets.extract_icon(path, temp_dir);
                 if (icon_path != null) {
                     return Gdk.Texture.from_file(File.new_for_path(icon_path));
                 }
@@ -738,8 +737,7 @@ namespace AppManager {
                 return resolved;
             }
             try {
-                run_7z({"x", appimage_path, "-o" + temp_dir, "*.desktop", "-r", "-y"});
-                var desktop_file = find_desktop_file(temp_dir);
+                var desktop_file = AppImageAssets.extract_desktop_entry(appimage_path, temp_dir);
                 if (desktop_file != null) {
                     var key_file = new KeyFile();
                     key_file.load_from_file(desktop_file, KeyFileFlags.NONE);
@@ -766,66 +764,6 @@ namespace AppManager {
             return resolved;
         }
 
-        private string? find_desktop_file(string directory) {
-            GLib.Dir dir;
-            try {
-                dir = GLib.Dir.open(directory);
-            } catch (Error e) {
-                return null;
-            }
-            string? name;
-            while ((name = dir.read_name()) != null) {
-                var path = Path.build_filename(directory, name);
-                if (GLib.FileUtils.test(path, FileTest.IS_DIR)) {
-                    var child = find_desktop_file(path);
-                    if (child != null) {
-                        return child;
-                    }
-                } else if (name.has_suffix(".desktop")) {
-                    return path;
-                }
-            }
-            return null;
-        }
-
-        private string? find_icon(string directory) {
-            GLib.Dir dir;
-            try {
-                dir = GLib.Dir.open(directory);
-            } catch (Error e) {
-                warning("Failed to open %s: %s", directory, e.message);
-                return null;
-            }
-            string? name;
-            string? best = null;
-            while ((name = dir.read_name()) != null) {
-                var path = Path.build_filename(directory, name);
-                if (GLib.FileUtils.test(path, FileTest.IS_DIR)) {
-                    var child = find_icon(path);
-                    if (child != null) {
-                        return child;
-                    }
-                } else if (name.has_suffix(".png") || name.has_suffix(".svg")) {
-                    best = path;
-                }
-            }
-            return best;
-        }
-
-        private void run_7z(string[] args) throws Error {
-            var cmd = new string[1 + args.length];
-            cmd[0] = "7z";
-            for (int i = 0; i < args.length; i++) {
-                cmd[i + 1] = args[i];
-            }
-            string? stdout_str;
-            string? stderr_str;
-            int status;
-            Process.spawn_sync(null, cmd, null, SpawnFlags.SEARCH_PATH, null, out stdout_str, out stderr_str, out status);
-            if (status != 0) {
-                throw new InstallerError.SEVEN_ZIP_MISSING("7z extraction failed");
-            }
-        }
 
         private InstallMode determine_install_mode() {
             var stored_mode = settings.get_string("default-install-mode");

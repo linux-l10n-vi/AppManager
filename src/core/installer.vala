@@ -98,12 +98,16 @@ namespace AppManager.Core {
             progress("Extracting desktop entry…");
             var temp_dir = Utils.FileUtils.create_temp_dir("appmgr-");
             try {
-                run_7z({"x", assets_path, "-o" + temp_dir, "-y"});
-                var desktop_path = find_desktop_entry(temp_dir);
+                var desktop_path = AppImageAssets.extract_desktop_entry(assets_path, temp_dir);
                 if (desktop_path == null) {
                     throw new InstallerError.DESKTOP_MISSING("The AppImage does not contain a .desktop file");
                 }
-                var icon_path = find_icon(temp_dir);
+                string? icon_path = null;
+                try {
+                    icon_path = AppImageAssets.extract_icon(assets_path, temp_dir);
+                } catch (Error e) {
+                    warning("Failed to resolve .DirIcon payload: %s", e.message);
+                }
                 string desktop_name = metadata.display_name;
                 string? desktop_version = null;
                 bool is_terminal_app = false;
@@ -239,54 +243,6 @@ namespace AppManager.Core {
             } catch (Error e) {
                 warning("Failed to cleanup after installation error: %s", e.message);
             }
-        }
-
-        private string? find_desktop_entry(string directory) {
-            string? found = null;
-            GLib.Dir dir;
-            try {
-                dir = GLib.Dir.open(directory);
-            } catch (Error e) {
-                warning("Failed to open directory %s: %s", directory, e.message);
-                return null;
-            }
-            string? name;
-            while ((name = dir.read_name()) != null) {
-                var path = Path.build_filename(directory, name);
-                if (GLib.FileUtils.test(path, GLib.FileTest.IS_DIR)) {
-                    found = find_desktop_entry(path);
-                    if (found != null) {
-                        break;
-                    }
-                } else if (name.has_suffix(".desktop")) {
-                    return path;
-                }
-            }
-            return found;
-        }
-
-        private string? find_icon(string directory) {
-            string? candidate = null;
-            try {
-                var dir = GLib.Dir.open(directory);
-                string? name;
-                while ((name = dir.read_name()) != null) {
-                var path = Path.build_filename(directory, name);
-                if (GLib.FileUtils.test(path, GLib.FileTest.IS_DIR)) {
-                    var child = find_icon(path);
-                    if (child != null) {
-                        return child;
-                    }
-                } else if (name.has_suffix(".png") || name.has_suffix(".svg")) {
-                    if (candidate == null || name.contains("256") || name.contains("512")) {
-                        candidate = path;
-                    }
-                }
-            }
-            } catch (Error e) {
-                warning("Failed to enumerate %s: %s", directory, e.message);
-            }
-            return candidate;
         }
 
         private string rewrite_desktop(string desktop_path, string exec_target, string icon_target, string installed_path, bool is_terminal) throws Error {
