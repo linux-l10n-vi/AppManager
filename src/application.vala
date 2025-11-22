@@ -181,7 +181,34 @@ namespace AppManager {
 
         private void present_uninstall_notification(InstallationRecord record) {
             Gtk.Window? parent = main_window;
-            UninstallNotification.present(this, parent, record);
+            bool needs_hold = parent == null;
+            if (needs_hold) {
+                this.hold();
+            }
+
+            var dialog = UninstallNotification.present(this, parent, record);
+
+            if (!needs_hold) {
+                return;
+            }
+
+            bool released = false;
+            void release_once() {
+                if (!released) {
+                    released = true;
+                    this.release();
+                }
+            }
+
+            dialog.close_request.connect(() => {
+                release_once();
+                return false;
+            });
+            dialog.notify["visible"].connect(() => {
+                if (!dialog.get_visible()) {
+                    release_once();
+                }
+            });
         }
     }
 }
