@@ -135,6 +135,7 @@ namespace AppManager {
                         return 3;
                     }
                     installer.uninstall(record);
+                    present_uninstall_notification(record);
                     command_line.print("Removed %s\n", record.name);
                     return 0;
                 } catch (Error e) {
@@ -176,6 +177,11 @@ namespace AppManager {
                 warning("Failed to compute checksum for %s: %s", target, e.message);
             }
             return null;
+        }
+
+        private void present_uninstall_notification(InstallationRecord record) {
+            Gtk.Window? parent = main_window;
+            UninstallNotification.present(this, parent, record);
         }
     }
 }

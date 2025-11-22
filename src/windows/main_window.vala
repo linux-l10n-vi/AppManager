@@ -5,6 +5,7 @@ extern Adw.Dialog about_dialog_new_from_appdata_raw(string resource_path, string
 
 namespace AppManager {
     public class MainWindow : Adw.PreferencesWindow {
+        private Application app_ref;
         private InstallationRegistry registry;
         private Installer installer;
         private Settings settings;
@@ -19,6 +20,7 @@ namespace AppManager {
         public MainWindow(Application app, InstallationRegistry registry, Installer installer, Settings settings) {
             Object(application: app,
                 title: I18n.tr("AppManager"));
+            this.app_ref = app;
             this.registry = registry;
             this.installer = installer;
             this.settings = settings;
@@ -243,6 +245,7 @@ namespace AppManager {
                     installer.uninstall(record);
                     Idle.add(() => {
                         refresh_installations();
+                        present_uninstall_notification(record);
                         return GLib.Source.REMOVE;
                     });
                 } catch (Error e) {
@@ -259,6 +262,13 @@ namespace AppManager {
                     });
                 }
             });
+        }
+
+        private void present_uninstall_notification(InstallationRecord record) {
+            if (app_ref == null) {
+                return;
+            }
+            UninstallNotification.present(app_ref, this, record);
         }
     }
 }

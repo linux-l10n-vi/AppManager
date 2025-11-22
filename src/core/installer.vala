@@ -76,9 +76,29 @@ namespace AppManager.Core {
         private void install_extracted(AppImageMetadata metadata, InstallationRecord record) throws Error {
             progress("Extracting AppImage…");
             var base_name = metadata.sanitized_basename();
+            DirUtils.create_with_parents(AppPaths.extracted_root, 0755);
             var dest_dir = Utils.FileUtils.unique_path(Path.build_filename(AppPaths.extracted_root, base_name));
-            DirUtils.create_with_parents(dest_dir, 0755);
-            run_7z({"x", metadata.path, "-o" + dest_dir, "-y"});
+            string staging_dir = "";
+            try {
+                var staging_template = Path.build_filename(AppPaths.extracted_root, "%s-extract-XXXXXX".printf(base_name));
+                staging_dir = DirUtils.mkdtemp(staging_template);
+                run_appimage_extract(metadata.path, staging_dir);
+                var extracted_root = Path.build_filename(staging_dir, "squashfs-root");
+                var extracted_file = File.new_for_path(extracted_root);
+                if (!extracted_file.query_exists() || extracted_file.query_file_type(FileQueryInfoFlags.NONE) != FileType.DIRECTORY) {
+                    throw new InstallerError.EXTRACTION_FAILED("AppImage extraction did not produce squashfs-root");
+                }
+                extracted_file.move(File.new_for_path(dest_dir), FileCopyFlags.NONE, null, null);
+            } catch (Error e) {
+                Utils.FileUtils.remove_dir_recursive(dest_dir);
+                if (staging_dir != "") {
+                    Utils.FileUtils.remove_dir_recursive(staging_dir);
+                }
+                throw e;
+            }
+            if (staging_dir != "") {
+                Utils.FileUtils.remove_dir_recursive(staging_dir);
+            }
             var dest_appimage = Path.build_filename(dest_dir, metadata.basename);
             metadata.file.copy(File.new_for_path(dest_appimage), FileCopyFlags.OVERWRITE, null, null);
             var app_run = Path.build_filename(dest_dir, "AppRun");
@@ -492,9 +512,33 @@ namespace AppManager.Core {
             int exit_status;
             Process.spawn_sync(null, cmd, null, SpawnFlags.SEARCH_PATH, null, out stdout_str, out stderr_str, out exit_status);
             if (exit_status != 0) {
+                int symlink_warnings = 0;
+                if (Installer.is_symlink_warning_only(stderr_str, out symlink_warnings)) {
+                    warning("7z ignored %d dangerous symlink(s) while extracting", symlink_warnings);
+                    if (stdout_str != null && stdout_str.strip() != "") {
+                        debug("7z stdout (symlink warning): %s", stdout_str);
+                    }
+                    return;
+                }
                 warning("7z stdout: %s", stdout_str ?? "");
                 warning("7z stderr: %s", stderr_str ?? "");
                 throw new InstallerError.EXTRACTION_FAILED("7z failed to extract payload");
+            }
+        }
+
+        private void run_appimage_extract(string appimage_path, string working_dir) throws Error {
+            ensure_executable(appimage_path);
+            var cmd = new string[2];
+            cmd[0] = appimage_path;
+            cmd[1] = "--appimage-extract";
+            string? stdout_str;
+            string? stderr_str;
+            int exit_status;
+            Process.spawn_sync(working_dir, cmd, null, 0, null, out stdout_str, out stderr_str, out exit_status);
+            if (exit_status != 0) {
+                warning("AppImage extract stdout: %s", stdout_str ?? "");
+                warning("AppImage extract stderr: %s", stderr_str ?? "");
+                throw new InstallerError.EXTRACTION_FAILED("AppImage self-extract failed");
             }
         }
 
@@ -519,6 +563,29 @@ namespace AppManager.Core {
                 warning("Failed to create symlink for %s: %s", slug, e.message);
                 return null;
             }
+        }
+
+        internal static bool is_symlink_warning_only(string? stderr_str, out int warning_count) {
+            warning_count = 0;
+            if (stderr_str == null || stderr_str.strip() == "") {
+                return false;
+            }
+
+            foreach (var raw_line in stderr_str.split("\n")) {
+                var line = raw_line.strip();
+                if (line == "") {
+                    continue;
+                }
+                if (line.index_of("Dangerous symbolic link path was ignored") >= 0 ||
+                    line.index_of("Dangerous link path was ignored") >= 0) {
+                    warning_count++;
+                    continue;
+                }
+
+                return false;
+            }
+
+            return warning_count > 0;
         }
 
         private void migrate_uninstall_execs() {

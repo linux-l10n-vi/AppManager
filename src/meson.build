@@ -3,7 +3,8 @@ app_sources = files(
   'application.vala',
   'windows/dialog_window.vala',
   'windows/main_window.vala',
-  'windows/drop_window.vala'
+  'windows/drop_window.vala',
+  'windows/uninstall_notification.vala'
 )
 
 app_resources = gnome.compile_resources('app-manager-resources',

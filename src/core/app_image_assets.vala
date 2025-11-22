@@ -99,6 +99,14 @@ namespace AppManager.Core {
             string? stderr_str;
             int exit_status = execute_7z(arguments, out stdout_str, out stderr_str);
             if (exit_status != 0) {
+                int symlink_warnings = 0;
+                if (Installer.is_symlink_warning_only(stderr_str, out symlink_warnings)) {
+                    warning("7z ignored %d dangerous symlink(s) while extracting assets", symlink_warnings);
+                    if (stdout_str != null && stdout_str.strip() != "") {
+                        debug("7z stdout (symlink warning): %s", stdout_str);
+                    }
+                    return;
+                }
                 warning("7z stdout: %s", stdout_str ?? "");
                 warning("7z stderr: %s", stderr_str ?? "");
                 throw new InstallerError.EXTRACTION_FAILED("7z failed to extract payload");
@@ -110,6 +118,11 @@ namespace AppManager.Core {
             string? stderr_str;
             int exit_status = execute_7z(arguments, out stdout_str, out stderr_str);
             if (exit_status != 0) {
+                int symlink_warnings = 0;
+                if (Installer.is_symlink_warning_only(stderr_str, out symlink_warnings)) {
+                    warning("7z ignored %d dangerous symlink(s) while performing optional extraction", symlink_warnings);
+                    return true;
+                }
                 debug("Optional 7z extraction failed with status %d: %s", exit_status, string.joinv(" ", arguments));
                 return false;
             }
