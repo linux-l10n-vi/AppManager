@@ -501,31 +501,6 @@ namespace AppManager.Core {
             return null;
         }
 
-        private void run_7z(string[] arguments) throws Error {
-            var cmd = new string[1 + arguments.length];
-            cmd[0] = "7z";
-            for (int i = 0; i < arguments.length; i++) {
-                cmd[i + 1] = arguments[i];
-            }
-            string? stdout_str;
-            string? stderr_str;
-            int exit_status;
-            Process.spawn_sync(null, cmd, null, SpawnFlags.SEARCH_PATH, null, out stdout_str, out stderr_str, out exit_status);
-            if (exit_status != 0) {
-                int symlink_warnings = 0;
-                if (Installer.is_symlink_warning_only(stderr_str, out symlink_warnings)) {
-                    warning("7z ignored %d dangerous symlink(s) while extracting", symlink_warnings);
-                    if (stdout_str != null && stdout_str.strip() != "") {
-                        debug("7z stdout (symlink warning): %s", stdout_str);
-                    }
-                    return;
-                }
-                warning("7z stdout: %s", stdout_str ?? "");
-                warning("7z stderr: %s", stderr_str ?? "");
-                throw new InstallerError.EXTRACTION_FAILED("7z failed to extract payload");
-            }
-        }
-
         private void run_appimage_extract(string appimage_path, string working_dir) throws Error {
             ensure_executable(appimage_path);
             var cmd = new string[2];
@@ -563,29 +538,6 @@ namespace AppManager.Core {
                 warning("Failed to create symlink for %s: %s", slug, e.message);
                 return null;
             }
-        }
-
-        internal static bool is_symlink_warning_only(string? stderr_str, out int warning_count) {
-            warning_count = 0;
-            if (stderr_str == null || stderr_str.strip() == "") {
-                return false;
-            }
-
-            foreach (var raw_line in stderr_str.split("\n")) {
-                var line = raw_line.strip();
-                if (line == "") {
-                    continue;
-                }
-                if (line.index_of("Dangerous symbolic link path was ignored") >= 0 ||
-                    line.index_of("Dangerous link path was ignored") >= 0) {
-                    warning_count++;
-                    continue;
-                }
-
-                return false;
-            }
-
-            return warning_count > 0;
         }
 
         private void migrate_uninstall_execs() {
