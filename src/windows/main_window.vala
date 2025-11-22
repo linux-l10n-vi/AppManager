@@ -58,6 +58,7 @@ namespace AppManager {
             this.registry = registry;
             this.installer = installer;
             this.settings = settings;
+            add_css_class("devel");
             this.set_default_size(settings.get_int("window-width"), settings.get_int("window-height"));
             build_ui();
             this.map.connect(() => {

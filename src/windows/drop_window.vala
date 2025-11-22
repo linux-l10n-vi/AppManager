@@ -54,6 +54,7 @@ namespace AppManager {
 
         private void build_ui() {
             title = I18n.tr("AppImage Installer");
+            add_css_class("devel");
 
             var toolbar_view = new Adw.ToolbarView();
             content = toolbar_view;
