@@ -119,15 +119,7 @@ namespace AppManager.Core {
             var temp_dir = Utils.FileUtils.create_temp_dir("appmgr-");
             try {
                 var desktop_path = AppImageAssets.extract_desktop_entry(assets_path, temp_dir);
-                if (desktop_path == null) {
-                    throw new InstallerError.DESKTOP_MISSING("The AppImage does not contain a .desktop file");
-                }
-                string? icon_path = null;
-                try {
-                    icon_path = AppImageAssets.extract_icon(assets_path, temp_dir);
-                } catch (Error e) {
-                    warning("Failed to resolve .DirIcon payload: %s", e.message);
-                }
+                var icon_path = AppImageAssets.extract_icon(assets_path, temp_dir);
                 string desktop_name = metadata.display_name;
                 string? desktop_version = null;
                 bool is_terminal_app = false;
@@ -172,21 +164,19 @@ namespace AppManager.Core {
                 }
 
                 var final_slug = derive_slug_from_path(record.installed_path, record.mode == InstallMode.EXTRACTED);
-                string? stored_icon = null;
-                string icon_for_desktop = "";
-                if (icon_path != null) {
-                    if (settings.get_boolean("use-system-icons")) {
-                        var base_name = Path.get_basename(icon_path);
-                        var dot_index = base_name.last_index_of_char('.');
-                        var extension = dot_index >= 0 ? base_name.substring(dot_index) : ".png";
-                        stored_icon = Path.build_filename(AppPaths.icons_dir, "%s%s".printf(final_slug, extension));
-                        Utils.FileUtils.file_copy(icon_path, stored_icon);
-                        icon_for_desktop = final_slug;
-                    } else {
-                        stored_icon = Path.build_filename(AppPaths.data_dir, "%s-%s".printf(final_slug, Path.get_basename(icon_path)));
-                        Utils.FileUtils.file_copy(icon_path, stored_icon);
-                        icon_for_desktop = stored_icon;
-                    }
+                string stored_icon;
+                string icon_for_desktop;
+                if (settings.get_boolean("use-system-icons")) {
+                    var base_name = Path.get_basename(icon_path);
+                    var dot_index = base_name.last_index_of_char('.');
+                    var extension = dot_index >= 0 ? base_name.substring(dot_index) : ".png";
+                    stored_icon = Path.build_filename(AppPaths.icons_dir, "%s%s".printf(final_slug, extension));
+                    Utils.FileUtils.file_copy(icon_path, stored_icon);
+                    icon_for_desktop = final_slug;
+                } else {
+                    stored_icon = Path.build_filename(AppPaths.data_dir, "%s-%s".printf(final_slug, Path.get_basename(icon_path)));
+                    Utils.FileUtils.file_copy(icon_path, stored_icon);
+                    icon_for_desktop = stored_icon;
                 }
                 var desktop_contents = rewrite_desktop(desktop_path, exec_path, icon_for_desktop, record.installed_path, is_terminal_app);
                 var desktop_filename = "%s-%s.desktop".printf("appmanager", final_slug);
@@ -270,75 +260,131 @@ namespace AppManager.Core {
             if (!GLib.FileUtils.get_contents(desktop_path, out contents)) {
                 throw new InstallerError.DESKTOP_MISSING("Failed to read desktop file");
             }
-            var output = new StringBuilder();
-            bool actions_line_found = false;
-            bool uninstall_listed = false;
+
+            var output_lines = new Gee.ArrayList<string>();
+            bool actions_handled = false;
+            bool no_display_handled = false;
             bool skipping_uninstall_block = false;
-            bool no_display_found = false;
+            bool in_desktop_entry = false;
+
             foreach (var line in contents.split("\n")) {
                 var trimmed = line.strip();
-                if (skipping_uninstall_block) {
-                    if (trimmed.has_prefix("[")) {
-                        skipping_uninstall_block = false;
-                    } else {
+
+                // Handle section headers
+                if (trimmed.has_prefix("[") && trimmed.has_suffix("]")) {
+                    if (trimmed == "[Desktop Action Uninstall]") {
+                        skipping_uninstall_block = true;
+                        in_desktop_entry = false;
                         continue;
                     }
-                }
-                if (trimmed == "[Desktop Action Uninstall]") {
-                    skipping_uninstall_block = true;
+                    skipping_uninstall_block = false;
+                    in_desktop_entry = trimmed == "[Desktop Entry]";
+                    output_lines.add(line);
                     continue;
                 }
 
+                // Skip existing uninstall action block
+                if (skipping_uninstall_block) {
+                    continue;
+                }
+
+                // Pass through non-Desktop Entry sections unchanged
+                if (!in_desktop_entry) {
+                    output_lines.add(line);
+                    continue;
+                }
+                // Replace Exec in Desktop Entry section
                 if (trimmed.has_prefix("Exec=")) {
-                    output.append("Exec=%s\n".printf(exec_target));
-                } else if (trimmed.has_prefix("Icon=") && icon_target != "") {
-                    output.append("Icon=%s\n".printf(icon_target));
-                } else if (trimmed.has_prefix("NoDisplay=")) {
-                    no_display_found = true;
+                    output_lines.add("Exec=%s".printf(exec_target));
+                    continue;
+                }
+
+                // Replace Icon in Desktop Entry section
+                if (trimmed.has_prefix("Icon=")) {
+                    output_lines.add("Icon=%s".printf(icon_target));
+                    continue;
+                }
+
+                // Handle NoDisplay for terminal apps
+                if (trimmed.has_prefix("NoDisplay=")) {
+                    no_display_handled = true;
                     if (is_terminal) {
-                        output.append("NoDisplay=true\n");
+                        output_lines.add("NoDisplay=true");
                     } else {
-                        output.append(line + "\n");
+                        output_lines.add(line);
                     }
-                } else if (trimmed.has_prefix("Actions=")) {
-                    actions_line_found = true;
+                    continue;
+                }
+
+                if (trimmed.has_prefix("Actions=")) {
+                    actions_handled = true;
                     var value = trimmed.substring("Actions=".length);
-                    var parts = value.split(";");
-                    var cleaned_actions = new Gee.ArrayList<string>();
-                    foreach (var part in parts) {
+                    var actions = new Gee.ArrayList<string>();
+                    foreach (var part in value.split(";")) {
                         var action = part.strip();
-                        if (action == "") {
-                            continue;
+                        if (action != "" && action != "Uninstall") {
+                            actions.add(action);
                         }
-                        if (action == "Uninstall") {
-                            uninstall_listed = true;
-                        }
-                        cleaned_actions.add(action);
                     }
-                    if (!uninstall_listed) {
-                        cleaned_actions.add("Uninstall");
-                        uninstall_listed = true;
+                    actions.add("Uninstall");
+                    output_lines.add("Actions=%s;".printf(string.joinv(";", actions.to_array())));
+                    continue;
+                }
+
+                // Keep all other lines unchanged
+                output_lines.add(line);
+            }
+
+            // Add Actions line if not present
+            if (!actions_handled) {
+                // Find end of Desktop Entry section to insert Actions
+                int insert_pos = -1;
+                for (int i = 0; i < output_lines.size; i++) {
+                    var line = output_lines[i].strip();
+                    if (line == "[Desktop Entry]") {
+                        insert_pos = i + 1;
+                    } else if (insert_pos > 0 && line.has_prefix("[") && line.has_suffix("]")) {
+                        break;
+                    } else if (insert_pos > 0) {
+                        insert_pos = i + 1;
                     }
-                    var updated_actions = string.joinv(";", cleaned_actions.to_array());
-                    output.append("Actions=%s;\n".printf(updated_actions));
+                }
+                if (insert_pos > 0) {
+                    output_lines.insert(insert_pos, "Actions=Uninstall;");
                 } else {
-                    output.append(line + "\n");
+                    output_lines.add("Actions=Uninstall;");
                 }
             }
 
-            if (!actions_line_found) {
-                output.append("Actions=Uninstall;\n");
-            }
-            if (is_terminal && !no_display_found) {
-                output.append("NoDisplay=true\n");
+            // Add NoDisplay for terminal apps if not already set
+            if (is_terminal && !no_display_handled) {
+                int insert_pos = -1;
+                for (int i = 0; i < output_lines.size; i++) {
+                    var line = output_lines[i].strip();
+                    if (line == "[Desktop Entry]") {
+                        insert_pos = i + 1;
+                    } else if (insert_pos > 0 && line.has_prefix("[") && line.has_suffix("]")) {
+                        break;
+                    } else if (insert_pos > 0) {
+                        insert_pos = i + 1;
+                    }
+                }
+                if (insert_pos > 0) {
+                    output_lines.insert(insert_pos, "NoDisplay=true");
+                } else {
+                    output_lines.add("NoDisplay=true");
+                }
             }
 
+            // Add Uninstall action block
             var uninstall_exec = build_uninstall_exec(installed_path);
-            output.append("\n[Desktop Action Uninstall]\n");
-            output.append("Name=%s\n".printf(I18n.tr("Uninstall AppImage")));
-            output.append("Exec=%s\n".printf(uninstall_exec));
-            output.append("Icon=user-trash\n");
-            return output.str;
+            output_lines.add("");
+            output_lines.add("[Desktop Action Uninstall]");
+            output_lines.add("Name=%s".printf(I18n.tr("Uninstall AppImage")));
+            output_lines.add("Exec=%s".printf(uninstall_exec));
+            output_lines.add("Icon=user-trash");
+
+            return string.joinv("\n", output_lines.to_array()) + "\n";
         }
 
         private void ensure_executable(string path) {
