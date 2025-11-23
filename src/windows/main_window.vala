@@ -161,6 +161,15 @@ namespace AppManager {
             }
         }
 
+        private void open_url(string url) {
+            try {
+                var launcher = new Gtk.UriLauncher(url);
+                launcher.launch.begin(this, null);
+            } catch (Error e) {
+                warning("Failed to open URL %s: %s", url, e.message);
+            }
+        }
+
         private void align_group_header_box(Adw.PreferencesGroup group) {
             var outer_box = group.get_first_child();
             if (outer_box == null) {
@@ -432,6 +441,37 @@ namespace AppManager {
             });
             props_group.add(keywords_row);
             
+            // Web page address
+            var webpage_row = new Adw.EntryRow();
+            webpage_row.title = I18n.tr("Web page address");
+            webpage_row.text = desktop_props.get("X-AppImage-Homepage") ?? "";
+            webpage_row.changed.connect(() => {
+                update_desktop_file_property(record.desktop_file, "X-AppImage-Homepage", webpage_row.text);
+            });
+            
+            // Add open button for web page
+            var open_web_button = new Gtk.Button.from_icon_name("web-browser-symbolic");
+            open_web_button.add_css_class("flat");
+            open_web_button.set_valign(Gtk.Align.CENTER);
+            open_web_button.tooltip_text = I18n.tr("Open web page");
+            open_web_button.clicked.connect(() => {
+                var url = webpage_row.text.strip();
+                if (url.length > 0) {
+                    open_url(url);
+                }
+            });
+            webpage_row.add_suffix(open_web_button);
+            props_group.add(webpage_row);
+            
+            // Update address (placeholder for future use)
+            var update_row = new Adw.EntryRow();
+            update_row.title = I18n.tr("Update address");
+            update_row.text = desktop_props.get("X-AppImage-UpdateURL") ?? "";
+            update_row.changed.connect(() => {
+                update_desktop_file_property(record.desktop_file, "X-AppImage-UpdateURL", update_row.text);
+            });
+            props_group.add(update_row);
+            
             // Terminal app toggle
             var terminal_row = new Adw.SwitchRow();
             terminal_row.title = I18n.tr("Terminal app");
@@ -491,7 +531,7 @@ namespace AppManager {
                 var keyfile = new KeyFile();
                 keyfile.load_from_file(desktop_file_path, KeyFileFlags.NONE);
                 
-                string[] keys = {"Exec", "Icon", "X-AppImage-Version", "StartupWMClass", "Keywords", "Terminal", "NoDisplay"};
+                string[] keys = {"Exec", "Icon", "X-AppImage-Version", "StartupWMClass", "Keywords", "X-AppImage-Homepage", "X-AppImage-UpdateURL", "Terminal", "NoDisplay"};
                 foreach (var key in keys) {
                     try {
                         var value = keyfile.get_string("Desktop Entry", key);
