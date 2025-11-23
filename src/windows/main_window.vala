@@ -4,7 +4,7 @@ using AppManager.Core;
 extern Adw.Dialog about_dialog_new_from_appdata_raw(string resource_path, string? release_notes_version);
 
 namespace AppManager {
-    public class MainWindow : Adw.PreferencesWindow {
+    public class MainWindow : Adw.Window {
         private Application app_ref;
         private InstallationRegistry registry;
         private Installer installer;
@@ -14,13 +14,13 @@ namespace AppManager {
         private Adw.PreferencesPage general_page;
         private Gtk.ShortcutsWindow? shortcuts_window;
         private Adw.AboutDialog? about_dialog;
-        private Gtk.MenuButton? header_menu_button;
+        private Adw.NavigationView navigation_view;
         private const string SHORTCUTS_RESOURCE = "/com/github/AppManager/ui/main-window-shortcuts.ui";
         private const string APPDATA_RESOURCE = "/com/github/AppManager/com.github.AppManager.metainfo.xml";
 
         public MainWindow(Application app, InstallationRegistry registry, Installer installer, Settings settings) {
-            Object(application: app,
-                title: I18n.tr("AppManager"));
+            Object(application: app);
+            this.title = I18n.tr("AppManager");
             this.app_ref = app;
             this.registry = registry;
             this.installer = installer;
@@ -28,9 +28,6 @@ namespace AppManager {
             add_css_class("devel");
             this.set_default_size(settings.get_int("window-width"), settings.get_int("window-height"));
             build_ui();
-            this.map.connect(() => {
-                setup_header_menu();
-            });
             refresh_installations();
             registry.changed.connect(() => {
                 refresh_installations();
@@ -38,8 +35,16 @@ namespace AppManager {
         }
 
         private void build_ui() {
+            navigation_view = new Adw.NavigationView();
+            navigation_view.pop_on_escape = true;
+            this.set_content(navigation_view);
+
             general_page = new Adw.PreferencesPage();
-            add(general_page);
+            
+            var root_toolbar = create_toolbar_with_header(general_page, true);
+            var root_page = new Adw.NavigationPage(root_toolbar, "main");
+            root_page.title = I18n.tr("AppManager");
+            navigation_view.add(root_page);
 
             portable_group = new Adw.PreferencesGroup();
             portable_group.title = I18n.tr("Portable AppImages");
@@ -192,12 +197,14 @@ namespace AppManager {
                     }
                 }
 
-                var remove_button = new Gtk.Button.from_icon_name("user-trash-symbolic");
-                remove_button.tooltip_text = I18n.tr("Move to trash");
-                remove_button.add_css_class("destructive-action");
-                remove_button.set_valign(Gtk.Align.CENTER);
-                remove_button.clicked.connect(() => { uninstall_record(record); });
-                row.add_suffix(remove_button);
+                // Make row activatable to show detail page
+                row.activatable = true;
+                row.activated.connect(() => { show_detail_page(record); });
+
+                // Add navigation arrow
+                var arrow = new Gtk.Image.from_icon_name("go-next-symbolic");
+                arrow.add_css_class("dim-label");
+                row.add_suffix(arrow);
 
                 group.add(row);
             }
@@ -251,45 +258,28 @@ namespace AppManager {
             shortcuts_window.present();
         }
 
-        private void setup_header_menu() {
-            if (header_menu_button != null) {
-                return;
-            }
-
-            var header = find_header_bar(this);
-            if (header == null) {
-                warning("Failed to locate header bar for menu button");
-                return;
-            }
-
-            header_menu_button = new Gtk.MenuButton();
-            header_menu_button.set_icon_name("open-menu-symbolic");
-            header_menu_button.menu_model = build_menu_model();
-            header_menu_button.tooltip_text = I18n.tr("More actions");
-            header.pack_end(header_menu_button);
-        }
-
-        private Adw.HeaderBar? find_header_bar(Gtk.Widget widget) {
-            var header_bar = widget as Adw.HeaderBar;
-            if (header_bar != null) {
-                return header_bar;
-            }
-
-            for (var child = widget.get_first_child(); child != null; child = child.get_next_sibling()) {
-                var found = find_header_bar(child);
-                if (found != null) {
-                    return found;
-                }
-            }
-
-            return null;
-        }
-
         private GLib.MenuModel build_menu_model() {
             var menu = new GLib.Menu();
             menu.append(I18n.tr("Keyboard shortcuts"), "app.show_shortcuts");
             menu.append(I18n.tr("About AppManager"), "app.show_about");
             return menu;
+        }
+
+        private Adw.ToolbarView create_toolbar_with_header(Gtk.Widget content, bool include_menu_button) {
+            var toolbar = new Adw.ToolbarView();
+            var header = new Adw.HeaderBar();
+
+            if (include_menu_button) {
+                var menu_button = new Gtk.MenuButton();
+                menu_button.set_icon_name("open-menu-symbolic");
+                menu_button.menu_model = build_menu_model();
+                menu_button.tooltip_text = I18n.tr("More actions");
+                header.pack_end(menu_button);
+            }
+
+            toolbar.add_top_bar(header);
+            toolbar.set_content(content);
+            return toolbar;
         }
 
 
@@ -341,6 +331,199 @@ namespace AppManager {
                 about_dialog.version = APPLICATION_VERSION;
             }
             about_dialog.present(this);
+        }
+
+        private void show_detail_page(InstallationRecord record) {
+            var detail_page = new Adw.PreferencesPage();
+            
+            // Header group with icon, name, and version
+            var header_group = new Adw.PreferencesGroup();
+            
+            var header_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+            header_box.set_halign(Gtk.Align.CENTER);
+            header_box.set_margin_top(24);
+            header_box.set_margin_bottom(12);
+            
+            // App icon
+            if (record.icon_path != null && record.icon_path.strip() != "") {
+                var icon_image = load_app_icon(record.icon_path);
+                if (icon_image != null) {
+                    icon_image.set_pixel_size(128);
+                    header_box.append(icon_image);
+                }
+            }
+            
+            // App name
+            var name_label = new Gtk.Label(record.name);
+            name_label.add_css_class("title-1");
+            name_label.set_wrap(true);
+            name_label.set_wrap_mode(Pango.WrapMode.WORD_CHAR);
+            name_label.set_justify(Gtk.Justification.CENTER);
+            header_box.append(name_label);
+            
+            // App version
+            var version_label = new Gtk.Label(record.version ?? I18n.tr("Version unknown"));
+            version_label.add_css_class("dim-label");
+            header_box.append(version_label);
+            
+            var header_row = new Adw.PreferencesRow();
+            header_row.set_child(header_box);
+            header_group.add(header_row);
+            detail_page.add(header_group);
+            
+            // Properties group
+            var props_group = new Adw.PreferencesGroup();
+            props_group.title = I18n.tr("Properties");
+            
+            // Load desktop file properties
+            var desktop_props = load_desktop_file_properties(record.desktop_file);
+            
+            // Exec command
+            var exec_row = new Adw.EntryRow();
+            exec_row.title = I18n.tr("Command");
+            exec_row.text = desktop_props.get("Exec") ?? "";
+            exec_row.changed.connect(() => {
+                update_desktop_file_property(record.desktop_file, "Exec", exec_row.text);
+            });
+            props_group.add(exec_row);
+            
+            // Icon
+            var icon_row = new Adw.EntryRow();
+            icon_row.title = I18n.tr("Icon");
+            icon_row.text = desktop_props.get("Icon") ?? "";
+            icon_row.changed.connect(() => {
+                update_desktop_file_property(record.desktop_file, "Icon", icon_row.text);
+            });
+            props_group.add(icon_row);
+            
+            // Version
+            var version_row = new Adw.EntryRow();
+            version_row.title = I18n.tr("Version");
+            version_row.text = desktop_props.get("X-AppImage-Version") ?? "";
+            version_row.changed.connect(() => {
+                update_desktop_file_property(record.desktop_file, "X-AppImage-Version", version_row.text);
+                // Update the record version and re-register to save
+                record.version = version_row.text;
+                registry.register(record);
+            });
+            props_group.add(version_row);
+            
+            // StartupWMClass
+            var wmclass_row = new Adw.EntryRow();
+            wmclass_row.title = I18n.tr("Startup WM Class");
+            wmclass_row.text = desktop_props.get("StartupWMClass") ?? "";
+            wmclass_row.changed.connect(() => {
+                update_desktop_file_property(record.desktop_file, "StartupWMClass", wmclass_row.text);
+            });
+            props_group.add(wmclass_row);
+            
+            // Keywords
+            var keywords_row = new Adw.EntryRow();
+            keywords_row.title = I18n.tr("Keywords");
+            keywords_row.text = desktop_props.get("Keywords") ?? "";
+            keywords_row.changed.connect(() => {
+                update_desktop_file_property(record.desktop_file, "Keywords", keywords_row.text);
+            });
+            props_group.add(keywords_row);
+            
+            // Terminal app toggle
+            var terminal_row = new Adw.SwitchRow();
+            terminal_row.title = I18n.tr("Terminal app");
+            terminal_row.subtitle = I18n.tr("Run in terminal emulator");
+            var terminal_value = desktop_props.get("Terminal") ?? "false";
+            terminal_row.active = (terminal_value.down() == "true");
+            terminal_row.notify["active"].connect(() => {
+                update_desktop_file_property(record.desktop_file, "Terminal", terminal_row.active ? "true" : "false");
+            });
+            props_group.add(terminal_row);
+            
+            // NoDisplay toggle
+            var nodisplay_row = new Adw.SwitchRow();
+            nodisplay_row.title = I18n.tr("Hide from app drawer");
+            nodisplay_row.subtitle = I18n.tr("Don't show in application menu");
+            var nodisplay_value = desktop_props.get("NoDisplay") ?? "false";
+            nodisplay_row.active = (nodisplay_value.down() == "true");
+            nodisplay_row.notify["active"].connect(() => {
+                update_desktop_file_property(record.desktop_file, "NoDisplay", nodisplay_row.active ? "true" : "false");
+            });
+            props_group.add(nodisplay_row);
+            
+            detail_page.add(props_group);
+            
+            // Actions group
+            var actions_group = new Adw.PreferencesGroup();
+            actions_group.title = I18n.tr("Actions");
+            
+            var uninstall_row = new Adw.ActionRow();
+            uninstall_row.title = I18n.tr("Uninstall");
+            uninstall_row.subtitle = I18n.tr("Move this AppImage to trash");
+            uninstall_row.activatable = true;
+            uninstall_row.activated.connect(() => {
+                navigation_view.pop();
+                uninstall_record(record);
+            });
+            
+            var trash_icon = new Gtk.Image.from_icon_name("user-trash-symbolic");
+            trash_icon.add_css_class("error");
+            uninstall_row.add_prefix(trash_icon);
+            
+            actions_group.add(uninstall_row);
+            detail_page.add(actions_group);
+            
+            var detail_toolbar = create_toolbar_with_header(detail_page, false);
+            
+            var nav_page = new Adw.NavigationPage(detail_toolbar, record.id);
+            nav_page.title = record.name;
+            nav_page.can_pop = true;
+            navigation_view.push(nav_page);
+        }
+        
+        private HashTable<string, string> load_desktop_file_properties(string desktop_file_path) {
+            var props = new HashTable<string, string>(str_hash, str_equal);
+            
+            try {
+                var keyfile = new KeyFile();
+                keyfile.load_from_file(desktop_file_path, KeyFileFlags.NONE);
+                
+                string[] keys = {"Exec", "Icon", "X-AppImage-Version", "StartupWMClass", "Keywords", "Terminal", "NoDisplay"};
+                foreach (var key in keys) {
+                    try {
+                        var value = keyfile.get_string("Desktop Entry", key);
+                        props.set(key, value);
+                    } catch (Error e) {
+                        // Key doesn't exist, that's okay
+                    }
+                }
+            } catch (Error e) {
+                warning("Failed to load desktop file %s: %s", desktop_file_path, e.message);
+            }
+            
+            return props;
+        }
+        
+        private void update_desktop_file_property(string desktop_file_path, string key, string value) {
+            try {
+                var keyfile = new KeyFile();
+                keyfile.load_from_file(desktop_file_path, KeyFileFlags.KEEP_COMMENTS | KeyFileFlags.KEEP_TRANSLATIONS);
+                
+                if (value.strip() == "") {
+                    // Remove key if value is empty
+                    try {
+                        keyfile.remove_key("Desktop Entry", key);
+                    } catch (Error e) {
+                        // Key might not exist, that's fine
+                    }
+                } else {
+                    keyfile.set_string("Desktop Entry", key, value);
+                }
+                
+                // Save the file
+                var data = keyfile.to_data();
+                FileUtils.set_contents(desktop_file_path, data);
+                debug("Updated desktop file property %s = %s", key, value);
+            } catch (Error e) {
+                warning("Failed to update desktop file %s: %s", desktop_file_path, e.message);
+            }
         }
 
         private void uninstall_record(InstallationRecord record) {
