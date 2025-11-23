@@ -128,6 +128,7 @@ namespace AppManager {
             group.title = null;
             group.description = null;
             group.set_header_suffix(header_container);
+            align_group_header_box(group);
         }
 
         private string format_display_path(string path) {
@@ -152,6 +153,21 @@ namespace AppManager {
                 launcher.launch.begin(this, null);
             } catch (Error e) {
                 warning("Failed to open folder %s: %s", path, e.message);
+            }
+        }
+
+        private void align_group_header_box(Adw.PreferencesGroup group) {
+            var outer_box = group.get_first_child();
+            if (outer_box == null) {
+                return;
+            }
+
+            for (var child = outer_box.get_first_child(); child != null; child = child.get_next_sibling()) {
+                if (child.has_css_class("header")) {
+                    child.set_halign(Gtk.Align.START);
+                    child.set_hexpand(false);
+                    return;
+                }
             }
         }
 
