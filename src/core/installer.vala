@@ -84,6 +84,46 @@ namespace AppManager.Core {
             finalize_desktop_and_icon(record, metadata, dest_path, dest_path, preserved_props);
         }
 
+        private string? parse_bin_from_apprun(string apprun_path) {
+            try {
+                string contents;
+                if (!GLib.FileUtils.get_contents(apprun_path, out contents)) {
+                    return null;
+                }
+                
+                // Search for BIN= line in AppRun
+                foreach (var line in contents.split("\n")) {
+                    var trimmed = line.strip();
+                    if (trimmed.has_prefix("BIN=")) {
+                        // Extract the value: BIN="$APPDIR/curseforge" -> curseforge
+                        var value = trimmed.substring("BIN=".length).strip();
+                        // Remove quotes
+                        if (value.has_prefix("\"") && value.has_suffix("\"")) {
+                            value = value.substring(1, value.length - 2);
+                        } else if (value.has_prefix("'") && value.has_suffix("'")) {
+                            value = value.substring(1, value.length - 2);
+                        }
+                        
+                        // Extract basename from path like "$APPDIR/curseforge" or "${APPDIR}/curseforge"
+                        if ("$APPDIR" in value || "${APPDIR}" in value) {
+                            // Remove $APPDIR/ or ${APPDIR}/
+                            value = value.replace("$APPDIR/", "").replace("${APPDIR}/", "");
+                            value = value.replace("$APPDIR", "").replace("${APPDIR}", "");
+                            // Clean up any leading slashes
+                            if (value.has_prefix("/")) {
+                                value = value.substring(1);
+                            }
+                        }
+                        
+                        return value.strip();
+                    }
+                }
+            } catch (Error e) {
+                warning("Failed to parse AppRun file: %s", e.message);
+            }
+            return null;
+        }
+
         private void install_extracted(AppImageMetadata metadata, InstallationRecord record, HashTable<string, string>? preserved_props) throws Error {
             progress("Extracting AppImage…");
             var base_name = metadata.sanitized_basename();
@@ -119,8 +159,40 @@ namespace AppManager.Core {
                 app_run = dest_appimage;
                 ensure_executable(app_run);
             }
+            
+            // Check if desktop file Exec points to AppRun, and if so, resolve the actual binary
+            string exec_target = app_run;
+            try {
+                var temp_dir = Utils.FileUtils.create_temp_dir("appmgr-desktop-check-");
+                try {
+                    var desktop_path = AppImageAssets.extract_desktop_entry(dest_appimage, temp_dir);
+                    var key_file = new KeyFile();
+                    key_file.load_from_file(desktop_path, KeyFileFlags.NONE);
+                    if (key_file.has_key("Desktop Entry", "Exec")) {
+                        var exec_value = key_file.get_string("Desktop Entry", "Exec");
+                        // Check if Exec contains AppRun (without path or with relative path)
+                        if ("AppRun" in exec_value && File.new_for_path(app_run).query_exists()) {
+                            // Try to parse BIN from AppRun
+                            var bin_name = parse_bin_from_apprun(app_run);
+                            if (bin_name != null && bin_name != "") {
+                                var bin_path = Path.build_filename(dest_dir, bin_name);
+                                if (File.new_for_path(bin_path).query_exists()) {
+                                    ensure_executable(bin_path);
+                                    exec_target = bin_path;
+                                    debug("Resolved exec from AppRun BIN=%s to %s", bin_name, exec_target);
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    Utils.FileUtils.remove_dir_recursive(temp_dir);
+                }
+            } catch (Error e) {
+                warning("Failed to check desktop Exec for AppRun resolution: %s", e.message);
+            }
+            
             record.installed_path = dest_dir;
-            finalize_desktop_and_icon(record, metadata, app_run, dest_appimage, preserved_props);
+            finalize_desktop_and_icon(record, metadata, exec_target, dest_appimage, preserved_props);
         }
 
         private void finalize_desktop_and_icon(InstallationRecord record, AppImageMetadata metadata, string exec_target, string appimage_for_assets, HashTable<string, string>? preserved_props) throws Error {
@@ -380,16 +452,11 @@ namespace AppManager.Core {
                 }
                 // Replace Exec in Desktop Entry section
                 if (trimmed.has_prefix("Exec=")) {
-                    // For PORTABLE mode: preserve command-line arguments from original desktop file
-                    // For EXTRACTED mode: drop arguments since we're running AppRun directly
-                    if (mode == InstallMode.PORTABLE) {
-                        var exec_value = trimmed.substring("Exec=".length).strip();
-                        var parts = exec_value.split(" ", 2);
-                        string args = (parts.length > 1) ? " " + parts[1] : "";
-                        output_lines.add("Exec=%s%s".printf(exec_target, args));
-                    } else {
-                        output_lines.add("Exec=%s".printf(exec_target));
-                    }
+                    // For both PORTABLE and EXTRACTED modes: preserve command-line arguments from original desktop file
+                    var exec_value = trimmed.substring("Exec=".length).strip();
+                    var parts = exec_value.split(" ", 2);
+                    string args = (parts.length > 1) ? " " + parts[1] : "";
+                    output_lines.add("Exec=%s%s".printf(exec_target, args));
                     continue;
                 }
 
