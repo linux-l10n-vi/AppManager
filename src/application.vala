@@ -134,8 +134,12 @@ namespace AppManager {
                         command_line.printerr("No installation matches %s\n", uninstall_target);
                         return 3;
                     }
+                    
+                    var icon = load_record_icon(record);
                     installer.uninstall(record);
-                    present_uninstall_notification(record);
+                    
+                    present_uninstall_notification(record, icon);
+
                     command_line.print("Removed %s\n", record.name);
                     return 0;
                 } catch (Error e) {
@@ -162,10 +166,15 @@ namespace AppManager {
 
         public void uninstall_record(InstallationRecord record, Gtk.Window? parent_window) {
             new Thread<void>("appmgr-uninstall", () => {
+                var icon = load_record_icon(record);
                 try {
                     installer.uninstall(record);
                     Idle.add(() => {
-                        present_uninstall_notification(record, parent_window);
+                        if (parent_window != null && parent_window is MainWindow) {
+                            ((MainWindow)parent_window).add_toast(I18n.tr("Moved to Trash"));
+                        } else {
+                            present_uninstall_notification(record, icon);
+                        }
                         return GLib.Source.REMOVE;
                     });
                 } catch (Error e) {
@@ -182,6 +191,21 @@ namespace AppManager {
                     });
                 }
             });
+        }
+
+        private Icon? load_record_icon(InstallationRecord record) {
+            if (record.icon_path != null && File.new_for_path(record.icon_path).query_exists()) {
+                try {
+                    var file = File.new_for_path(record.icon_path);
+                    uint8[] contents;
+                    if (file.load_contents(null, out contents, null)) {
+                        return new BytesIcon(new Bytes(contents));
+                    }
+                } catch (Error e) {
+                    warning("Failed to load icon for notification: %s", e.message);
+                }
+            }
+            return null;
         }
 
         private InstallationRecord? locate_record(string target) {
@@ -203,35 +227,23 @@ namespace AppManager {
             return null;
         }
 
-        private void present_uninstall_notification(InstallationRecord record, Gtk.Window? parent = null) {
-            Gtk.Window? parent_window = parent ?? main_window;
-            bool needs_hold = parent_window == null;
-            if (needs_hold) {
-                this.hold();
+        private void present_uninstall_notification(InstallationRecord record, Icon? icon = null) {
+            var notification = new Notification(record.name);
+            notification.set_body(I18n.tr("Moved to Trash"));
+            notification.set_priority(NotificationPriority.URGENT);
+            
+            if (icon != null) {
+                notification.set_icon(icon);
             }
-
-            var dialog = UninstallNotification.present(this, parent_window, record);
-
-            if (!needs_hold) {
-                return;
-            }
-
-            bool released = false;
-            void release_once() {
-                if (!released) {
-                    released = true;
-                    this.release();
-                }
-            }
-
-            dialog.close_request.connect(() => {
-                release_once();
-                return false;
-            });
-            dialog.notify["visible"].connect(() => {
-                if (!dialog.get_visible()) {
-                    release_once();
-                }
+            
+            var notification_id = "app-uninstall-%s".printf(record.id);
+            this.send_notification(notification_id, notification);
+            
+            this.hold();
+            GLib.Timeout.add(5000, () => {
+                this.withdraw_notification(notification_id);
+                this.release();
+                return GLib.Source.REMOVE;
             });
         }
     }

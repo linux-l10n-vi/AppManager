@@ -16,6 +16,7 @@ namespace AppManager {
         private Gtk.ShortcutsWindow? shortcuts_window;
         private Adw.AboutDialog? about_dialog;
         private Adw.NavigationView navigation_view;
+        private Adw.ToastOverlay toast_overlay;
         private const string SHORTCUTS_RESOURCE = "/com/github/AppManager/ui/main-window-shortcuts.ui";
         private const string APPDATA_RESOURCE = "/com/github/AppManager/com.github.AppManager.metainfo.xml";
 
@@ -68,7 +69,10 @@ namespace AppManager {
         private void build_ui() {
             navigation_view = new Adw.NavigationView();
             navigation_view.pop_on_escape = true;
-            this.set_content(navigation_view);
+            
+            toast_overlay = new Adw.ToastOverlay();
+            toast_overlay.set_child(navigation_view);
+            this.set_content(toast_overlay);
 
             general_page = new Adw.PreferencesPage();
             
@@ -90,6 +94,11 @@ namespace AppManager {
                 settings.set_int("window-height", this.get_height());
                 return false;
             });
+        }
+
+        public void add_toast(string message) {
+            var toast = new Adw.Toast(message);
+            toast_overlay.add_toast(toast);
         }
 
         private void refresh_installations() {
