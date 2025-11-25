@@ -648,7 +648,7 @@ namespace AppManager.Core {
             var uninstall_exec = build_uninstall_exec(installed_path);
             output_lines.add("");
             output_lines.add("[Desktop Action Uninstall]");
-            output_lines.add("Name=%s".printf(I18n.tr("Uninstall AppImage")));
+            output_lines.add("Name=%s".printf(I18n.tr("Move to Trash")));
             output_lines.add("Exec=%s".printf(uninstall_exec));
             output_lines.add("Icon=user-trash");
 
