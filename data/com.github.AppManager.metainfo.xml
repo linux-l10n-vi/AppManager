@@ -19,7 +19,7 @@
     <binary>app-manager</binary>
   </provides>
   <releases>
-    <release version="0.1.0-alpha" date="2025-11-17">
+    <release version="0.1.0-beta" date="2025-11-27">
       <description>
         <p>Initial preview with drag-and-drop installs, dual install modes, Nautilus menus, and preferences UI.</p>
       </description>

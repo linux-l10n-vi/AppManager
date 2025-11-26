@@ -60,13 +60,15 @@ namespace AppManager.Utils {
         }
 
         public static void open_folder(string path, Gtk.Window parent) {
-            try {
-                var file = File.new_for_path(path);
-                var launcher = new Gtk.FileLauncher(file);
-                launcher.launch.begin(parent, null);
-            } catch (Error e) {
-                warning("Failed to open folder %s: %s", path, e.message);
-            }
+            var file = File.new_for_path(path);
+            var launcher = new Gtk.FileLauncher(file);
+            launcher.launch.begin(parent, null, (obj, res) => {
+                try {
+                    launcher.launch.end(res);
+                } catch (Error e) {
+                    warning("Failed to open folder %s: %s", path, e.message);
+                }
+            });
         }
 
         public static void open_url(string url) {

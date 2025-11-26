@@ -4,6 +4,7 @@ namespace AppManager.Core {
     public errordomain AppImageAssetsError {
         DESKTOP_FILE_MISSING,
         ICON_FILE_MISSING,
+        APPRUN_FILE_MISSING,
         SYMLINK_LOOP,
         SYMLINK_LIMIT_EXCEEDED,
         EXTRACTION_FAILED
@@ -35,14 +36,13 @@ namespace AppManager.Core {
             DirUtils.create_with_parents(icon_root, 0755);
             
             // Try common icon patterns in root first
-            string?[] icon_patterns = {"*.png", "*.svg"};
-            foreach (var pattern in icon_patterns) {
-                if (try_run_7z({"x", appimage_path, "-o" + icon_root, pattern, "-y"})) {
-                    var icon_path = find_file_in_root(icon_root, pattern);
-                    if (icon_path != null) {
-                        return resolve_symlink(icon_path, appimage_path, icon_root);
-                    }
-                }
+            var png_icon = try_extract_icon_pattern(appimage_path, icon_root, "*.png");
+            if (png_icon != null) {
+                return resolve_symlink(png_icon, appimage_path, icon_root);
+            }
+            var svg_icon = try_extract_icon_pattern(appimage_path, icon_root, "*.svg");
+            if (svg_icon != null) {
+                return resolve_symlink(svg_icon, appimage_path, icon_root);
             }
             
             // Fall back to .DirIcon
@@ -54,6 +54,41 @@ namespace AppManager.Core {
             }
             
             throw new AppImageAssetsError.ICON_FILE_MISSING("No icon file (.png, .svg, or .DirIcon) found in AppImage root");
+        }
+
+        public static string ensure_apprun_present(string extracted_root) throws Error {
+            var apprun_path = Path.build_filename(extracted_root, "AppRun");
+            var apprun_file = File.new_for_path(apprun_path);
+            if (!apprun_file.query_exists()) {
+                throw new AppImageAssetsError.APPRUN_FILE_MISSING("No AppRun entry point found in extracted AppImage; the file may be corrupted or incompatible");
+            }
+            var type = apprun_file.query_file_type(FileQueryInfoFlags.NONE);
+            if (type == FileType.DIRECTORY) {
+                throw new AppImageAssetsError.APPRUN_FILE_MISSING("AppRun entry point is a directory, expected executable");
+            }
+            return apprun_path;
+        }
+
+        public static bool check_compatibility(string appimage_path) {
+            // Check for desktop file
+            if (!try_run_7z({"l", appimage_path, "*.desktop"})) {
+                return false;
+            }
+
+            // Check for icon files
+            bool has_icon = try_run_7z({"l", appimage_path, "*.png"}) ||
+                           try_run_7z({"l", appimage_path, "*.svg"}) ||
+                           try_run_7z({"l", appimage_path, DIRICON_NAME});
+            if (!has_icon) {
+                return false;
+            }
+
+            // Check for AppRun
+            if (!try_run_7z({"l", appimage_path, "AppRun"})) {
+                return false;
+            }
+
+            return true;
         }
 
         private static string? find_file_in_root(string directory, string pattern) {
@@ -203,7 +238,22 @@ namespace AppManager.Core {
             if (parts.size == 0) {
                 return null;
             }
-            return string.joinv("/", parts.to_array());
+
+            var builder = new StringBuilder();
+            for (int i = 0; i < parts.size; i++) {
+                if (i > 0) {
+                    builder.append("/");
+                }
+                builder.append(parts.get(i));
+            }
+            return builder.str;
+        }
+
+        private static string? try_extract_icon_pattern(string appimage_path, string icon_root, string pattern) {
+            if (!try_run_7z({"x", appimage_path, "-o" + icon_root, pattern, "-y"})) {
+                return null;
+            }
+            return find_file_in_root(icon_root, pattern);
         }
     }
 }

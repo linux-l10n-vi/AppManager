@@ -112,7 +112,7 @@ namespace AppManager {
                 }
             }
             if (file_list.size > 0) {
-                this.open(file_list.to_array(), "");
+                this.open(to_file_array(file_list), "");
                 return 0;
             }
 
@@ -197,15 +197,21 @@ namespace AppManager {
             if (record.icon_path != null && File.new_for_path(record.icon_path).query_exists()) {
                 try {
                     var file = File.new_for_path(record.icon_path);
-                    uint8[] contents;
-                    if (file.load_contents(null, out contents, null)) {
-                        return new BytesIcon(new Bytes(contents));
-                    }
+                    var bytes = file.load_bytes(null);
+                    return new BytesIcon(bytes);
                 } catch (Error e) {
                     warning("Failed to load icon for notification: %s", e.message);
                 }
             }
             return null;
+        }
+
+        private GLib.File[] to_file_array(ArrayList<GLib.File> files) {
+            var result = new GLib.File[files.size];
+            for (int i = 0; i < files.size; i++) {
+                result[i] = files.get(i);
+            }
+            return result;
         }
 
         private InstallationRecord? locate_record(string target) {

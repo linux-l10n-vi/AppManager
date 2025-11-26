@@ -1,5 +1,5 @@
 <!-- Core project info -->
-![Release](https://img.shields.io/badge/Release-Alpha-red)
+![Release](https://img.shields.io/badge/Release-Beta-blue)
 [![License](https://img.shields.io/github/license/kem-a/AppManager)](https://github.com/kem-a/AppManager/blob/main/LICENSE)
 ![GNOME 40+](https://img.shields.io/badge/GNOME-40%2B-blue?logo=gnome)
 ![GTK 4](https://img.shields.io/badge/GTK-4-blue?logo=gtk)
@@ -41,7 +41,7 @@ meson install -C build --destdir "$HOME/.local"
 If you prefer a true per-user install (no post-install relocation), configure Meson to use your local prefix directly:
 
 ```bash
-meson setup build -Dprefix=$HOME/.local
+meson setup build --prefix=$HOME/.local
 meson compile -C build
 meson install -C build
 ```

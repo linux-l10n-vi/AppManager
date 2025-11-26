@@ -20,6 +20,7 @@ namespace AppManager {
         private Gtk.Box drag_box;
         private Gtk.Spinner drag_spinner;
         private Adw.Banner up_to_date_banner;
+        private Adw.Banner incompatibility_banner;
         private Gtk.Label subtitle;
         private string appimage_path;
         private bool installing = false;
@@ -49,6 +50,7 @@ namespace AppManager {
             metadata = new AppImageMetadata(File.new_for_path(path));
             resolved_app_name = extract_app_name();
             build_ui();
+            check_compatibility();
             load_icons_async();
         }
 
@@ -73,6 +75,15 @@ namespace AppManager {
                 this.close();
             });
             toolbar_view.add_top_bar(up_to_date_banner);
+
+            incompatibility_banner = new Adw.Banner("");
+            incompatibility_banner.button_label = I18n.tr("Close");
+            incompatibility_banner.use_markup = false;
+            incompatibility_banner.revealed = false;
+            incompatibility_banner.button_clicked.connect(() => {
+                this.close();
+            });
+            toolbar_view.add_top_bar(incompatibility_banner);
 
             var clamp = new Adw.Clamp();
             clamp.margin_top = 24;
@@ -251,6 +262,15 @@ namespace AppManager {
                 return false;
             }
             return compare_version_strings(record.version, resolved_app_version) >= 0;
+        }
+
+        private void check_compatibility() {
+            if (!AppImageAssets.check_compatibility(appimage_path)) {
+                incompatibility_banner.title = I18n.tr("This AppImage is incompatible or corrupted");
+                incompatibility_banner.revealed = true;
+                subtitle.set_text(I18n.tr("Missing required files (AppRun, .desktop, or icon)"));
+                drag_box.set_sensitive(false);
+            }
         }
 
         private void check_if_up_to_date() {

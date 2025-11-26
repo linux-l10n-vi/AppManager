@@ -82,7 +82,7 @@ namespace AppManager {
                     color: @accent_fg_color;
                 }
             """;
-            provider.load_from_data(css.data);
+            provider.load_from_string(css);
             Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
         }
 

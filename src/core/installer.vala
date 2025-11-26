@@ -150,28 +150,27 @@ namespace AppManager.Core {
             if (staging_dir != "") {
                 Utils.FileUtils.remove_dir_recursive(staging_dir);
             }
-            var dest_appimage = Path.build_filename(dest_dir, metadata.basename);
-            metadata.file.copy(File.new_for_path(dest_appimage), FileCopyFlags.OVERWRITE, null, null);
-            var app_run = Path.build_filename(dest_dir, "AppRun");
-            if (File.new_for_path(app_run).query_exists()) {
-                ensure_executable(app_run);
-            } else {
-                app_run = dest_appimage;
-                ensure_executable(app_run);
+            string app_run;
+            try {
+                app_run = AppImageAssets.ensure_apprun_present(dest_dir);
+            } catch (Error e) {
+                Utils.FileUtils.remove_dir_recursive(dest_dir);
+                throw e;
             }
+            ensure_executable(app_run);
             
             // Check if desktop file Exec points to AppRun, and if so, resolve the actual binary
             string exec_target = app_run;
             try {
                 var temp_dir = Utils.FileUtils.create_temp_dir("appmgr-desktop-check-");
                 try {
-                    var desktop_path = AppImageAssets.extract_desktop_entry(dest_appimage, temp_dir);
+                    var desktop_path = AppImageAssets.extract_desktop_entry(metadata.path, temp_dir);
                     var key_file = new KeyFile();
                     key_file.load_from_file(desktop_path, KeyFileFlags.NONE);
                     if (key_file.has_key("Desktop Entry", "Exec")) {
                         var exec_value = key_file.get_string("Desktop Entry", "Exec");
                         // Check if Exec contains AppRun (without path or with relative path)
-                        if ("AppRun" in exec_value && File.new_for_path(app_run).query_exists()) {
+                        if ("AppRun" in exec_value) {
                             // Try to parse BIN from AppRun
                             var bin_name = parse_bin_from_apprun(app_run);
                             if (bin_name != null && bin_name != "") {
@@ -192,12 +191,12 @@ namespace AppManager.Core {
             }
             
             record.installed_path = dest_dir;
-            finalize_desktop_and_icon(record, metadata, exec_target, dest_appimage, preserved_props);
+            finalize_desktop_and_icon(record, metadata, exec_target, metadata.path, preserved_props);
         }
 
         private void finalize_desktop_and_icon(InstallationRecord record, AppImageMetadata metadata, string exec_target, string appimage_for_assets, HashTable<string, string>? preserved_props) throws Error {
-            owned string exec_path = exec_target.dup();
-            owned string assets_path = appimage_for_assets.dup();
+            string exec_path = exec_target.dup();
+            string assets_path = appimage_for_assets.dup();
             progress("Extracting desktop entry…");
             var temp_dir = Utils.FileUtils.create_temp_dir("appmgr-");
             try {
@@ -237,8 +236,6 @@ namespace AppManager.Core {
                     if (record.mode == InstallMode.EXTRACTED) {
                         var exec_basename = Path.get_basename(exec_path);
                         exec_path = Path.build_filename(renamed_path, exec_basename);
-                        var appimage_basename = Path.get_basename(assets_path);
-                        assets_path = Path.build_filename(renamed_path, appimage_basename);
                     } else {
                         exec_path = renamed_path;
                         assets_path = renamed_path;
@@ -324,6 +321,7 @@ namespace AppManager.Core {
                 "Terminal"
             };
 
+            bool has_props = false;
             try {
                 var keyfile = new KeyFile();
                 keyfile.load_from_file(desktop_file_path, KeyFileFlags.NONE);
@@ -333,6 +331,7 @@ namespace AppManager.Core {
                         var value = keyfile.get_string("Desktop Entry", field);
                         if (value != null && value.strip() != "") {
                             props.set(field, value);
+                            has_props = true;
                         }
                     } catch (Error e) {
                         // Field doesn't exist, that's okay
@@ -342,12 +341,6 @@ namespace AppManager.Core {
                 warning("Failed to preserve desktop file properties from %s: %s", desktop_file_path, e.message);
                 return null;
             }
-
-            // Check if we actually preserved any properties
-            bool has_props = false;
-            props.foreach((key, val) => {
-                has_props = true;
-            });
 
             return has_props ? props : null;
         }
@@ -546,7 +539,17 @@ namespace AppManager.Core {
                         }
                     }
                     actions.add("Uninstall");
-                    output_lines.add("Actions=%s;".printf(string.joinv(";", actions.to_array())));
+                    var action_builder = new StringBuilder();
+                    bool first_action = true;
+                    foreach (var action_name in actions) {
+                        if (!first_action) {
+                            action_builder.append(";");
+                        }
+                        action_builder.append(action_name);
+                        first_action = false;
+                    }
+                    action_builder.append(";");
+                    output_lines.add("Actions=%s".printf(action_builder.str));
                     continue;
                 }
 
@@ -652,7 +655,12 @@ namespace AppManager.Core {
             output_lines.add("Exec=%s".printf(uninstall_exec));
             output_lines.add("Icon=user-trash");
 
-            return string.joinv("\n", output_lines.to_array()) + "\n";
+            var final_builder = new StringBuilder();
+            foreach (var output_line in output_lines) {
+                final_builder.append(output_line);
+                final_builder.append("\n");
+            }
+            return final_builder.str;
         }
 
         private void ensure_executable(string path) {
@@ -672,7 +680,14 @@ namespace AppManager.Core {
             }
             parts.add("--uninstall");
             parts.add("\"%s\"".printf(escape_exec_arg(installed_path)));
-            return string.joinv(" ", parts.to_array());
+            var builder = new StringBuilder();
+            for (int i = 0; i < parts.size; i++) {
+                if (i > 0) {
+                    builder.append(" ");
+                }
+                builder.append(parts.get(i));
+            }
+            return builder.str;
         }
 
         private string quote_exec_token(string token) {
@@ -767,7 +782,7 @@ namespace AppManager.Core {
                         prefix.add("flatpak");
                         prefix.add("run");
                         prefix.add(trimmed);
-                        return prefix.to_array();
+                        return list_to_string_array(prefix);
                     }
                 }
             }
@@ -779,7 +794,15 @@ namespace AppManager.Core {
                 resolved = "app-manager";
             }
             prefix.add(resolved);
-            return prefix.to_array();
+            return list_to_string_array(prefix);
+        }
+
+        private string[] list_to_string_array(Gee.ArrayList<string> list) {
+            var result = new string[list.size];
+            for (int i = 0; i < list.size; i++) {
+                result[i] = list.get(i);
+            }
+            return result;
         }
 
         private bool is_flatpak_sandbox() {
