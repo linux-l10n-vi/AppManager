@@ -10,6 +10,7 @@ namespace AppManager {
         private InstallationRegistry registry;
         private Installer installer;
         private Settings settings;
+        private Updater updater;
         private Adw.PreferencesGroup extracted_group;
         private Adw.PreferencesGroup portable_group;
         private Adw.PreferencesPage general_page;
@@ -17,6 +18,11 @@ namespace AppManager {
         private Adw.AboutDialog? about_dialog;
         private Adw.NavigationView navigation_view;
         private Adw.ToastOverlay toast_overlay;
+        private Gtk.Button? update_button;
+        private bool updates_in_progress = false;
+        private Gee.HashMap<string, UpdateIndicator> row_indicators;
+        private Gee.HashMap<string, UpdateVisualState> indicator_states;
+        private Gee.HashSet<string> active_update_keys;
         private const string SHORTCUTS_RESOURCE = "/com/github/AppManager/ui/main-window-shortcuts.ui";
         private const string APPDATA_RESOURCE = "/com/github/AppManager/com.github.AppManager.metainfo.xml";
 
@@ -27,6 +33,11 @@ namespace AppManager {
             this.registry = registry;
             this.installer = installer;
             this.settings = settings;
+            this.updater = new Updater(registry, installer);
+            this.row_indicators = new Gee.HashMap<string, UpdateIndicator>();
+            this.indicator_states = new Gee.HashMap<string, UpdateVisualState>();
+            this.active_update_keys = new Gee.HashSet<string>();
+            connect_updater_signals();
             add_css_class("devel");
             this.set_default_size(settings.get_int("window-width"), settings.get_int("window-height"));
             load_custom_css();
@@ -60,6 +71,15 @@ namespace AppManager {
                 }
                 .card.terminal label {
                     color: #ffffff;
+                }
+                .update-success-badge {
+                    background-color: @accent_bg_color;
+                    color: @accent_fg_color;
+                    border-radius: 9999px;
+                    padding: 1px;
+                }
+                .update-success-badge image {
+                    color: @accent_fg_color;
                 }
             """;
             provider.load_from_data(css.data);
@@ -115,6 +135,8 @@ namespace AppManager {
             general_page.add(extracted_group);
             
             var records = registry.list();
+            prune_indicator_states(records);
+            row_indicators.clear();
             var extracted_records = new Gee.ArrayList<InstallationRecord>();
             var portable_records = new Gee.ArrayList<InstallationRecord>();
             
@@ -234,7 +256,18 @@ namespace AppManager {
                 // Add navigation arrow
                 var arrow = new Gtk.Image.from_icon_name("go-next-symbolic");
                 arrow.add_css_class("dim-label");
-                row.add_suffix(arrow);
+
+                bool has_update_link = updater.get_update_url(record) != null;
+                var indicator = new UpdateIndicator(has_update_link);
+                var state_key = record_state_key(record);
+                row_indicators.set(state_key, indicator);
+                indicator.apply_state(get_record_state(state_key));
+
+                var suffix_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
+                suffix_box.set_valign(Gtk.Align.CENTER);
+                suffix_box.append(indicator.widget);
+                suffix_box.append(arrow);
+                row.add_suffix(suffix_box);
 
                 group.add(row);
             }
@@ -261,6 +294,7 @@ namespace AppManager {
             var header = new Adw.HeaderBar();
 
             if (include_menu_button) {
+                ensure_update_button(header);
                 var menu_button = new Gtk.MenuButton();
                 menu_button.set_icon_name("open-menu-symbolic");
                 menu_button.menu_model = build_menu_model();
@@ -271,6 +305,354 @@ namespace AppManager {
             toolbar.add_top_bar(header);
             toolbar.set_content(content);
             return toolbar;
+        }
+
+        private void ensure_update_button(Adw.HeaderBar header) {
+            if (update_button == null) {
+                update_button = new Gtk.Button.with_label(I18n.tr("Update Apps"));
+                update_button.add_css_class("suggested-action");
+                update_button.clicked.connect(trigger_updates);
+            }
+            if (update_button.get_parent() == null) {
+                header.pack_start(update_button);
+            }
+        }
+
+        private void trigger_updates() {
+            if (updates_in_progress) {
+                add_toast(I18n.tr("Updates already running"));
+                return;
+            }
+            updates_in_progress = true;
+            if (update_button != null) {
+                update_button.set_sensitive(false);
+                update_button.set_label(I18n.tr("Updating..."));
+            }
+
+            new Thread<void>("appmgr-update", () => {
+                var results = updater.update_all();
+                Idle.add(() => {
+                    handle_update_results(results);
+                    updates_in_progress = false;
+                    if (update_button != null) {
+                        update_button.set_label(I18n.tr("Update Apps"));
+                        update_button.set_sensitive(true);
+                    }
+                    return GLib.Source.REMOVE;
+                });
+            });
+        }
+
+        private void handle_update_results(Gee.ArrayList<UpdateResult> results) {
+            if (results.size == 0) {
+                add_toast(I18n.tr("No installed apps to update"));
+                return;
+            }
+
+            int updated = 0;
+            int failed = 0;
+            int missing_address = 0;
+            int unsupported = 0;
+            int already_current = 0;
+
+            foreach (var result in results) {
+                switch (result.status) {
+                    case UpdateStatus.UPDATED:
+                        updated++;
+                        break;
+                    case UpdateStatus.FAILED:
+                        failed++;
+                        break;
+                    case UpdateStatus.SKIPPED:
+                        if (result.skip_reason == null) {
+                            break;
+                        }
+                        switch (result.skip_reason) {
+                            case UpdateSkipReason.NO_UPDATE_URL:
+                                missing_address++;
+                                break;
+                            case UpdateSkipReason.UNSUPPORTED_SOURCE:
+                                unsupported++;
+                                break;
+                            case UpdateSkipReason.ALREADY_CURRENT:
+                                already_current++;
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                }
+            }
+
+            if (updated > 0) {
+                add_toast(I18n.tr("Updated %d app(s)").printf(updated));
+            }
+            if (failed > 0) {
+                add_toast(I18n.tr("%d update(s) failed").printf(failed));
+            }
+
+            var total = results.size;
+            var supported = total - missing_address;
+            var actionable = supported - unsupported;
+
+            if (supported == 0) {
+                add_toast(I18n.tr("Add update addresses in Details to enable updates"));
+            } else if (updated == 0 && failed == 0 && actionable > 0 && already_current == actionable) {
+                add_toast(I18n.tr("All supported apps are already up to date"));
+            }
+
+            if (unsupported > 0) {
+                add_toast(I18n.tr("%d app(s) use unsupported update links").printf(unsupported));
+            }
+        }
+
+        private void connect_updater_signals() {
+            updater.record_checking.connect((record) => {
+                Idle.add(() => {
+                    var key = record_state_key(record);
+                    active_update_keys.add(key);
+                    set_record_state(key, UpdateVisualState.CHECKING);
+                    return GLib.Source.REMOVE;
+                });
+            });
+
+            updater.record_downloading.connect((record) => {
+                Idle.add(() => {
+                    var key = record_state_key(record);
+                    active_update_keys.add(key);
+                    set_record_state(key, UpdateVisualState.DOWNLOADING);
+                    return GLib.Source.REMOVE;
+                });
+            });
+
+            updater.record_succeeded.connect((record) => {
+                Idle.add(() => {
+                    var key = record_state_key(record);
+                    set_record_state(key, UpdateVisualState.SUCCESS);
+                    active_update_keys.remove(key);
+                    return GLib.Source.REMOVE;
+                });
+            });
+
+            updater.record_failed.connect((record, message) => {
+                Idle.add(() => {
+                    var key = record_state_key(record);
+                    set_record_state(key, UpdateVisualState.FAILED);
+                    active_update_keys.remove(key);
+                    return GLib.Source.REMOVE;
+                });
+            });
+
+            updater.record_skipped.connect((record, reason) => {
+                Idle.add(() => {
+                    var key = record_state_key(record);
+                    switch (reason) {
+                        case UpdateSkipReason.MISSING_ASSET:
+                        case UpdateSkipReason.API_UNAVAILABLE:
+                        case UpdateSkipReason.UNSUPPORTED_SOURCE:
+                            set_record_state(key, UpdateVisualState.FAILED);
+                            break;
+                        default:
+                            set_record_state(key, UpdateVisualState.IDLE);
+                            break;
+                    }
+                    active_update_keys.remove(key);
+                    return GLib.Source.REMOVE;
+                });
+            });
+        }
+
+        private void set_record_state(string state_key, UpdateVisualState state) {
+            indicator_states.set(state_key, state);
+            UpdateIndicator? indicator = row_indicators.get(state_key);
+            if (indicator != null) {
+                indicator.apply_state(state);
+            }
+        }
+
+        private UpdateVisualState get_record_state(string state_key) {
+            if (indicator_states.has_key(state_key)) {
+                return indicator_states.get(state_key);
+            }
+            return UpdateVisualState.IDLE;
+        }
+
+        private void prune_indicator_states(InstallationRecord[] records) {
+            var valid = new Gee.HashSet<string>();
+            foreach (var record in records) {
+                valid.add(record_state_key(record));
+            }
+            var to_remove = new Gee.ArrayList<string>();
+            foreach (var id in indicator_states.keys) {
+                if (!valid.contains(id) && !active_update_keys.contains(id)) {
+                    to_remove.add(id);
+                }
+            }
+            foreach (var id in to_remove) {
+                indicator_states.unset(id);
+            }
+        }
+
+        private string record_state_key(InstallationRecord record) {
+            if (record.desktop_file != null && record.desktop_file.strip() != "") {
+                return record.desktop_file;
+            }
+            if (record.installed_path != null && record.installed_path.strip() != "") {
+                return record.installed_path;
+            }
+            return record.id;
+        }
+
+        private enum UpdateVisualState {
+            IDLE,
+            CHECKING,
+            DOWNLOADING,
+            FAILED,
+            SUCCESS
+        }
+
+        private class UpdateIndicator : Object {
+            public Gtk.Widget widget { get; private set; }
+            private bool has_update;
+            private Gtk.Stack stack;
+            private Gtk.Spinner spinner;
+            private CircularProgress progress;
+            private Gtk.Image warning;
+            private Gtk.Widget success_badge;
+
+            public UpdateIndicator(bool has_update) {
+                this.has_update = has_update;
+                stack = new Gtk.Stack();
+                stack.transition_type = Gtk.StackTransitionType.CROSSFADE;
+                stack.transition_duration = 120;
+                stack.set_valign(Gtk.Align.CENTER);
+                stack.set_halign(Gtk.Align.CENTER);
+
+                var placeholder = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+                placeholder.set_size_request(18, 18);
+                stack.add_named(placeholder, "idle");
+
+                spinner = new Gtk.Spinner();
+                spinner.set_size_request(18, 18);
+                stack.add_named(spinner, "checking");
+
+                progress = new CircularProgress();
+                stack.add_named(progress, "downloading");
+
+                warning = new Gtk.Image.from_icon_name("dialog-warning-symbolic");
+                warning.set_pixel_size(18);
+                warning.add_css_class("error");
+                stack.add_named(warning, "failed");
+
+                var success_image = new Gtk.Image.from_icon_name("emblem-ok-symbolic");
+                success_image.set_pixel_size(12);
+                success_image.add_css_class("update-success-icon");
+
+                var success_container = new Gtk.CenterBox();
+                success_container.set_size_request(18, 18);
+                success_container.set_halign(Gtk.Align.CENTER);
+                success_container.set_valign(Gtk.Align.CENTER);
+                success_container.add_css_class("update-success-badge");
+                success_container.set_center_widget(success_image);
+                success_badge = success_container;
+                stack.add_named(success_badge, "success");
+
+                if (!has_update) {
+                    stack.set_visible(false);
+                }
+
+                this.widget = stack;
+            }
+
+            public void apply_state(UpdateVisualState state) {
+                if (!has_update) {
+                    return;
+                }
+
+                switch (state) {
+                    case UpdateVisualState.CHECKING:
+                        spinner.start();
+                        progress.stop();
+                        stack.set_visible_child_name("checking");
+                        stack.set_visible(true);
+                        break;
+                    case UpdateVisualState.DOWNLOADING:
+                        spinner.stop();
+                        progress.start();
+                        stack.set_visible_child_name("downloading");
+                        stack.set_visible(true);
+                        break;
+                    case UpdateVisualState.FAILED:
+                        spinner.stop();
+                        progress.stop();
+                        stack.set_visible_child_name("failed");
+                        stack.set_visible(true);
+                        break;
+                    case UpdateVisualState.SUCCESS:
+                        spinner.stop();
+                        progress.stop();
+                        stack.set_visible_child_name("success");
+                        stack.set_visible(true);
+                        break;
+                    default:
+                        spinner.stop();
+                        progress.stop();
+                        stack.set_visible_child_name("idle");
+                        stack.set_visible(true);
+                        break;
+                }
+            }
+        }
+
+        private class CircularProgress : Gtk.DrawingArea {
+            private uint tick_id = 0;
+            private double angle = 0;
+
+            public CircularProgress() {
+                set_content_width(18);
+                set_content_height(18);
+                set_draw_func((area, cr, width, height) => {
+                    draw_arc(cr, width, height);
+                });
+            }
+
+            public void start() {
+                if (tick_id == 0) {
+                    tick_id = add_tick_callback(on_tick);
+                }
+            }
+
+            public void stop() {
+                if (tick_id != 0) {
+                    remove_tick_callback(tick_id);
+                    tick_id = 0;
+                }
+            }
+
+            private bool on_tick(Gtk.Widget widget, Gdk.FrameClock clock) {
+                angle += 0.20;
+                    var full_circle = GLib.Math.PI * 2.0;
+                if (angle > full_circle) {
+                    angle -= full_circle;
+                }
+                queue_draw();
+                return GLib.Source.CONTINUE;
+            }
+
+            private void draw_arc(Cairo.Context cr, int width, int height) {
+                var color = Gdk.RGBA();
+                color.parse("#3584e4");
+                cr.save();
+                cr.set_source_rgba(color.red, color.green, color.blue, color.alpha);
+                cr.set_line_width(2.0);
+                var min_side = (double)width < (double)height ? (double)width : (double)height;
+                var radius = min_side / 2.0 - 1.0;
+                    var start = angle;
+                    var end = angle + GLib.Math.PI * 1.5;
+                cr.arc(width / 2.0, height / 2.0, radius, start, end);
+                cr.stroke();
+                cr.restore();
+            }
         }
 
 
