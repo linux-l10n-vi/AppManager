@@ -1,6 +1,6 @@
 # AppManager Architecture
 
-AppManager is a Libadwaita + GTK4 Vala application that provides a rich, guided workflow for installing and managing AppImages on GNOME 45–49 desktops. The solution consists of four major pieces:
+AppManager is a Libadwaita + GTK4 Vala application that provides a rich, guided workflow for installing and managing AppImages on GNOME 45–49 desktops. The solution consists of three major pieces:
 
 1. **Core Application (`src/`)**
    - `AppManager.Application` (`application.vala`) bootstraps an `Adw.Application`, parses URI/file arguments, and decides whether to show the drop-style install window or the main UI.
@@ -11,24 +11,19 @@ AppManager is a Libadwaita + GTK4 Vala application that provides a rich, guided 
      * **Portable Move** – executable AppImages are chmod-ed (if needed), renamed if collisions occur, moved into `~/Applications`, and their `.desktop` launcher is unpacked with `7z` and rewritten to point the `Exec` line directly at the `.AppImage`.
      * **Extracted Install** – non-executable AppImages are fully extracted with `7z` into `~/Applications/.installed/<name>/`. The `.desktop` file’s `Exec` now targets the `AppRun` entry point inside the extracted tree.
      Both flows also copy icons where available, refresh the desktop database, and emit installation metadata.
-   - `InstallationRegistry` (`core/installation_registry.vala`) persists install state inside `~/.local/share/app-manager/installations.json`, enabling detection of “already installed” files for UI and Nautilus logic. Uses `json-glib-1.0`.
+   - `InstallationRegistry` (`core/installation_registry.vala`) persists install state inside `~/.local/share/app-manager/installations.json`, enabling detection of “already installed” files for UI and CLI logic. Uses `json-glib-1.0`.
    - `AppImageMetadata` (`core/app_image_metadata.vala`) performs lightweight inspection: derives a user-friendly name, determines whether the file is executable, probes for embedded desktop/icon resources via `7z l`, etc.
    - `AppPaths` & `AppConstants` (`core/`) provide centralized definitions for paths (`~/Applications`, `~/.local/share/applications`, etc.) and constants.
    - `Utils` (`utils/`) contains helpers for file operations (`file_utils.vala`) and UI tasks (`ui_utils.vala`).
 
-2. **GNOME/Nautilus Extension (`extensions/nautilus_extension.vala`)**
-   - Builds a `libnautilus-app-manager.so` implementing `Nautilus.MenuProvider`. It surfaces two context menu items—“Install AppImage” & “Move AppImage to Trash”.
-   - Availability is determined by consulting the shared `InstallationRegistry` (reading the JSON database directly).
-   - Selecting “Install” or “Move to Trash” spawns the main `app-manager` executable with `--install` or `--uninstall` CLI arguments, delegating the actual work to the core application.
-
-3. **Data & Integration Assets (`data/`)**
+2. **Data & Integration Assets (`data/`)**
    - `app-manager.desktop` registers the app as the default handler for the `application/x-iso9660-appimage` MIME type and exposes a regular launcher for opening the main window.
    - `com.github.AppManager.gschema.xml` defines GSettings keys used by the app.
-   - `app-manager.metainfo.xml`, icons, and Nautilus extension desktop hooks are also stored here.
+   - `app-manager.metainfo.xml` and icons are also stored here.
 
-4. **Build System (Meson + Ninja)**
-   - Top-level `meson.build` orchestrates building the executable and Nautilus extension, runs `glib-compile-schemas`, and installs desktop/metainfo files.
-   - The project assumes `valac`, `libadwaita-1`, `gtk4`, `gio-2.0`, `glib-2.0`, `json-glib-1.0`, `gee-0.8`, `libnautilus-extension-4`, and `p7zip-full` at runtime.
+3. **Build System (Meson + Ninja)**
+   - Top-level `meson.build` orchestrates building the executable, runs `glib-compile-schemas`, and installs desktop/metainfo files.
+   - The project assumes `valac`, `libadwaita-1`, `gtk4`, `gio-2.0`, `glib-2.0`, `json-glib-1.0`, `gee-0.8`, and `p7zip-full` at runtime.
 
 ## Runtime Flow
 

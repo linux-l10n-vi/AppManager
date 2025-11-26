@@ -8,7 +8,7 @@
 
 # <img width="48" height="48" alt="org github AppManager" src="https://github.com/user-attachments/assets/57e52017-df9e-49ac-8490-bc0db6e6a00e" /> AppManager
 
-AppManager is a Libadwaita-powered desktop utility that makes installing and uninstalling AppImages on GNOME 45–49 painless. Double-click any `.AppImage` to open a macOS-style drag-and-drop sheet, pick between portable or extracted modes, and AppManager will move/extract the payload, wire up desktop entries, copy icons, and keep Nautilus context menus in sync.
+AppManager is a Libadwaita-powered desktop utility that makes installing and uninstalling AppImages on GNOME 45–49 painless. Double-click any `.AppImage` to open a macOS-style drag-and-drop sheet, pick between portable or extracted modes, and AppManager will move/extract the payload, wire up desktop entries, and copy icons.
 
 
 <img width="503" height="320" alt="Screenshot From 2025-11-22 11-30-42" src="https://github.com/user-attachments/assets/ddd36694-b38d-452d-a5eb-8bca1c329a1f" />
@@ -20,14 +20,12 @@ AppManager is a Libadwaita-powered desktop utility that makes installing and uni
 - 🧠 **Smart install modes** — automatically chooses between portable (move the AppImage) and extracted (unpack to `~/Applications/.installed/AppRun`) while letting you override it.
 - 🗂️ **Desktop integration** — extracts the bundled `.desktop` file via `7z`, rewrites `Exec` and `Icon`, and stores it in `~/.local/share/applications`.
 - 📋 **Install registry + preferences** — main window lists installed apps, default mode, and cleanup behaviors, all stored with GSettings.
-- 📁 **Nautilus context menus** — right-click `Install AppImage` or `Move AppImage to Trash`, with menu visibility based on the shared installation registry.
 
 ## Requirements
 
 - GNOME 45–49 desktop
 - `valac`, `meson`, `ninja`
 - Libraries: `libadwaita-1`, `gtk4`, `gio-2.0`, `glib-2.0`, `json-glib-1.0`, `gee-0.8`
-- Optional (but recommended): `libnautilus-extension-4` for context menus
 - Runtime tools: `7z`/`p7zip-full`
 
 ## Build & Install
@@ -52,13 +50,12 @@ meson install -C build
 
 - **Double-click** a `.AppImage`: AppManager claims the `application/x-iso9660-appimage` MIME type, shows the drag window, and installs after you drag the icon onto `~/Applications` (or click Install).
 - **Preferences**: Launch AppManager from the application menu to tweak defaults and review installed items.
-- **Nautilus actions**: Right-click a `.AppImage` to install or, if already installed, remove it. Removal trashes/mops up files, desktop entries, and icons.
 - **CLI helpers**: `app-manager --install /path/to/AppImage`, `app-manager --uninstall /path/or/checksum`, and `app-manager --is-installed /path/to/AppImage` for scripting.
 
 ## Development Notes
 
-- Shared logic (installer, registry, metadata) lives under `src/core/` and is reused by both the UI and Nautilus extension.
+- Shared logic (installer, registry, metadata) lives under `src/core/` and is reused by both the UI and CLI entry points.
 - Temporary extraction directories live under `/tmp/appmgr-*` and are automatically cleaned after installation.
 - Install metadata persists in `~/.local/share/app-manager/installations.json`.
 
-See `docs/ARCHITECTURE.md` for deeper internals and extension flows.
+See `docs/ARCHITECTURE.md` for deeper internals and installer flows.

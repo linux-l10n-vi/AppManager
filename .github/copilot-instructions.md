@@ -3,10 +3,9 @@
 You are an expert Vala/GTK developer working on AppManager, a Libadwaita utility for managing AppImages on GNOME.
 
 ## Architecture & Key Modules
-- **Shared core (`src/core/`)**: Compiled into both the main application and the Nautilus extension. Changes here affect UI and extension simultaneously.
+- **Shared core (`src/core/`)**: Compiled into the main application (GUI + CLI). Changes here ripple through every surface.
 - **Entry points**:
    - `src/application.vala` / `src/main.vala`: Wire up `Adw.Application`, parse CLI flags (`--install`, `--uninstall`, `--is-installed`), decide between `DropWindow` and `MainWindow`.
-   - `extensions/nautilus_extension.vala`: Nautilus context menus for `.AppImage` files; shells out to the main binary via the same CLI flags.
 - **Core modules**:
    - `installer.vala`: Orchestrates install/uninstall, including move vs extract, 7z calls, `.desktop` rewrite, icon installation, and optional terminal symlink creation.
    - `installation_registry.vala`: JSON registry at `~/.local/share/app-manager/installations.json`. This is the single source of truth for install state—prefer it over raw filesystem checks. Uses `json-glib-1.0`.
@@ -46,7 +45,6 @@ You are an expert Vala/GTK developer working on AppManager, a Libadwaita utility
    - Wrap file I/O, JSON parsing, and subprocess spawning (`7z`, AppImage tools) in `try/catch (Error e)`; log via `warning()`, `debug()`, or `critical()`.
 - **Temp dirs & cleanup**: Use `Utils.FileUtils.create_temp_dir()` and `DirUtils.mkdtemp()` with prefixes derived from `AppPaths`; temp directories are always auto-deleted after installation.
 - **Registry vs filesystem**: For "is installed?" decisions, always consult `InstallationRegistry` (`is_installed_checksum`, `lookup_by_source`, `lookup_by_installed_path`) rather than relying solely on `File.query_exists()`.
-- **Nautilus extension**: Links against `core_sources` (see `extensions/meson.build`) and uses the same CLI contract (`--install`, `--uninstall`, `--is-installed`). Any change in registry/CLI behavior must preserve extension compatibility.
 
 ## Build, Run, and Local Testing
 - Configure and build:
@@ -54,21 +52,17 @@ You are an expert Vala/GTK developer working on AppManager, a Libadwaita utility
    - `meson compile -C build`
 - Run from the repo root:
    - `./build/src/app-manager`
-- Install locally for extension testing:
-   - `meson install -C build --destdir "$HOME/.local"`
-   - Then restart Nautilus: `killall nautilus && nautilus &`
-- CLI helpers used by Nautilus and scripts:
+- CLI helpers for scripting:
    - `app-manager --install /path/to/app.AppImage`
    - `app-manager --uninstall /path/or/checksum`
    - `app-manager --is-installed /path/to/app.AppImage`
 
 ## Testing & Debugging
 - Manual flows: drag different AppImages (with/without icons, terminal vs GUI) onto `DropWindow` and verify registry + desktop entries.
-- Nautilus: after a local install, confirm context menus on `.AppImage` files and that visibility matches registry state.
 - Logging: run with `G_MESSAGES_DEBUG=all ./build/src/app-manager` to surface debug logs.
 - Registry inspection: `cat ~/.local/share/app-manager/installations.json | jq` to confirm record schema and fields.
 
 ## When Modifying or Adding Code
-- Prefer adding shared helpers to `src/core/` or `src/utils/` when behavior is reused between DropWindow, MainWindow, CLI, and the Nautilus extension.
-- When altering installer/registry behavior, validate both the desktop UI flows and Nautilus extension behavior (after `meson install`).
+- Prefer adding shared helpers to `src/core/` or `src/utils/` when behavior is reused between DropWindow, MainWindow, and CLI flows.
+- When altering installer/registry behavior, validate both the desktop UI flows and CLI usage.
 - Keep installation paths, desktop naming (`appmanager-<slug>.desktop`), and icon naming (bare icon name, file under `AppPaths.icons_dir`) consistent with `finalize_desktop_and_icon()` rather than reimplementing path logic.

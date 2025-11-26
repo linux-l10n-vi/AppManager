@@ -11,7 +11,6 @@ gio_unix_dep = dependency('gio-unix-2.0')
 glib_dep = dependency('glib-2.0')
 gtk_dep = dependency('gtk4')
 json_glib_dep = dependency('json-glib-1.0')
-nautilus_dep = dependency('libnautilus-extension-4', required: false)
 gee_dep = dependency('gee-0.8')
 libsoup_dep = dependency('libsoup-3.0')
 
@@ -42,6 +41,3 @@ core_sources += build_info
 
 subdir('data')
 subdir('src')
-if nautilus_dep.found()
-  subdir('extensions')
-endif
