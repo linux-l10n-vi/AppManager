@@ -160,6 +160,15 @@ namespace AppManager {
             // Update info group holds links that users might want to copy quickly
             var update_group = new Adw.PreferencesGroup();
             update_group.title = I18n.tr("Update info");
+            var update_info_button = new Gtk.Button.from_icon_name("dialog-information-symbolic");
+                update_info_button.add_css_class("circular");
+                update_info_button.add_css_class("flat");
+                update_info_button.set_valign(Gtk.Align.CENTER);
+                update_info_button.tooltip_text = I18n.tr("How update links work");
+                update_info_button.clicked.connect(() => {
+                    show_update_info_help();
+                });
+                update_group.set_header_suffix(update_info_button);
             update_group.add(update_row);
             update_group.add(webpage_row);
 
@@ -289,6 +298,15 @@ namespace AppManager {
             }
             
             return total_size;
+        }
+
+        private void show_update_info_help() {
+            var body = I18n.tr("Update info lets AppManager fetch new builds for you. Paste the direct download link from your latest release, and the app will poll it for newer AppImages.");
+            body += "\n\n" + I18n.tr("Currently only GitHub and GitLab release URLs are supported, so copy the link you normally use to download updates and AppManager will do the rest.");
+            var dialog = new Adw.AlertDialog(I18n.tr("Update links"), body);
+            dialog.add_response("close", I18n.tr("Got it"));
+            dialog.set_close_response("close");
+            dialog.present(this);
         }
 
         private HashTable<string, string> load_desktop_file_properties(string desktop_file_path) {
