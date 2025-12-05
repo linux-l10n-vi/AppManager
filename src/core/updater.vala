@@ -65,6 +65,7 @@ namespace AppManager.Core {
         private string update_log_path;
         private const int GITHUB_RELEASES_PER_PAGE = 20;
         private const int GITHUB_RELEASES_PAGE_LIMIT = 3;
+        private const int MAX_PARALLEL_JOBS = 5;
 
         public Updater(InstallationRegistry registry, Installer installer) {
             this.registry = registry;
@@ -81,11 +82,11 @@ namespace AppManager.Core {
         }
 
         public ArrayList<UpdateProbeResult> probe_updates(GLib.Cancellable? cancellable = null) {
-            var outcomes = new ArrayList<UpdateProbeResult>();
-            foreach (var record in registry.list()) {
-                outcomes.add(probe_record(record, cancellable));
+            var records = registry.list();
+            if (records.length == 0) {
+                return new ArrayList<UpdateProbeResult>();
             }
-            return outcomes;
+            return probe_updates_parallel(records, cancellable);
         }
 
         public UpdateProbeResult probe_single(InstallationRecord record, GLib.Cancellable? cancellable = null) {
@@ -93,16 +94,115 @@ namespace AppManager.Core {
         }
 
         public ArrayList<UpdateResult> update_all(GLib.Cancellable? cancellable = null) {
-            var outcomes = new ArrayList<UpdateResult>();
-            foreach (var record in registry.list()) {
-                outcomes.add(update_record(record, cancellable));
+            var records = registry.list();
+            if (records.length == 0) {
+                return new ArrayList<UpdateResult>();
             }
-            return outcomes;
+            return update_records_parallel(records, cancellable);
         }
 
         public UpdateResult update_single(InstallationRecord record, GLib.Cancellable? cancellable = null) {
             return update_record(record, cancellable);
         }
+
+        private ArrayList<UpdateProbeResult> probe_updates_parallel(InstallationRecord[] records, GLib.Cancellable? cancellable) {
+            var slots = new UpdateProbeResult?[records.length];
+            Mutex slots_lock = Mutex();
+                ThreadPool<RecordTask>? pool = null;
+                var task_refs = new ArrayList<RecordTask>();
+
+            try {
+                    pool = new ThreadPool<RecordTask>((task) => {
+                    var outcome = probe_record(task.record, cancellable);
+                    slots_lock.lock();
+                    slots[task.index] = outcome;
+                    slots_lock.unlock();
+                }, MAX_PARALLEL_JOBS, false);
+
+                for (int i = 0; i < records.length; i++) {
+                        var task = new RecordTask(i, records[i]);
+                        task_refs.add(task);
+                        pool.push(task);
+                }
+
+                ThreadPool.free((owned) pool, false, true);
+                pool = null;
+                    task_refs.clear();
+            } catch (Error e) {
+                if (pool != null) {
+                    ThreadPool.free((owned) pool, false, true);
+                    pool = null;
+                }
+                    task_refs.clear();
+                warning("Parallel probe failed, filling missing results serially: %s", e.message);
+                return materialize_probe_results(slots, records, cancellable);
+            }
+
+            return materialize_probe_results(slots, records, cancellable);
+        }
+
+        private ArrayList<UpdateResult> update_records_parallel(InstallationRecord[] records, GLib.Cancellable? cancellable) {
+            var slots = new UpdateResult?[records.length];
+            Mutex slots_lock = Mutex();
+            ThreadPool<RecordTask>? pool = null;
+                var task_refs = new ArrayList<RecordTask>();
+
+            try {
+                    pool = new ThreadPool<RecordTask>((task) => {
+                    var outcome = update_record(task.record, cancellable);
+                    slots_lock.lock();
+                    slots[task.index] = outcome;
+                    slots_lock.unlock();
+                }, MAX_PARALLEL_JOBS, false);
+
+                for (int i = 0; i < records.length; i++) {
+                        var task = new RecordTask(i, records[i]);
+                        task_refs.add(task);
+                        pool.push(task);
+                }
+
+                ThreadPool.free((owned) pool, false, true);
+                pool = null;
+                    task_refs.clear();
+            } catch (Error e) {
+                if (pool != null) {
+                    ThreadPool.free((owned) pool, false, true);
+                    pool = null;
+                }
+                    task_refs.clear();
+                warning("Parallel update failed, finishing remaining updates serially: %s", e.message);
+                return materialize_update_results(slots, records, cancellable);
+            }
+
+            return materialize_update_results(slots, records, cancellable);
+        }
+
+        private ArrayList<UpdateProbeResult> materialize_probe_results(UpdateProbeResult?[] slots, InstallationRecord[] records, GLib.Cancellable? cancellable) {
+            var outcomes = new ArrayList<UpdateProbeResult>();
+            for (int i = 0; i < slots.length; i++) {
+                var result = slots[i];
+                if (result != null) {
+                    outcomes.add(result);
+                    continue;
+                }
+                outcomes.add(probe_record(records[i], cancellable));
+            }
+            return outcomes;
+        }
+
+        private ArrayList<UpdateResult> materialize_update_results(UpdateResult?[] slots, InstallationRecord[] records, GLib.Cancellable? cancellable) {
+            var outcomes = new ArrayList<UpdateResult>();
+            for (int i = 0; i < slots.length; i++) {
+                var result = slots[i];
+                if (result != null) {
+                    outcomes.add(result);
+                    continue;
+                }
+                outcomes.add(update_record(records[i], cancellable));
+            }
+            return outcomes;
+        }
+
 
         private UpdateProbeResult probe_record(InstallationRecord record, GLib.Cancellable? cancellable) {
             var update_url = read_update_url(record);
@@ -1024,6 +1124,17 @@ namespace AppManager.Core {
                 this.tag_name = tag_name;
                 this.normalized_version = normalized_version;
                 this.assets = assets;
+            }
+        }
+
+        private class RecordTask : Object {
+            public int index { get; private set; }
+            public InstallationRecord record { get; private set; }
+
+            public RecordTask(int index, InstallationRecord record) {
+                Object();
+                this.index = index;
+                this.record = record;
             }
         }
 
