@@ -4,6 +4,16 @@ namespace AppManager {
     public class PreferencesWindow : Adw.PreferencesWindow {
         private GLib.Settings settings;
         private int[] update_interval_options = { 86400, 604800, 2592000 };
+        private const string GTK_CONFIG_SUBDIR = "gtk-4.0";
+        private const string APP_CSS_FILENAME = "AppManager.css";
+        private const string APP_CSS_IMPORT_LINE = "@import url(\"AppManager.css\");";
+        private const string APP_CSS_CONTENT = "/* Remove checkered alpha channel drawing around thumbnails and icons. Creates more cleaner look */\n" +
+            ".thumbnail,\n" +
+            ".icon .thumbnail,\n" +
+            ".grid-view .thumbnail {\n" +
+            "  background: none;\n" +
+            "  box-shadow: none;\n" +
+            "}\n";
 
         public PreferencesWindow(GLib.Settings settings) {
             Object();
@@ -14,6 +24,24 @@ namespace AppManager {
         }
 
         private void build_ui() {
+            var appearance_page = new Adw.PreferencesPage();
+            appearance_page.title = I18n.tr("Appearance");
+
+            var thumbnails_group = new Adw.PreferencesGroup();
+            thumbnails_group.title = I18n.tr("Thumbnails");
+
+            var thumbnail_background_row = new Adw.SwitchRow();
+            thumbnail_background_row.title = I18n.tr("Hide checkered thumbnail background");
+            thumbnail_background_row.subtitle = I18n.tr("Remove the alpha checkerboard behind thumbnails and icons");
+            settings.bind("remove-thumbnail-checkerboard", thumbnail_background_row, "active", GLib.SettingsBindFlags.DEFAULT);
+
+            settings.changed["remove-thumbnail-checkerboard"].connect(() => {
+                apply_thumbnail_background_preference(settings.get_boolean("remove-thumbnail-checkerboard"));
+            });
+
+            thumbnails_group.add(thumbnail_background_row);
+            appearance_page.add(thumbnails_group);
+
             var updates_page = new Adw.PreferencesPage();
             updates_page.title = I18n.tr("Updates");
 
@@ -52,7 +80,10 @@ namespace AppManager {
             updates_group.add(interval_row);
             updates_page.add(updates_group);
 
+            this.add(appearance_page);
             this.add(updates_page);
+
+            apply_thumbnail_background_preference(settings.get_boolean("remove-thumbnail-checkerboard"));
         }
 
         private uint interval_index_for_value(int value) {
@@ -62,6 +93,25 @@ namespace AppManager {
                 }
             }
             return 0;
+        }
+
+        private void apply_thumbnail_background_preference(bool enabled) {
+            var gtk_config_dir = Path.build_filename(Environment.get_user_config_dir(), GTK_CONFIG_SUBDIR);
+            var gtk_css_path = Path.build_filename(gtk_config_dir, "gtk.css");
+            var app_css_path = Path.build_filename(gtk_config_dir, APP_CSS_FILENAME);
+
+            try {
+                if (enabled) {
+                    AppManager.Utils.FileUtils.ensure_directory(gtk_config_dir);
+                    AppManager.Utils.FileUtils.write_text_file(app_css_path, APP_CSS_CONTENT);
+                    AppManager.Utils.FileUtils.ensure_line_in_file(gtk_css_path, APP_CSS_IMPORT_LINE);
+                } else {
+                    AppManager.Utils.FileUtils.remove_line_in_file(gtk_css_path, APP_CSS_IMPORT_LINE);
+                    AppManager.Utils.FileUtils.delete_file_if_exists(app_css_path);
+                }
+            } catch (Error e) {
+                warning("Failed to update thumbnail background preference: %s", e.message);
+            }
         }
     }
 }
