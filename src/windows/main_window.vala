@@ -38,6 +38,8 @@ namespace AppManager {
         private Gtk.ToggleButton? search_button;
         private Gtk.SearchBar? search_bar;
         private Gtk.SearchEntry? search_entry;
+        private GLib.SimpleActionGroup? window_actions;
+        private Gtk.MenuButton? main_menu_button;
         private string current_search_query = "";
         private bool has_installations = true;
 
@@ -58,6 +60,7 @@ namespace AppManager {
             this.set_default_size(settings.get_int("window-width"), settings.get_int("window-height"));
             load_custom_css();
             build_ui();
+            setup_window_actions();
             refresh_installations();
             registry.changed.connect(() => {
                 refresh_installations();
@@ -499,11 +502,11 @@ namespace AppManager {
                 search_button.tooltip_text = I18n.tr("Search");
                 header.pack_start(search_button);
 
-                var menu_button = new Gtk.MenuButton();
-                menu_button.set_icon_name("open-menu-symbolic");
-                menu_button.menu_model = build_menu_model();
-                menu_button.tooltip_text = I18n.tr("More actions");
-                header.pack_end(menu_button);
+                main_menu_button = new Gtk.MenuButton();
+                main_menu_button.set_icon_name("open-menu-symbolic");
+                main_menu_button.menu_model = build_menu_model();
+                main_menu_button.tooltip_text = I18n.tr("More actions");
+                header.pack_end(main_menu_button);
                 ensure_update_button(header);
             }
 
@@ -533,6 +536,65 @@ namespace AppManager {
             if (search_entry != null) {
                 current_search_query = search_entry.text.strip().down();
                 refresh_installations();
+            }
+        }
+
+        private void setup_window_actions() {
+            var search_action = new GLib.SimpleAction("toggle_search", null);
+            search_action.activate.connect(() => {
+                toggle_search_mode();
+            });
+            add_window_action(search_action);
+
+            var check_updates_action = new GLib.SimpleAction("check_updates", null);
+            check_updates_action.activate.connect(on_check_updates_accel);
+            add_window_action(check_updates_action);
+
+            var show_menu_action = new GLib.SimpleAction("show_menu", null);
+            show_menu_action.activate.connect(() => {
+                if (main_menu_button != null) {
+                    main_menu_button.activate();
+                }
+            });
+            add_window_action(show_menu_action);
+        }
+
+        private void add_window_action(GLib.Action action) {
+            var group = ensure_window_action_group();
+            group.add_action(action);
+        }
+
+        private GLib.SimpleActionGroup ensure_window_action_group() {
+            if (window_actions == null) {
+                window_actions = new GLib.SimpleActionGroup();
+                this.insert_action_group("win", window_actions);
+            }
+            return window_actions;
+        }
+
+        private void on_check_updates_accel() {
+            if (update_state == UpdateWorkflowState.CHECKING || update_state == UpdateWorkflowState.UPDATING) {
+                add_toast(I18n.tr("Updates already running"));
+                return;
+            }
+            start_update_check();
+        }
+
+        private void toggle_search_mode() {
+            if (search_bar == null) {
+                return;
+            }
+
+            var enable = !search_bar.search_mode_enabled;
+            search_bar.search_mode_enabled = enable;
+
+            if (search_button != null) {
+                search_button.set_active(enable);
+            }
+
+            if (enable && search_entry != null) {
+                search_entry.grab_focus();
+                search_entry.set_position(-1);
             }
         }
 
@@ -907,6 +969,9 @@ namespace AppManager {
                 if (window_group != null) {
                     window_group.title = I18n.tr("Window");
                 }
+                assign_shortcut_title(builder, "shortcut_check_updates", I18n.tr("Check for updates"));
+                assign_shortcut_title(builder, "shortcut_main_menu", I18n.tr("Show main menu"));
+                assign_shortcut_title(builder, "shortcut_search", I18n.tr("Search"));
                 assign_shortcut_title(builder, "shortcut_show_overlay", I18n.tr("Show shortcuts"));
                 assign_shortcut_title(builder, "shortcut_about", I18n.tr("About AppManager"));
                 assign_shortcut_title(builder, "shortcut_close_window", I18n.tr("Close window"));

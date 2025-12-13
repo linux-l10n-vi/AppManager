@@ -8,6 +8,21 @@
                 <child>
                     <object class="GtkShortcutsGroup" id="navigation_group">
                         <child>
+                            <object class="GtkShortcutsShortcut" id="shortcut_check_updates">
+                                <property name="accelerator">&lt;Primary&gt;u</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkShortcutsShortcut" id="shortcut_main_menu">
+                                <property name="accelerator">F10</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkShortcutsShortcut" id="shortcut_search">
+                                <property name="accelerator">&lt;Primary&gt;f</property>
+                            </object>
+                        </child>
+                        <child>
                             <object class="GtkShortcutsShortcut" id="shortcut_show_overlay">
                                 <property name="accelerator">&lt;Primary&gt;question</property>
                             </object>
