@@ -100,5 +100,102 @@ namespace AppManager.Utils {
                 return info.get_size();
             }
         }
+
+        public static void ensure_directory(string path, int mode = 0755) throws Error {
+            if (GLib.FileUtils.test(path, FileTest.IS_DIR)) {
+                return;
+            }
+
+            if (DirUtils.create_with_parents(path, mode) != 0) {
+                throw new FileError.FAILED("Failed to create directory at %s".printf(path));
+            }
+        }
+
+        public static void write_text_file(string path, string content) throws Error {
+            GLib.FileUtils.set_contents(path, content);
+        }
+
+        public static string read_text_file_or_empty(string path) {
+            string data = "";
+            size_t length = 0;
+
+            try {
+                GLib.FileUtils.get_contents(path, out data, out length);
+            } catch (Error e) {
+                data = "";
+            }
+
+            return data;
+        }
+
+        public static void ensure_line_in_file(string path, string line) throws Error {
+            var existing = read_text_file_or_empty(path);
+
+            foreach (var l in existing.split("\n")) {
+                if (l.strip() == line) {
+                    return;
+                }
+            }
+
+            var builder = new StringBuilder();
+            builder.append(existing);
+
+            if (existing.length > 0 && !existing.has_suffix("\n")) {
+                builder.append("\n");
+            }
+
+            builder.append(line);
+            builder.append("\n");
+
+            write_text_file(path, builder.str);
+        }
+
+        public static void remove_line_in_file(string path, string line) throws Error {
+            string existing;
+            size_t length;
+
+            try {
+                GLib.FileUtils.get_contents(path, out existing, out length);
+            } catch (Error e) {
+                return;
+            }
+
+            var lines = existing.split("\n");
+            var builder = new StringBuilder();
+            bool removed = false;
+
+            for (int i = 0; i < lines.length; i++) {
+                var current = lines[i];
+                if (current.strip() == line) {
+                    removed = true;
+                    continue;
+                }
+
+                builder.append(current);
+                if (i < lines.length - 1) {
+                    builder.append("\n");
+                }
+            }
+
+            if (!removed) {
+                return;
+            }
+
+            var sanitized = builder.str;
+            while (sanitized.has_suffix("\n\n")) {
+                sanitized = sanitized.substring(0, sanitized.length - 1);
+            }
+
+            write_text_file(path, sanitized);
+        }
+
+        public static void delete_file_if_exists(string path) throws Error {
+            var file = File.new_for_path(path);
+            if (!file.query_exists()) {
+                return;
+            }
+
+            file.delete();
+        }
     }
 }

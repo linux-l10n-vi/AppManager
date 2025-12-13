@@ -36,5 +36,10 @@
       <summary>Whether background permission was already requested</summary>
       <description>Tracks if the user was already prompted for background permission</description>
     </key>
+    <key name="remove-thumbnail-checkerboard" type="b">
+      <default>false</default>
+      <summary>Remove checkered background from thumbnails</summary>
+      <description>When enabled, AppManager writes a GTK CSS override to hide the checkered alpha pattern behind thumbnails and icons.</description>
+    </key>
   </schema>
 </schemalist>

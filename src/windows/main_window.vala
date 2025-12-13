@@ -16,6 +16,9 @@ namespace AppManager {
         private Updater updater;
         private Adw.PreferencesGroup apps_group;
         private Adw.PreferencesPage general_page;
+        private Gtk.Stack content_stack;
+        private Gtk.Box empty_state_box;
+        private Gtk.Label empty_state_label;
         private Gee.ArrayList<Adw.PreferencesRow> app_rows;
         private Gtk.ShortcutsWindow? shortcuts_window;
         private Adw.AboutDialog? about_dialog;
@@ -36,7 +39,7 @@ namespace AppManager {
         private Gtk.SearchBar? search_bar;
         private Gtk.SearchEntry? search_entry;
         private string current_search_query = "";
-        private int[] update_interval_options = { 86400, 604800, 2592000 };
+        private bool has_installations = true;
 
         public MainWindow(Application app, InstallationRegistry registry, Installer installer, Settings settings) {
             Object(application: app);
@@ -129,18 +132,25 @@ namespace AppManager {
             this.set_content(toast_overlay);
 
             general_page = new Adw.PreferencesPage();
-            
-            var root_toolbar = create_toolbar_with_header(general_page, true);
-            var root_page = new Adw.NavigationPage(root_toolbar, "main");
-            root_page.title = I18n.tr("AppManager");
-            navigation_view.add(root_page);
 
             apps_group = new Adw.PreferencesGroup();
             apps_group.title = I18n.tr("My Apps");
             general_page.add(apps_group);
 
-            var updates_group = create_update_preferences();
-            general_page.add(updates_group);
+            empty_state_box = build_empty_state();
+
+            content_stack = new Gtk.Stack();
+            content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE);
+            content_stack.set_hexpand(true);
+            content_stack.set_vexpand(true);
+            content_stack.add_named(general_page, "list");
+            content_stack.add_named(empty_state_box, "empty");
+            content_stack.set_visible_child_name("list");
+
+            var root_toolbar = create_toolbar_with_header(content_stack, true);
+            var root_page = new Adw.NavigationPage(root_toolbar, "main");
+            root_page.title = I18n.tr("AppManager");
+            navigation_view.add(root_page);
 
             this.close_request.connect(() => {
                 settings.set_int("window-width", this.get_width());
@@ -177,11 +187,39 @@ namespace AppManager {
             app_rows.clear();
         }
 
+        private Gtk.Box build_empty_state() {
+            empty_state_label = new Gtk.Label(I18n.tr("No AppImage apps installed"));
+            empty_state_label.add_css_class("title-1");
+            empty_state_label.set_wrap(true);
+            empty_state_label.set_justify(Gtk.Justification.CENTER);
+
+            var box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+            box.set_hexpand(true);
+            box.set_vexpand(true);
+            box.set_halign(Gtk.Align.CENTER);
+            box.set_valign(Gtk.Align.CENTER);
+            box.append(empty_state_label);
+
+            return box;
+        }
+
+        private void show_empty_state(string message) {
+            if (empty_state_label != null) {
+                empty_state_label.set_text(message);
+            }
+            content_stack.set_visible_child_name("empty");
+        }
+
+        private void show_list_state() {
+            content_stack.set_visible_child_name("list");
+        }
+
         private void refresh_installations() {
             ensure_apps_group_present();
             clear_apps_group_rows();
             
             var all_records = registry.list();
+            has_installations = all_records.length > 0;
             var filtered_list = new Gee.ArrayList<InstallationRecord>();
             
             foreach (var record in all_records) {
@@ -199,18 +237,15 @@ namespace AppManager {
             prune_pending_keys(records);
             prune_size_cache(records);
             update_apps_group_title(records.length);
+            update_update_button_sensitive();
 
             if (records.length == 0) {
-                var empty_row = new Adw.ActionRow();
-                if (current_search_query != "") {
-                    empty_row.title = I18n.tr("No results found");
-                } else {
-                    empty_row.title = I18n.tr("Nothing installed yet");
-                    empty_row.subtitle = I18n.tr("Install an AppImage by double-clicking it");
-                }
-                apps_group.add(empty_row);
+                var message = current_search_query != "" ? I18n.tr("No results found") : I18n.tr("No AppImage apps installed");
+                show_empty_state(message);
                 return;
             }
+
+            show_list_state();
 
             var sorted = new Gee.ArrayList<InstallationRecord>();
             foreach (var record in records) {
@@ -448,6 +483,7 @@ namespace AppManager {
 
         private GLib.MenuModel build_menu_model() {
             var menu = new GLib.Menu();
+            menu.append(I18n.tr("Preferences"), "app.show_preferences");
             menu.append(I18n.tr("Keyboard shortcuts"), "app.show_shortcuts");
             menu.append(I18n.tr("About AppManager"), "app.show_about");
             return menu;
@@ -677,7 +713,7 @@ namespace AppManager {
             }
 
             var busy = (state == UpdateWorkflowState.CHECKING || state == UpdateWorkflowState.UPDATING);
-            update_button.set_sensitive(!busy);
+            update_update_button_sensitive(busy);
 
             if (busy) {
                 update_button_spinner_widget.set_visible(true);
@@ -708,6 +744,17 @@ namespace AppManager {
             if (state == UpdateWorkflowState.READY_TO_UPDATE || state == UpdateWorkflowState.UPDATING) {
                 update_button.add_css_class("suggested-action");
             }
+        }
+
+        private void update_update_button_sensitive(bool force_busy = false) {
+            if (update_button == null) {
+                return;
+            }
+            if (force_busy) {
+                update_button.set_sensitive(false);
+                return;
+            }
+            update_button.set_sensitive(has_installations);
         }
 
         private void handle_update_results(Gee.ArrayList<UpdateResult> results) {
@@ -832,54 +879,6 @@ namespace AppManager {
             CHECKING,
             READY_TO_UPDATE,
             UPDATING
-        }
-
-        private Adw.PreferencesGroup create_update_preferences() {
-            var group = new Adw.PreferencesGroup();
-            group.title = I18n.tr("Updates");
-            group.description = I18n.tr("Configure automatic update checking");
-
-            var auto_check_row = new Adw.SwitchRow();
-            auto_check_row.title = I18n.tr("Check for updates automatically");
-            auto_check_row.subtitle = I18n.tr("Periodically check for new versions in the background");
-            settings.bind("auto-check-updates", auto_check_row, "active", GLib.SettingsBindFlags.DEFAULT);
-
-            var interval_row = new Adw.ComboRow();
-            interval_row.title = I18n.tr("Check interval");
-            var interval_model = new Gtk.StringList(null);
-            interval_model.append(I18n.tr("Daily"));
-            interval_model.append(I18n.tr("Weekly"));
-            interval_model.append(I18n.tr("Monthly"));
-            interval_row.model = interval_model;
-            interval_row.selected = interval_index_for_value(settings.get_int("update-check-interval"));
-
-            settings.bind("auto-check-updates", interval_row, "sensitive", GLib.SettingsBindFlags.GET);
-
-            interval_row.notify["selected"].connect(() => {
-                var selected_index = (int) interval_row.selected;
-                if (selected_index < 0 || selected_index >= update_interval_options.length) {
-                    return;
-                }
-                settings.set_int("update-check-interval", update_interval_options[selected_index]);
-            });
-
-            settings.changed["update-check-interval"].connect(() => {
-                interval_row.selected = interval_index_for_value(settings.get_int("update-check-interval"));
-            });
-
-            group.add(auto_check_row);
-            group.add(interval_row);
-
-            return group;
-        }
-
-        private uint interval_index_for_value(int value) {
-            for (int i = 0; i < update_interval_options.length; i++) {
-                if (update_interval_options[i] == value) {
-                    return (uint) i;
-                }
-            }
-            return 0; // default to Daily
         }
 
         private void ensure_shortcuts_window() {

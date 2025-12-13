@@ -10,6 +10,7 @@ namespace AppManager {
         private Installer installer;
         private Settings settings;
         private BackgroundUpdateService? bg_update_service;
+        private PreferencesWindow? preferences_window;
         public Application() {
             Object(application_id: Core.APPLICATION_ID,
                 flags: ApplicationFlags.HANDLES_OPEN | ApplicationFlags.HANDLES_COMMAND_LINE);
@@ -43,6 +44,12 @@ namespace AppManager {
             });
             this.add_action(about_action);
 
+            var preferences_action = new GLib.SimpleAction("show_preferences", null);
+            preferences_action.activate.connect(() => {
+                present_preferences();
+            });
+            this.add_action(preferences_action);
+
             var close_action = new GLib.SimpleAction("close_window", null);
             close_action.activate.connect(() => {
                 var active = this.get_active_window();
@@ -54,9 +61,11 @@ namespace AppManager {
 
             string[] shortcut_accels = { "<Primary>question" };
             string[] about_accels = { "F1" };
+            string[] preferences_accels = { "<Primary>comma" };
             string[] close_accels = { "<Primary>w" };
             this.set_accels_for_action("app.show_shortcuts", shortcut_accels);
             this.set_accels_for_action("app.show_about", about_accels);
+            this.set_accels_for_action("app.show_preferences", preferences_accels);
             this.set_accels_for_action("app.close_window", close_accels);
         }
 
@@ -328,6 +337,27 @@ namespace AppManager {
                 this.release();
                 return GLib.Source.REMOVE;
             });
+        }
+
+        private void present_preferences() {
+            if (preferences_window == null) {
+                preferences_window = new PreferencesWindow(settings);
+                preferences_window.close_request.connect(() => {
+                    preferences_window = null;
+                    return false;
+                });
+            }
+
+            Gtk.Window? parent = this.get_active_window();
+            if (parent == null) {
+                parent = main_window;
+            }
+
+            if (parent != null) {
+                preferences_window.set_transient_for(parent);
+            }
+
+            preferences_window.present();
         }
 
         private async void request_background_updates() {
