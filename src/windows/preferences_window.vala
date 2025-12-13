@@ -28,8 +28,7 @@ namespace AppManager {
         }
 
         private void build_ui() {
-            var appearance_page = new Adw.PreferencesPage();
-            appearance_page.title = I18n.tr("Appearance");
+            var page = new Adw.PreferencesPage();
 
             var thumbnails_group = new Adw.PreferencesGroup();
             thumbnails_group.title = I18n.tr("Thumbnails");
@@ -44,10 +43,6 @@ namespace AppManager {
             });
 
             thumbnails_group.add(thumbnail_background_row);
-            appearance_page.add(thumbnails_group);
-
-            var updates_page = new Adw.PreferencesPage();
-            updates_page.title = I18n.tr("Updates");
 
             var updates_group = new Adw.PreferencesGroup();
             updates_group.title = I18n.tr("Automatic updates");
@@ -88,10 +83,11 @@ namespace AppManager {
 
             updates_group.add(auto_check_row);
             updates_group.add(interval_row);
-            updates_page.add(updates_group);
 
-            this.add(appearance_page);
-            this.add(updates_page);
+            page.add(thumbnails_group);
+            page.add(updates_group);
+
+            this.add(page);
 
             apply_thumbnail_background_preference(settings.get_boolean("remove-thumbnail-checkerboard"));
         }
