@@ -144,6 +144,12 @@ Examples:
 
         protected override void activate() {
             if (main_window == null) {
+                // Check integrity on app launch to detect manual deletions while app was closed
+                var orphaned = registry.reconcile_with_filesystem();
+                if (orphaned.size > 0) {
+                    debug("Found %d orphaned installation(s) on launch", orphaned.size);
+                }
+                
                 main_window = new MainWindow(this, registry, installer, settings);
 
                 if (settings.get_boolean("auto-check-updates") && !settings.get_boolean("background-permission-requested")) {
