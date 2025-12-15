@@ -26,7 +26,7 @@ namespace AppManager.Core {
         }
 
         public InstallationRecord install(string file_path, InstallMode override_mode = InstallMode.PORTABLE) throws Error {
-            return install_sync(file_path, override_mode, null);
+            return install_sync(file_path, override_mode, null, null);
         }
 
         public InstallationRecord upgrade(string file_path, InstallationRecord old_record) throws Error {
@@ -36,10 +36,10 @@ namespace AppManager.Core {
         public InstallationRecord reinstall(string file_path, InstallationRecord old_record, InstallMode mode) throws Error {
             var preserved_props = preserve_desktop_properties(old_record.desktop_file);
             uninstall(old_record);
-            return install_sync(file_path, mode, preserved_props);
+            return install_sync(file_path, mode, preserved_props, old_record);
         }
 
-        private InstallationRecord install_sync(string file_path, InstallMode override_mode, HashTable<string, string>? preserved_props) throws Error {
+        private InstallationRecord install_sync(string file_path, InstallMode override_mode, HashTable<string, string>? preserved_props, InstallationRecord? old_record) throws Error {
             var file = File.new_for_path(file_path);
             var metadata = new AppImageMetadata(file);
             if (preserved_props == null && registry.is_installed_checksum(metadata.checksum)) {
@@ -51,6 +51,12 @@ namespace AppManager.Core {
             var record = new InstallationRecord(metadata.checksum, metadata.display_name, mode);
             record.source_path = metadata.path;
             record.source_checksum = metadata.checksum;
+            
+            // Preserve installed_at and set updated_at for upgrades
+            if (old_record != null) {
+                record.installed_at = old_record.installed_at;
+                record.updated_at = (int64)GLib.get_real_time();
+            }
 
             try {
                 if (mode == InstallMode.PORTABLE) {

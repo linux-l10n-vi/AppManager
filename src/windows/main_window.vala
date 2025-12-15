@@ -305,10 +305,14 @@ namespace AppManager {
 
         private void sort_records_by_updated(Gee.ArrayList<InstallationRecord> records) {
             records.sort((a, b) => {
-                if (a.installed_at == b.installed_at) {
+                // Use updated_at if available, otherwise use installed_at
+                int64 a_time = a.updated_at ?? a.installed_at;
+                int64 b_time = b.updated_at ?? b.installed_at;
+                
+                if (a_time == b_time) {
                     return compare_record_names(a, b);
                 }
-                return a.installed_at > b.installed_at ? -1 : 1;
+                return a_time > b_time ? -1 : 1;
             });
         }
 
@@ -376,9 +380,9 @@ namespace AppManager {
                 parts.add(size_text);
             }
 
-            var updated_text = format_updated_label(record.installed_at);
-            if (updated_text != null) {
-                parts.add(updated_text);
+            var time_text = format_time_label(record);
+            if (time_text != null) {
+                parts.add(time_text);
             }
 
             if (record.mode == InstallMode.EXTRACTED) {
@@ -415,7 +419,13 @@ namespace AppManager {
             }
         }
 
-        private string? format_updated_label(int64 timestamp) {
+        private string? format_time_label(InstallationRecord record) {
+            // Determine label type: if app has been updated, always show "Updated", otherwise "Installed"
+            bool is_updated = record.updated_at != null;
+            
+            // Use updated_at if available, otherwise use installed_at for the timestamp
+            int64 timestamp = is_updated ? record.updated_at : record.installed_at;
+            
             if (timestamp <= 0) {
                 return null;
             }
@@ -428,7 +438,7 @@ namespace AppManager {
 
             var seconds = delta / 1000000;
             if (seconds < 60) {
-                return I18n.tr("Updated just now");
+                return is_updated ? I18n.tr("Updated just now") : I18n.tr("Installed just now");
             }
 
             if (seconds < 3600) {
@@ -436,7 +446,7 @@ namespace AppManager {
                 if (minutes == 0) {
                     minutes = 1;
                 }
-                return I18n.tr("Updated %d min ago").printf(minutes);
+                return is_updated ? I18n.tr("Updated %d min ago").printf(minutes) : I18n.tr("Installed %d min ago").printf(minutes);
             }
 
             if (seconds < 86400) {
@@ -444,14 +454,14 @@ namespace AppManager {
                 if (hours == 0) {
                     hours = 1;
                 }
-                return I18n.tr("Updated %d hours ago").printf(hours);
+                return is_updated ? I18n.tr("Updated %d hours ago").printf(hours) : I18n.tr("Installed %d hours ago").printf(hours);
             }
 
             var days = (int)(seconds / 86400);
             if (days == 0) {
                 days = 1;
             }
-            return I18n.tr("Updated %d days ago").printf(days);
+            return is_updated ? I18n.tr("Updated %d days ago").printf(days) : I18n.tr("Installed %d days ago").printf(days);
         }
 
         private Gtk.Widget create_update_widget(InstallationRecord record, string state_key) {

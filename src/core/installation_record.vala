@@ -15,6 +15,7 @@ namespace AppManager.Core {
         public string? icon_path { get; set; }
         public string? bin_symlink { get; set; }
         public int64 installed_at { get; set; }
+        public int64? updated_at { get; set; }
         public string? version { get; set; }
         public string? etag { get; set; }
 
@@ -45,6 +46,8 @@ namespace AppManager.Core {
             builder.add_string_value(bin_symlink ?? "");
             builder.set_member_name("installed_at");
             builder.add_int_value(installed_at);
+            builder.set_member_name("updated_at");
+            builder.add_int_value(updated_at ?? 0);
             builder.set_member_name("version");
             builder.add_string_value(version ?? "");
             builder.set_member_name("etag");
@@ -67,6 +70,8 @@ namespace AppManager.Core {
             var bin = obj.get_string_member_with_default("bin_symlink", "");
             record.bin_symlink = bin == "" ? null : bin;
             record.installed_at = (int64)obj.get_int_member("installed_at");
+            var updated = (int64)obj.get_int_member_with_default("updated_at", 0);
+            record.updated_at = updated > 0 ? (int64?)updated : null;
             var version = obj.get_string_member_with_default("version", "");
             record.version = version == "" ? null : version;
             var etag = obj.get_string_member_with_default("etag", "");
