@@ -8,7 +8,7 @@
 
 # <img width="48" height="48" alt="org github AppManager" src="https://github.com/user-attachments/assets/57e52017-df9e-49ac-8490-bc0db6e6a00e" /> AppManager
 
-AppManager is a Libadwaita-powered desktop utility that makes installing and uninstalling AppImages on GNOME 45–49 painless. Double-click any `.AppImage` to open a macOS-style drag-and-drop sheet, pick between portable or extracted modes, and AppManager will move/extract the payload, wire up desktop entries, and copy icons.
+AppManager is a GTK/Libadwaita developed desktop utility in Vala that makes installing and uninstalling AppImages on Linux desktop painless. Double-click any `.AppImage` to open a macOS-style drag-and-drop window, just drag to install and AppManager will move the app, wire up desktop entries, and copy icons.
 
 
 <img width="503" height="320" alt="Screenshot From 2025-11-22 11-30-42" src="https://github.com/user-attachments/assets/ddd36694-b38d-452d-a5eb-8bca1c329a1f" />
@@ -16,11 +16,12 @@ AppManager is a Libadwaita-powered desktop utility that makes installing and uni
 
 ## Features
 
-- **Drag-and-drop installer** — mimics the familiar App→Applications flow, showing the AppImage icon on the left and your `~/Applications` folder on the right.
-- **Smart install modes** — automatically chooses between portable (move the AppImage) and extracted (unpack to `~/Applications/.installed/AppRun`) while letting you override it.
-- **Desktop integration** — extracts the bundled `.desktop` file via `7z`, rewrites `Exec` and `Icon`, and stores it in `~/.local/share/applications`.
-- **Install registry + preferences** — main window lists installed apps, default mode, and cleanup behaviors, all stored with GSettings.
-- **Background update checks** — optional portal-backed checks with user-granted permission, interval control, and a notification when updates are found.
+- **Drag-and-drop installer** - mimics the familiar macOS Applications install flow.
+- **Smart install modes** - can choose between portable (move the AppImage) and extracted (unpack to `~/Applications/.installed/AppRun`) while letting you override it.
+- **Desktop integration** - extracts the bundled `.desktop` file via `7z` or `dwarfs`, rewrites `Exec` and `Icon`, and stores it in `~/.local/share/applications`.
+- **Simple uninstall** - right click in app drawer and choose `Move to Trash`, can uninstall in AppManager or simply delete from `~/Applications` folder.
+- **Install registry + preferences** - main window lists installed apps, default mode, and cleanup behaviors, all stored with GSettings.
+- **Background update checks** - optional portal-backed checks with user-granted permission, interval control, and a notification when updates are found.
 
 ## Requirements
 
@@ -32,7 +33,7 @@ AppManager is a Libadwaita-powered desktop utility that makes installing and uni
 
 Default setup
 ```bash
-meson setup build  # or run with --reconfigure
+meson setup build
 ```
 
 Or if you prefer user Home install
@@ -47,7 +48,7 @@ meson compile -C build
 meson install -C build
 ```
 
-<details> <summary> <H2>Install development dependencies</H2> <b>(click to open)</b> </summary>
+<details> <summary> <H3>Install development dependencies</H3> <b>(click to open)</b> </summary>
 
 Install the development packages required to build AppManager on each distribution:
 
