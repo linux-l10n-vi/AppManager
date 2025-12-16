@@ -48,7 +48,7 @@ meson compile -C build
 meson install -C build
 ```
 
-<details> <summary> <H3>Install development dependencies</H3> <b>(click to open)</b> </summary>
+<details> <summary> <H4>Install development dependencies</H4> <b>(click to open)</b> </summary>
 
 Install the development packages required to build AppManager on each distribution:
 
