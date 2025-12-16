@@ -182,12 +182,19 @@ namespace AppManager {
             empty_state_label.set_wrap(true);
             empty_state_label.set_justify(Gtk.Justification.CENTER);
 
+            var subtitle = new Gtk.Label(I18n.tr("Download AppImage and double click to install with AppManager"));
+            subtitle.add_css_class("dim-label");
+            subtitle.set_wrap(true);
+            subtitle.set_justify(Gtk.Justification.CENTER);
+            subtitle.set_margin_top(12);
+
             var box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
             box.set_hexpand(true);
             box.set_vexpand(true);
             box.set_halign(Gtk.Align.CENTER);
             box.set_valign(Gtk.Align.CENTER);
             box.append(empty_state_label);
+            box.append(subtitle);
 
             return box;
         }
