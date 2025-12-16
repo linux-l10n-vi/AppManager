@@ -22,7 +22,7 @@ namespace AppManager {
             Object();
             this.settings = settings;
             this.set_title(I18n.tr("Preferences"));
-            this.set_default_size(480, 560);
+            this.set_default_size(500, 620);
             check_portal_availability.begin();
             build_ui();
         }
@@ -84,8 +84,43 @@ namespace AppManager {
             updates_group.add(auto_check_row);
             updates_group.add(interval_row);
 
+            var links_group = new Adw.PreferencesGroup();
+            links_group.title = I18n.tr("Find more AppImages");
+            links_group.description = I18n.tr("Browse these sources to discover and download AppImages");
+
+            var pkgforge_row = new Adw.ActionRow();
+            pkgforge_row.title = "Anylinux AppImages";
+            pkgforge_row.subtitle = "github.com/pkgforge-dev";
+            pkgforge_row.activatable = true;
+            pkgforge_row.add_suffix(new Gtk.Image.from_icon_name("external-link-symbolic"));
+            pkgforge_row.activated.connect(() => {
+                open_url("https://github.com/pkgforge-dev/Anylinux-AppImages");
+            });
+            links_group.add(pkgforge_row);
+
+            var appimagehub_row = new Adw.ActionRow();
+            appimagehub_row.title = "AppImageHub";
+            appimagehub_row.subtitle = "appimagehub.com";
+            appimagehub_row.activatable = true;
+            appimagehub_row.add_suffix(new Gtk.Image.from_icon_name("external-link-symbolic"));
+            appimagehub_row.activated.connect(() => {
+                open_url("https://www.appimagehub.com/");
+            });
+            links_group.add(appimagehub_row);
+
+            var appimage_catalog_row = new Adw.ActionRow();
+            appimage_catalog_row.title = "AppImage Catalog";
+            appimage_catalog_row.subtitle = "appimage.github.io";
+            appimage_catalog_row.activatable = true;
+            appimage_catalog_row.add_suffix(new Gtk.Image.from_icon_name("external-link-symbolic"));
+            appimage_catalog_row.activated.connect(() => {
+                open_url("https://appimage.github.io/");
+            });
+            links_group.add(appimage_catalog_row);
+
             page.add(thumbnails_group);
             page.add(updates_group);
+            page.add(links_group);
 
             this.add(page);
 
@@ -195,6 +230,14 @@ X-XDP-Autostart=com.github.AppManager
                 }
             } catch (Error e) {
                 warning("Failed to update thumbnail background preference: %s", e.message);
+            }
+        }
+
+        private void open_url(string url) {
+            try {
+                AppInfo.launch_default_for_uri(url, null);
+            } catch (Error e) {
+                warning("Failed to open URL %s: %s", url, e.message);
             }
         }
     }
