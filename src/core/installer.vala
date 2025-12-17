@@ -26,7 +26,7 @@ namespace AppManager.Core {
         }
 
         public InstallationRecord install(string file_path, InstallMode override_mode = InstallMode.PORTABLE) throws Error {
-            return install_sync(file_path, override_mode, null, null);
+            return install_sync(file_path, override_mode, null);
         }
 
         public InstallationRecord upgrade(string file_path, InstallationRecord old_record) throws Error {
@@ -34,15 +34,14 @@ namespace AppManager.Core {
         }
 
         public InstallationRecord reinstall(string file_path, InstallationRecord old_record, InstallMode mode) throws Error {
-            var preserved_props = preserve_desktop_properties(old_record.desktop_file);
             uninstall(old_record);
-            return install_sync(file_path, mode, preserved_props, old_record);
+            return install_sync(file_path, mode, old_record);
         }
 
-        private InstallationRecord install_sync(string file_path, InstallMode override_mode, HashTable<string, string>? preserved_props, InstallationRecord? old_record) throws Error {
+        private InstallationRecord install_sync(string file_path, InstallMode override_mode, InstallationRecord? old_record) throws Error {
             var file = File.new_for_path(file_path);
             var metadata = new AppImageMetadata(file);
-            if (preserved_props == null && registry.is_installed_checksum(metadata.checksum)) {
+            if (old_record == null && registry.is_installed_checksum(metadata.checksum)) {
                 throw new InstallerError.ALREADY_INSTALLED("AppImage already installed");
             }
 
@@ -56,13 +55,31 @@ namespace AppManager.Core {
             if (old_record != null) {
                 record.installed_at = old_record.installed_at;
                 record.updated_at = (int64)GLib.get_real_time();
+                
+                // Carry over non-property registry fields from old record
+                record.update_link = old_record.update_link;
+                record.web_page = old_record.web_page;
+                record.etag = old_record.etag;
+                
+                // Carry over custom values from old record (user customizations survive updates)
+                record.custom_commandline_args = old_record.custom_commandline_args;
+                record.custom_keywords = old_record.custom_keywords;
+                record.custom_icon_name = old_record.custom_icon_name;
+                record.custom_startup_wm_class = old_record.custom_startup_wm_class;
+                // Note: original_* values will be updated from the new AppImage's .desktop
+            } else {
+                // Fresh install: check if there's history from a previous installation
+                // This restores user's custom settings if they uninstalled and are reinstalling
+                registry.apply_history_to_record(record);
             }
+
+            bool is_upgrade = (old_record != null);
 
             try {
                 if (mode == InstallMode.PORTABLE) {
-                    install_portable(metadata, record, preserved_props);
+                    install_portable(metadata, record, is_upgrade);
                 } else {
-                    install_extracted(metadata, record, preserved_props);
+                    install_extracted(metadata, record, is_upgrade);
                 }
 
                 // Only delete source after successful installation
@@ -81,10 +98,10 @@ namespace AppManager.Core {
             }
         }
 
-        private void install_portable(AppImageMetadata metadata, InstallationRecord record, HashTable<string, string>? preserved_props) throws Error {
+        private void install_portable(AppImageMetadata metadata, InstallationRecord record, bool is_upgrade) throws Error {
             progress("Preparing Applications folder…");
             record.installed_path = metadata.path;
-            finalize_desktop_and_icon(record, metadata, metadata.path, metadata.path, preserved_props);
+            finalize_desktop_and_icon(record, metadata, metadata.path, metadata.path, is_upgrade);
         }
 
         private string? parse_bin_from_apprun(string apprun_path) {
@@ -127,7 +144,7 @@ namespace AppManager.Core {
             return null;
         }
 
-        private void install_extracted(AppImageMetadata metadata, InstallationRecord record, HashTable<string, string>? preserved_props) throws Error {
+        private void install_extracted(AppImageMetadata metadata, InstallationRecord record, bool is_upgrade) throws Error {
             progress("Extracting AppImage…");
             var base_name = metadata.sanitized_basename();
             DirUtils.create_with_parents(AppPaths.extracted_root, 0755);
@@ -218,10 +235,10 @@ namespace AppManager.Core {
             }
             
             record.installed_path = dest_dir;
-            finalize_desktop_and_icon(record, metadata, exec_target, metadata.path, preserved_props);
+            finalize_desktop_and_icon(record, metadata, exec_target, metadata.path, is_upgrade);
         }
 
-        private void finalize_desktop_and_icon(InstallationRecord record, AppImageMetadata metadata, string exec_target, string appimage_for_assets, HashTable<string, string>? preserved_props) throws Error {
+        private void finalize_desktop_and_icon(InstallationRecord record, AppImageMetadata metadata, string exec_target, string appimage_for_assets, bool is_upgrade) throws Error {
             string exec_path = exec_target.dup();
             string assets_path = appimage_for_assets.dup();
             progress("Extracting desktop entry…");
@@ -290,11 +307,46 @@ namespace AppManager.Core {
                 
                 // Extract original Icon name from desktop file
                 string? original_icon_name = null;
+                string? original_keywords = null;
+                string? original_startup_wm_class = null;
+                string? original_exec_args = null;
+                string? original_homepage = null;
+                string? original_update_url = null;
                 try {
                     var key_file = new KeyFile();
                     key_file.load_from_file(desktop_path, KeyFileFlags.NONE);
                     if (key_file.has_key("Desktop Entry", "Icon")) {
                         original_icon_name = key_file.get_string("Desktop Entry", "Icon");
+                    }
+                    if (key_file.has_key("Desktop Entry", "Keywords")) {
+                        original_keywords = key_file.get_string("Desktop Entry", "Keywords");
+                    }
+                    if (key_file.has_key("Desktop Entry", "StartupWMClass")) {
+                        original_startup_wm_class = key_file.get_string("Desktop Entry", "StartupWMClass");
+                    }
+                    if (key_file.has_key("Desktop Entry", "Exec")) {
+                        var exec_value = key_file.get_string("Desktop Entry", "Exec");
+                        // Extract arguments (everything after first token)
+                        var trimmed = exec_value.strip();
+                        int first_space = -1;
+                        bool in_quotes = false;
+                        for (int i = 0; i < trimmed.length; i++) {
+                            if (trimmed[i] == '"') {
+                                in_quotes = !in_quotes;
+                            } else if (trimmed[i] == ' ' && !in_quotes) {
+                                first_space = i;
+                                break;
+                            }
+                        }
+                        if (first_space != -1) {
+                            original_exec_args = trimmed.substring(first_space + 1).strip();
+                        }
+                    }
+                    if (key_file.has_key("Desktop Entry", "X-AppImage-Homepage")) {
+                        original_homepage = key_file.get_string("Desktop Entry", "X-AppImage-Homepage");
+                    }
+                    if (key_file.has_key("Desktop Entry", "X-AppImage-UpdateURL")) {
+                        original_update_url = key_file.get_string("Desktop Entry", "X-AppImage-UpdateURL");
                     }
                 } catch (Error e) {
                     warning("Failed to read original icon name: %s", e.message);
@@ -332,15 +384,43 @@ namespace AppManager.Core {
                 var stored_icon = Path.build_filename(AppPaths.icons_dir, "%s%s".printf(icon_name_for_desktop, icon_extension));
                 Utils.FileUtils.file_copy(icon_path, stored_icon);
                 
-                var desktop_contents = rewrite_desktop(desktop_path, exec_path, icon_name_for_desktop, record.installed_path, is_terminal_app, record.mode, preserved_props, final_slug);
+                // For fresh install with history (reinstall), use custom values if present
+                // Otherwise use original values from the AppImage's .desktop
+                var effective_icon = record.custom_icon_name ?? icon_name_for_desktop;
+                var effective_keywords = record.custom_keywords ?? original_keywords;
+                var effective_wmclass = record.custom_startup_wm_class ?? original_startup_wm_class;
+                var effective_args = record.custom_commandline_args ?? original_exec_args;
+                
+                var desktop_contents = rewrite_desktop(desktop_path, exec_path, record, is_terminal_app, final_slug, is_upgrade, effective_icon, effective_keywords, effective_wmclass, effective_args);
                 var desktop_filename = "%s-%s.desktop".printf("appmanager", final_slug);
                 var desktop_destination = Path.build_filename(AppPaths.desktop_dir, desktop_filename);
                 Utils.FileUtils.ensure_parent(desktop_destination);
-                if (!GLib.FileUtils.set_contents(desktop_destination, desktop_contents)) {
-                    throw new InstallerError.UNKNOWN("Unable to write desktop file");
+                
+                // Only write desktop file on fresh install, not on upgrade (preserve user customizations)
+                if (!is_upgrade) {
+                    if (!GLib.FileUtils.set_contents(desktop_destination, desktop_contents)) {
+                        throw new InstallerError.UNKNOWN("Unable to write desktop file");
+                    }
                 }
                 record.desktop_file = desktop_destination;
                 record.icon_path = stored_icon;
+                
+                // Store original values captured from the AppImage's .desktop file
+                // These are always updated on install/upgrade to reflect the AppImage's embedded metadata
+                // Custom values (user edits) are preserved separately and were carried over in install_sync
+                record.original_icon_name = icon_name_for_desktop;
+                record.original_keywords = original_keywords;
+                record.original_startup_wm_class = original_startup_wm_class ?? "appmanager-%s".printf(final_slug);
+                record.original_commandline_args = original_exec_args;
+                
+                // Set web_page and update_link from original desktop file (only if not already set)
+                // These don't have custom variants - they come from the AppImage metadata
+                if (record.web_page == null) {
+                    record.web_page = original_homepage;
+                }
+                if (record.update_link == null) {
+                    record.update_link = original_update_url;
+                }
 
                 // Create symlink for terminal applications
                 if (is_terminal_app) {
@@ -350,45 +430,6 @@ namespace AppManager.Core {
             } finally {
                 Utils.FileUtils.remove_dir_recursive(temp_dir);
             }
-        }
-
-        private HashTable<string, string>? preserve_desktop_properties(string? desktop_file_path) {
-            if (desktop_file_path == null || desktop_file_path == "") {
-                return null;
-            }
-
-            var props = new HashTable<string, string>(str_hash, str_equal);
-            var fields_to_preserve = new string[] {
-                "X-AppImage-Homepage",
-                "X-AppImage-UpdateURL",
-                "Keywords",
-                "StartupWMClass",
-                "NoDisplay",
-                "Terminal"
-            };
-
-            bool has_props = false;
-            try {
-                var keyfile = new KeyFile();
-                keyfile.load_from_file(desktop_file_path, KeyFileFlags.NONE);
-
-                foreach (var field in fields_to_preserve) {
-                    try {
-                        var value = keyfile.get_string("Desktop Entry", field);
-                        if (value != null && value.strip() != "") {
-                            props.set(field, value);
-                            has_props = true;
-                        }
-                    } catch (Error e) {
-                        // Field doesn't exist, that's okay
-                    }
-                }
-            } catch (Error e) {
-                warning("Failed to preserve desktop file properties from %s: %s", desktop_file_path, e.message);
-                return null;
-            }
-
-            return has_props ? props : null;
         }
 
         public void uninstall(InstallationRecord record) throws Error {
@@ -446,20 +487,19 @@ namespace AppManager.Core {
             }
         }
 
-        private string rewrite_desktop(string desktop_path, string exec_target, string icon_name, string installed_path, bool is_terminal, InstallMode mode, HashTable<string, string>? preserved_props, string slug) throws Error {
+        private string rewrite_desktop(string desktop_path, string exec_target, InstallationRecord record, bool is_terminal, string slug, bool is_upgrade, string? original_icon_name, string? original_keywords, string? original_startup_wm_class, string? original_commandline_args) throws Error {
             string contents;
             if (!GLib.FileUtils.get_contents(desktop_path, out contents)) {
                 throw new InstallerError.DESKTOP_MISSING("Failed to read desktop file");
             }
 
-            // Track which preserved properties we've seen/applied
-            var applied_preserved = new Gee.HashSet<string>();
-            var custom_fields = new string[] {"X-AppImage-Homepage", "X-AppImage-UpdateURL", "Keywords", "StartupWMClass", "NoDisplay", "Terminal"};
-
             var output_lines = new Gee.ArrayList<string>();
             bool actions_handled = false;
             bool no_display_handled = false;
             bool startup_wm_class_handled = false;
+            bool keywords_handled = false;
+            bool homepage_handled = false;
+            bool update_url_handled = false;
             bool skipping_uninstall_block = false;
             bool in_desktop_entry = false;
 
@@ -496,50 +536,43 @@ namespace AppManager.Core {
                 }
                 // Replace Exec in Desktop Entry section
                 if (trimmed.has_prefix("Exec=")) {
-                    // For both PORTABLE and EXTRACTED modes: preserve command-line arguments from original desktop file
-                    var exec_value = trimmed.substring("Exec=".length).strip();
-                    var parts = exec_value.split(" ", 2);
-                    string args = (parts.length > 1) ? " " + parts[1] : "";
-                    output_lines.add("Exec=\"%s\"%s".printf(exec_target, args));
+                    // Use original command line args for fresh install
+                    var args = original_commandline_args ?? "";
+                    if (args.strip() != "") {
+                        output_lines.add("Exec=\"%s\" %s".printf(exec_target, args));
+                    } else {
+                        output_lines.add("Exec=\"%s\"".printf(exec_target));
+                    }
                     continue;
                 }
 
                 // Replace Icon in Desktop Entry section
                 if (trimmed.has_prefix("Icon=")) {
-                    output_lines.add("Icon=%s".printf(icon_name));
+                    output_lines.add("Icon=%s".printf(original_icon_name ?? slug));
                     continue;
                 }
 
                 // Handle StartupWMClass
                 if (trimmed.has_prefix("StartupWMClass=")) {
                     startup_wm_class_handled = true;
-                    if (preserved_props != null && preserved_props.contains("StartupWMClass")) {
-                        output_lines.add("StartupWMClass=%s".printf(preserved_props.get("StartupWMClass")));
-                        applied_preserved.add("StartupWMClass");
-                    } else {
-                        output_lines.add(line);
-                    }
+                    output_lines.add("StartupWMClass=%s".printf(original_startup_wm_class ?? "appmanager-%s".printf(slug)));
                     continue;
                 }
 
                 // Handle Keywords
                 if (trimmed.has_prefix("Keywords=")) {
-                    if (preserved_props != null && preserved_props.contains("Keywords")) {
-                        output_lines.add("Keywords=%s".printf(preserved_props.get("Keywords")));
-                        applied_preserved.add("Keywords");
-                    } else {
-                        output_lines.add(line);
+                    keywords_handled = true;
+                    if (original_keywords != null && original_keywords.strip() != "") {
+                        output_lines.add("Keywords=%s".printf(original_keywords));
                     }
+                    // If keywords is null/empty, drop the line
                     continue;
                 }
 
                 // Handle NoDisplay for terminal apps
                 if (trimmed.has_prefix("NoDisplay=")) {
                     no_display_handled = true;
-                    if (preserved_props != null && preserved_props.contains("NoDisplay")) {
-                        output_lines.add("NoDisplay=%s".printf(preserved_props.get("NoDisplay")));
-                        applied_preserved.add("NoDisplay");
-                    } else if (is_terminal) {
+                    if (is_terminal) {
                         output_lines.add("NoDisplay=true");
                     } else {
                         output_lines.add(line);
@@ -549,33 +582,26 @@ namespace AppManager.Core {
 
                 // Handle Terminal
                 if (trimmed.has_prefix("Terminal=")) {
-                    if (preserved_props != null && preserved_props.contains("Terminal")) {
-                        output_lines.add("Terminal=%s".printf(preserved_props.get("Terminal")));
-                        applied_preserved.add("Terminal");
-                    } else {
-                        output_lines.add(line);
-                    }
+                    output_lines.add(line);
                     continue;
                 }
 
                 // Handle custom X-AppImage fields
                 if (trimmed.has_prefix("X-AppImage-Homepage=")) {
-                    if (preserved_props != null && preserved_props.contains("X-AppImage-Homepage")) {
-                        output_lines.add("X-AppImage-Homepage=%s".printf(preserved_props.get("X-AppImage-Homepage")));
-                        applied_preserved.add("X-AppImage-Homepage");
-                    } else {
-                        output_lines.add(line);
+                    homepage_handled = true;
+                    if (record.web_page != null && record.web_page.strip() != "") {
+                        output_lines.add("X-AppImage-Homepage=%s".printf(record.web_page));
                     }
+                    // If web_page is null/empty, drop the line
                     continue;
                 }
 
                 if (trimmed.has_prefix("X-AppImage-UpdateURL=")) {
-                    if (preserved_props != null && preserved_props.contains("X-AppImage-UpdateURL")) {
-                        output_lines.add("X-AppImage-UpdateURL=%s".printf(preserved_props.get("X-AppImage-UpdateURL")));
-                        applied_preserved.add("X-AppImage-UpdateURL");
-                    } else {
-                        output_lines.add(line);
+                    update_url_handled = true;
+                    if (record.update_link != null && record.update_link.strip() != "") {
+                        output_lines.add("X-AppImage-UpdateURL=%s".printf(record.update_link));
                     }
+                    // If update_link is null/empty, drop the line
                     continue;
                 }
 
@@ -608,51 +634,48 @@ namespace AppManager.Core {
                 output_lines.add(line);
             }
 
-            // Add preserved custom fields that weren't in the new desktop file
-            if (preserved_props != null) {
-                int insert_pos = -1;
-                for (int i = 0; i < output_lines.size; i++) {
-                    var line = output_lines[i].strip();
-                    if (line == "[Desktop Entry]") {
-                        insert_pos = i + 1;
-                    } else if (insert_pos > 0 && line.has_prefix("[") && line.has_suffix("]")) {
-                        break;
-                    } else if (insert_pos > 0) {
-                        insert_pos = i + 1;
-                    }
+            // Add custom fields from registry that weren't in the original desktop file
+            int insert_pos = -1;
+            for (int i = 0; i < output_lines.size; i++) {
+                var line = output_lines[i].strip();
+                if (line == "[Desktop Entry]") {
+                    insert_pos = i + 1;
+                } else if (insert_pos > 0 && line.has_prefix("[") && line.has_suffix("]")) {
+                    break;
+                } else if (insert_pos > 0) {
+                    insert_pos = i + 1;
                 }
-
-                foreach (var field in custom_fields) {
-                    if (preserved_props.contains(field) && !applied_preserved.contains(field)) {
-                        var value = preserved_props.get(field);
-                        if (value != null && value.strip() != "") {
-                            if (insert_pos > 0) {
-                                output_lines.insert(insert_pos, "%s=%s".printf(field, value));
-                                insert_pos++;
-                            } else {
-                                output_lines.add("%s=%s".printf(field, value));
-                            }
-                        }
-                    }
+            }
+            
+            // Add Keywords if not handled and has value
+            if (!keywords_handled && original_keywords != null && original_keywords.strip() != "") {
+                if (insert_pos > 0) {
+                    output_lines.insert(insert_pos, "Keywords=%s".printf(original_keywords));
+                    insert_pos++;
+                }
+            }
+            
+            // Add Homepage if not handled and has value
+            if (!homepage_handled && record.web_page != null && record.web_page.strip() != "") {
+                if (insert_pos > 0) {
+                    output_lines.insert(insert_pos, "X-AppImage-Homepage=%s".printf(record.web_page));
+                    insert_pos++;
+                }
+            }
+            
+            // Add UpdateURL if not handled and has value
+            if (!update_url_handled && record.update_link != null && record.update_link.strip() != "") {
+                if (insert_pos > 0) {
+                    output_lines.insert(insert_pos, "X-AppImage-UpdateURL=%s".printf(record.update_link));
+                    insert_pos++;
                 }
             }
 
             // Add Actions line if not present
             if (!actions_handled) {
-                // Find end of Desktop Entry section to insert Actions
-                int insert_pos = -1;
-                for (int i = 0; i < output_lines.size; i++) {
-                    var line = output_lines[i].strip();
-                    if (line == "[Desktop Entry]") {
-                        insert_pos = i + 1;
-                    } else if (insert_pos > 0 && line.has_prefix("[") && line.has_suffix("]")) {
-                        break;
-                    } else if (insert_pos > 0) {
-                        insert_pos = i + 1;
-                    }
-                }
                 if (insert_pos > 0) {
                     output_lines.insert(insert_pos, "Actions=Uninstall;");
+                    insert_pos++;
                 } else {
                     output_lines.add("Actions=Uninstall;");
                 }
@@ -660,19 +683,9 @@ namespace AppManager.Core {
 
             // Add NoDisplay for terminal apps if not already set
             if (is_terminal && !no_display_handled) {
-                int insert_pos = -1;
-                for (int i = 0; i < output_lines.size; i++) {
-                    var line = output_lines[i].strip();
-                    if (line == "[Desktop Entry]") {
-                        insert_pos = i + 1;
-                    } else if (insert_pos > 0 && line.has_prefix("[") && line.has_suffix("]")) {
-                        break;
-                    } else if (insert_pos > 0) {
-                        insert_pos = i + 1;
-                    }
-                }
                 if (insert_pos > 0) {
                     output_lines.insert(insert_pos, "NoDisplay=true");
+                    insert_pos++;
                 } else {
                     output_lines.add("NoDisplay=true");
                 }
@@ -680,27 +693,15 @@ namespace AppManager.Core {
 
             // Add StartupWMClass if not present
             if (!startup_wm_class_handled) {
-                int insert_pos = -1;
-                for (int i = 0; i < output_lines.size; i++) {
-                    var line = output_lines[i].strip();
-                    if (line == "[Desktop Entry]") {
-                        insert_pos = i + 1;
-                    } else if (insert_pos > 0 && line.has_prefix("[") && line.has_suffix("]")) {
-                        break;
-                    } else if (insert_pos > 0) {
-                        insert_pos = i + 1;
-                    }
-                }
-                var desktop_name = "appmanager-%s".printf(slug);
                 if (insert_pos > 0) {
-                    output_lines.insert(insert_pos, "StartupWMClass=%s".printf(desktop_name));
+                    output_lines.insert(insert_pos, "StartupWMClass=%s".printf(original_startup_wm_class ?? "appmanager-%s".printf(slug)));
                 } else {
-                    output_lines.add("StartupWMClass=%s".printf(desktop_name));
+                    output_lines.add("StartupWMClass=%s".printf(original_startup_wm_class ?? "appmanager-%s".printf(slug)));
                 }
             }
 
             // Add Uninstall action block
-            var uninstall_exec = build_uninstall_exec(installed_path);
+            var uninstall_exec = build_uninstall_exec(record.installed_path);
             output_lines.add("");
             output_lines.add("[Desktop Action Uninstall]");
             output_lines.add("Name=%s".printf(I18n.tr("Move to Trash")));

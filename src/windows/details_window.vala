@@ -133,27 +133,54 @@ namespace AppManager {
             var props_group = new Adw.PreferencesGroup();
             props_group.title = I18n.tr("Properties");
             
-            // Command line arguments (extracted from Exec field)
+            // Extract current values from desktop file
+            var exec_from_desktop = desktop_props.get("Exec") ?? "";
+            var current_args = extract_exec_args(exec_from_desktop);
+            var current_icon = desktop_props.get("Icon") ?? "";
+            var current_keywords = desktop_props.get("Keywords") ?? "";
+            var current_wmclass = desktop_props.get("StartupWMClass") ?? "";
+            
+            // Command line arguments (loaded from .desktop file)
             var exec_row = new Adw.EntryRow();
             exec_row.title = I18n.tr("Command line arguments");
-            var full_exec = desktop_props.get("Exec") ?? "";
-            var exec_args = extract_exec_arguments(full_exec);
-            exec_row.text = exec_args;
+            exec_row.text = current_args;
+            
+            // Restore defaults button for command line args - visible when custom value is set
+            var restore_exec_button = new Gtk.Button.from_icon_name("edit-undo-symbolic");
+            restore_exec_button.add_css_class("flat");
+            restore_exec_button.set_valign(Gtk.Align.CENTER);
+            restore_exec_button.tooltip_text = I18n.tr("Restore default");
+            restore_exec_button.set_visible(record.custom_commandline_args != null);
+            restore_exec_button.clicked.connect(() => {
+                // Undo: clear custom, restore original to .desktop
+                record.custom_commandline_args = null;
+                registry.register(record);
+                var original_val = record.original_commandline_args ?? "";
+                exec_row.text = original_val;
+                update_desktop_file_property(record.desktop_file, "Exec", build_exec_with_args(exec_from_desktop, original_val));
+                restore_exec_button.set_visible(false);
+            });
+            exec_row.add_suffix(restore_exec_button);
+            
             exec_row.changed.connect(() => {
-                // Append new arguments to the existing Exec command
-                var base_exec = get_base_exec_command(full_exec);
-                var new_args = exec_row.text.strip();
-                var updated_exec = new_args.length > 0 ? base_exec + " " + new_args : base_exec;
-                update_desktop_file_property(record.desktop_file, "Exec", updated_exec);
+                var new_val = exec_row.text.strip() == "" ? null : exec_row.text;
+                // Set custom value in registry
+                record.custom_commandline_args = new_val;
+                registry.register(record);
+                // Update .desktop file
+                update_desktop_file_property(record.desktop_file, "Exec", build_exec_with_args(exec_from_desktop, exec_row.text));
+                restore_exec_button.set_visible(record.custom_commandline_args != null);
             });
             props_group.add(exec_row);
             
-            // Web page address
+            // Web page address (from registry - no original/custom distinction)
             var webpage_row = new Adw.EntryRow();
             webpage_row.title = I18n.tr("Web Page");
-            webpage_row.text = desktop_props.get("X-AppImage-Homepage") ?? "";
+            webpage_row.text = record.web_page ?? "";
             webpage_row.changed.connect(() => {
-                update_desktop_file_property(record.desktop_file, "X-AppImage-Homepage", webpage_row.text);
+                record.web_page = webpage_row.text.strip() == "" ? null : webpage_row.text;
+                registry.register(record);
+                update_desktop_file_property(record.desktop_file, "X-AppImage-Homepage", record.web_page ?? "");
             });
             
             // Add open button for web page
@@ -169,12 +196,14 @@ namespace AppManager {
             });
             webpage_row.add_suffix(open_web_button);
             
-            // Update address (placeholder for future use)
+            // Update link (from registry - no original/custom distinction)
             var update_row = new Adw.EntryRow();
             update_row.title = I18n.tr("Update Link");
-            update_row.text = desktop_props.get("X-AppImage-UpdateURL") ?? "";
+            update_row.text = record.update_link ?? "";
             update_row.changed.connect(() => {
-                update_desktop_file_property(record.desktop_file, "X-AppImage-UpdateURL", update_row.text);
+                record.update_link = update_row.text.strip() == "" ? null : update_row.text;
+                registry.register(record);
+                update_desktop_file_property(record.desktop_file, "X-AppImage-UpdateURL", record.update_link ?? "");
             });
             
             // Update info group holds links that users might want to copy quickly
@@ -197,42 +226,113 @@ namespace AppManager {
             advanced_group.title = I18n.tr("Advanced");
             props_group.add(advanced_group);
 
-            // Keywords live in the advanced section to keep the primary view simple
+            // Keywords (loaded from .desktop file)
             var keywords_row = new Adw.EntryRow();
             keywords_row.title = I18n.tr("Keywords");
-            keywords_row.text = desktop_props.get("Keywords") ?? "";
+            keywords_row.text = current_keywords;
+            
+            // Restore defaults button for keywords - visible when custom value is set
+            var restore_keywords_button = new Gtk.Button.from_icon_name("edit-undo-symbolic");
+            restore_keywords_button.add_css_class("flat");
+            restore_keywords_button.set_valign(Gtk.Align.CENTER);
+            restore_keywords_button.tooltip_text = I18n.tr("Restore default");
+            restore_keywords_button.set_visible(record.custom_keywords != null);
+            restore_keywords_button.clicked.connect(() => {
+                // Undo: clear custom, restore original to .desktop
+                record.custom_keywords = null;
+                registry.register(record);
+                var original_val = record.original_keywords ?? "";
+                keywords_row.text = original_val;
+                update_desktop_file_property(record.desktop_file, "Keywords", original_val);
+                restore_keywords_button.set_visible(false);
+            });
+            keywords_row.add_suffix(restore_keywords_button);
+            
             keywords_row.changed.connect(() => {
+                var new_val = keywords_row.text.strip() == "" ? null : keywords_row.text;
+                // Set custom value in registry
+                record.custom_keywords = new_val;
+                registry.register(record);
+                // Update .desktop file
                 update_desktop_file_property(record.desktop_file, "Keywords", keywords_row.text);
+                restore_keywords_button.set_visible(record.custom_keywords != null);
             });
             advanced_group.add_row(keywords_row);
 
-            // Icon
+            // Icon name (loaded from .desktop file)
             var icon_row = new Adw.EntryRow();
             icon_row.title = I18n.tr("Icon name");
-            icon_row.text = desktop_props.get("Icon") ?? "";
+            icon_row.text = current_icon;
+            
+            // Restore defaults button for icon - visible when custom value is set
+            var restore_icon_button = new Gtk.Button.from_icon_name("edit-undo-symbolic");
+            restore_icon_button.add_css_class("flat");
+            restore_icon_button.set_valign(Gtk.Align.CENTER);
+            restore_icon_button.tooltip_text = I18n.tr("Restore default");
+            restore_icon_button.set_visible(record.custom_icon_name != null);
+            restore_icon_button.clicked.connect(() => {
+                // Undo: clear custom, restore original to .desktop
+                record.custom_icon_name = null;
+                registry.register(record);
+                var original_val = record.original_icon_name ?? "";
+                icon_row.text = original_val;
+                update_desktop_file_property(record.desktop_file, "Icon", original_val);
+                restore_icon_button.set_visible(false);
+            });
+            icon_row.add_suffix(restore_icon_button);
+            
             icon_row.changed.connect(() => {
+                var new_val = icon_row.text.strip() == "" ? null : icon_row.text;
+                // Set custom value in registry
+                record.custom_icon_name = new_val;
+                registry.register(record);
+                // Update .desktop file
                 update_desktop_file_property(record.desktop_file, "Icon", icon_row.text);
+                restore_icon_button.set_visible(record.custom_icon_name != null);
             });
             advanced_group.add_row(icon_row);
             
-            // StartupWMClass
+            // StartupWMClass (loaded from .desktop file)
             var wmclass_row = new Adw.EntryRow();
             wmclass_row.title = I18n.tr("Startup WM Class");
-            wmclass_row.text = desktop_props.get("StartupWMClass") ?? "";
+            wmclass_row.text = current_wmclass;
+            
+            // Restore defaults button for wmclass - visible when custom value is set
+            var restore_wmclass_button = new Gtk.Button.from_icon_name("edit-undo-symbolic");
+            restore_wmclass_button.add_css_class("flat");
+            restore_wmclass_button.set_valign(Gtk.Align.CENTER);
+            restore_wmclass_button.tooltip_text = I18n.tr("Restore default");
+            restore_wmclass_button.set_visible(record.custom_startup_wm_class != null);
+            restore_wmclass_button.clicked.connect(() => {
+                // Undo: clear custom, restore original to .desktop
+                record.custom_startup_wm_class = null;
+                registry.register(record);
+                var original_val = record.original_startup_wm_class ?? "";
+                wmclass_row.text = original_val;
+                update_desktop_file_property(record.desktop_file, "StartupWMClass", original_val);
+                restore_wmclass_button.set_visible(false);
+            });
+            wmclass_row.add_suffix(restore_wmclass_button);
+            
             wmclass_row.changed.connect(() => {
+                var new_val = wmclass_row.text.strip() == "" ? null : wmclass_row.text;
+                // Set custom value in registry
+                record.custom_startup_wm_class = new_val;
+                registry.register(record);
+                // Update .desktop file
                 update_desktop_file_property(record.desktop_file, "StartupWMClass", wmclass_row.text);
+                restore_wmclass_button.set_visible(record.custom_startup_wm_class != null);
             });
             advanced_group.add_row(wmclass_row);
 
             // Version
             var version_row = new Adw.EntryRow();
             version_row.title = I18n.tr("Version");
-            version_row.text = desktop_props.get("X-AppImage-Version") ?? "";
+            version_row.text = record.version ?? "";
             version_row.changed.connect(() => {
-                update_desktop_file_property(record.desktop_file, "X-AppImage-Version", version_row.text);
-                // Update the record version and re-register to save
-                record.version = version_row.text;
+                record.version = version_row.text.strip() == "" ? null : version_row.text;
                 registry.register(record);
+                update_desktop_file_property(record.desktop_file, "X-AppImage-Version", record.version ?? "");
             });
             advanced_group.add_row(version_row);
             
@@ -417,10 +517,9 @@ namespace AppManager {
             return props;
         }
         
-        private string extract_exec_arguments(string exec_command) {
-            // Extract only the arguments from Exec field, not the executable path
-            // The first token (before the first space) is the executable, rest are arguments
-            var trimmed = exec_command.strip();
+        // Extract command line arguments from Exec field (everything after first token)
+        private string extract_exec_args(string exec_value) {
+            var trimmed = exec_value.strip();
             if (trimmed.length == 0) {
                 return "";
             }
@@ -438,22 +537,22 @@ namespace AppManager {
             }
             
             if (first_space == -1) {
-                // No arguments, just the executable
+                // No arguments
                 return "";
             }
             
-            // Return everything after the first space
+            // Return only the arguments part
             return trimmed.substring(first_space + 1).strip();
         }
         
-        private string get_base_exec_command(string exec_command) {
-            // Extract only the base executable path from Exec field (first token)
-            var trimmed = exec_command.strip();
+        // Build Exec value with new args, preserving the executable path
+        private string build_exec_with_args(string current_exec, string new_args) {
+            var trimmed = current_exec.strip();
             if (trimmed.length == 0) {
                 return "";
             }
             
-            // Find first unquoted space
+            // Find the base executable (first token)
             int first_space = -1;
             bool in_quotes = false;
             for (int i = 0; i < trimmed.length; i++) {
@@ -465,13 +564,18 @@ namespace AppManager {
                 }
             }
             
+            string base_exec;
             if (first_space == -1) {
-                // No arguments, return the whole thing
-                return trimmed;
+                base_exec = trimmed;
+            } else {
+                base_exec = trimmed.substring(0, first_space);
             }
             
-            // Return only the executable part
-            return trimmed.substring(0, first_space);
+            if (new_args.strip() != "") {
+                return "%s %s".printf(base_exec, new_args);
+            } else {
+                return base_exec;
+            }
         }
         
         private void update_desktop_file_property(string desktop_file_path, string key, string value) {
@@ -480,11 +584,15 @@ namespace AppManager {
                 keyfile.load_from_file(desktop_file_path, KeyFileFlags.KEEP_COMMENTS | KeyFileFlags.KEEP_TRANSLATIONS);
                 
                 if (value.strip() == "") {
-                    // Remove key if value is empty
-                    try {
-                        keyfile.remove_key("Desktop Entry", key);
-                    } catch (Error e) {
-                        // Key might not exist, that's fine
+                    // Remove key if value is empty (except for some keys that should stay)
+                    if (key != "Exec" && key != "Icon" && key != "StartupWMClass") {
+                        try {
+                            keyfile.remove_key("Desktop Entry", key);
+                        } catch (Error e) {
+                            // Key might not exist, that's fine
+                        }
+                    } else {
+                        keyfile.set_string("Desktop Entry", key, value);
                     }
                 } else {
                     keyfile.set_string("Desktop Entry", key, value);

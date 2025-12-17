@@ -18,6 +18,22 @@ namespace AppManager.Core {
         public int64 updated_at { get; set; default = 0; }
         public string? version { get; set; }
         public string? etag { get; set; }
+        
+        // Fields that don't have original/custom distinction (always stored in registry)
+        public string? update_link { get; set; }
+        public string? web_page { get; set; }
+        
+        // Original values captured from AppImage's .desktop during install/update
+        public string? original_commandline_args { get; set; }
+        public string? original_keywords { get; set; }
+        public string? original_icon_name { get; set; }
+        public string? original_startup_wm_class { get; set; }
+        
+        // Custom values set by user (null means use original, non-null means user customized)
+        public string? custom_commandline_args { get; set; }
+        public string? custom_keywords { get; set; }
+        public string? custom_icon_name { get; set; }
+        public string? custom_startup_wm_class { get; set; }
 
         public InstallationRecord(string id, string name, InstallMode mode) {
             Object(id: id, name: name, mode: mode, installed_at: (int64)GLib.get_real_time());
@@ -52,6 +68,33 @@ namespace AppManager.Core {
             builder.add_string_value(version ?? "");
             builder.set_member_name("etag");
             builder.add_string_value(etag ?? "");
+            
+            // Fields stored in registry (no original/custom distinction)
+            builder.set_member_name("update_link");
+            builder.add_string_value(update_link ?? "");
+            builder.set_member_name("web_page");
+            builder.add_string_value(web_page ?? "");
+            
+            // Original values from AppImage's .desktop
+            builder.set_member_name("original_commandline_args");
+            builder.add_string_value(original_commandline_args ?? "");
+            builder.set_member_name("original_keywords");
+            builder.add_string_value(original_keywords ?? "");
+            builder.set_member_name("original_icon_name");
+            builder.add_string_value(original_icon_name ?? "");
+            builder.set_member_name("original_startup_wm_class");
+            builder.add_string_value(original_startup_wm_class ?? "");
+            
+            // Custom values set by user (null means not customized)
+            builder.set_member_name("custom_commandline_args");
+            builder.add_string_value(custom_commandline_args ?? "");
+            builder.set_member_name("custom_keywords");
+            builder.add_string_value(custom_keywords ?? "");
+            builder.set_member_name("custom_icon_name");
+            builder.add_string_value(custom_icon_name ?? "");
+            builder.set_member_name("custom_startup_wm_class");
+            builder.add_string_value(custom_startup_wm_class ?? "");
+            
             builder.end_object();
             return builder.get_root();
         }
@@ -75,6 +118,33 @@ namespace AppManager.Core {
             record.version = version == "" ? null : version;
             var etag = obj.get_string_member_with_default("etag", "");
             record.etag = etag == "" ? null : etag;
+            
+            // Fields stored in registry (no original/custom distinction)
+            var update_link = obj.get_string_member_with_default("update_link", "");
+            record.update_link = update_link == "" ? null : update_link;
+            var web_page = obj.get_string_member_with_default("web_page", "");
+            record.web_page = web_page == "" ? null : web_page;
+            
+            // Original values from AppImage's .desktop
+            var original_commandline_args = obj.get_string_member_with_default("original_commandline_args", "");
+            record.original_commandline_args = original_commandline_args == "" ? null : original_commandline_args;
+            var original_keywords = obj.get_string_member_with_default("original_keywords", "");
+            record.original_keywords = original_keywords == "" ? null : original_keywords;
+            var original_icon_name = obj.get_string_member_with_default("original_icon_name", "");
+            record.original_icon_name = original_icon_name == "" ? null : original_icon_name;
+            var original_startup_wm_class = obj.get_string_member_with_default("original_startup_wm_class", "");
+            record.original_startup_wm_class = original_startup_wm_class == "" ? null : original_startup_wm_class;
+            
+            // Custom values set by user (null means not customized)
+            var custom_commandline_args = obj.get_string_member_with_default("custom_commandline_args", "");
+            record.custom_commandline_args = custom_commandline_args == "" ? null : custom_commandline_args;
+            var custom_keywords = obj.get_string_member_with_default("custom_keywords", "");
+            record.custom_keywords = custom_keywords == "" ? null : custom_keywords;
+            var custom_icon_name = obj.get_string_member_with_default("custom_icon_name", "");
+            record.custom_icon_name = custom_icon_name == "" ? null : custom_icon_name;
+            var custom_startup_wm_class = obj.get_string_member_with_default("custom_startup_wm_class", "");
+            record.custom_startup_wm_class = custom_startup_wm_class == "" ? null : custom_startup_wm_class;
+            
             return record;
         }
 
