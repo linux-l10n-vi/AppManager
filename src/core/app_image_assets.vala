@@ -242,11 +242,31 @@ namespace AppManager.Core {
                 if (version.length > 0) {
                     metadata.version = version;
                 }
+            } else {
+                // Some AppImages place X-AppImage-Version after Desktop Action sections,
+                // which causes it to be parsed into the wrong group. Search all groups.
+                metadata.version = find_key_in_any_group(key_file, "X-AppImage-Version");
             }
             if (key_file.has_key("Desktop Entry", "Terminal")) {
                 metadata.is_terminal = key_file.get_boolean("Desktop Entry", "Terminal");
             }
             return metadata;
+        }
+
+        private static string? find_key_in_any_group(KeyFile key_file, string key) {
+            try {
+                foreach (var group in key_file.get_groups()) {
+                    if (key_file.has_key(group, key)) {
+                        var value = key_file.get_string(group, key).strip();
+                        if (value.length > 0) {
+                            return value;
+                        }
+                    }
+                }
+            } catch (Error e) {
+                // Ignore errors when searching
+            }
+            return null;
         }
 
         public static string extract_desktop_entry(string appimage_path, string temp_root) throws Error {
