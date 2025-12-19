@@ -55,7 +55,7 @@ Install the development packages required to build AppManager on each distributi
 - **Debian / Ubuntu:**
 
 ```bash
-sudo apt install valac meson ninja-build pkg-config libadwaita-1-dev libgtk-4-dev libglib2.0-dev libjson-glib-dev libgee-0.8-dev libgirepository1.0-dev libsoup3.0 libportal-dev libportal-gtk-dev p7zip-full
+sudo apt install valac meson ninja-build pkg-config libadwaita-1-dev libgtk-4-dev libglib2.0-dev libjson-glib-dev libgee-0.8-dev libgirepository1.0-dev libsoup-3.0-dev libportal-dev libportal-gtk4-dev p7zip-full
 ```
 
 - **Fedora:**
