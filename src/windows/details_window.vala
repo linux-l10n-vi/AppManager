@@ -7,9 +7,9 @@ namespace AppManager {
         private InstallationRegistry registry;
         private bool update_available;
         private bool update_loading = false;
-        private Adw.ButtonRow? update_action_row;
+        private Gtk.Button? update_button;
         private Gtk.Spinner? update_spinner;
-        private Gtk.ListBox? update_list;
+        private Gtk.Button? extract_button;
         
         public signal void uninstall_requested(InstallationRecord record);
         public signal void update_requested(InstallationRecord record);
@@ -32,12 +32,12 @@ namespace AppManager {
 
         public void set_update_available(bool available) {
             update_available = available;
-            refresh_update_action_row();
+            refresh_update_button();
         }
 
         public void set_update_loading(bool loading) {
             update_loading = loading;
-            refresh_update_action_row();
+            refresh_update_button();
         }
 
         private void build_ui() {
@@ -504,13 +504,21 @@ namespace AppManager {
             var actions_group = new Adw.PreferencesGroup();
             actions_group.title = I18n.tr("Actions");
             
-            var actions_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+            var actions_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 8);
+            actions_box.set_halign(Gtk.Align.CENTER);
             actions_group.add(actions_box);
 
-            // Update Action with spinner
-            update_action_row = new Adw.ButtonRow();
+            // First row: Update and Extract buttons
+            var row1 = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 8);
+            row1.set_halign(Gtk.Align.CENTER);
 
-            update_action_row.activated.connect(() => {
+            // Update button with spinner overlay
+            var update_wrapper = new Gtk.Overlay();
+            update_button = new Gtk.Button();
+            update_button.add_css_class("pill");
+            update_button.width_request = 200;
+            update_button.hexpand = false;
+            update_button.clicked.connect(() => {
                 if (update_loading) {
                     return;
                 }
@@ -520,48 +528,49 @@ namespace AppManager {
                     check_update_requested(record);
                 }
             });
-            
-            // Create a box to hold the list and spinner overlay
-            var update_wrapper = new Gtk.Overlay();
-            
-            update_list = new Gtk.ListBox();
-            update_list.add_css_class("boxed-list");
-            update_list.selection_mode = Gtk.SelectionMode.NONE;
-            update_list.append(update_action_row);
-            update_wrapper.set_child(update_list);
+            update_wrapper.set_child(update_button);
             
             update_spinner = new Gtk.Spinner();
             update_spinner.valign = Gtk.Align.CENTER;
             update_spinner.halign = Gtk.Align.START;
-            update_spinner.margin_start = 16;
+            update_spinner.margin_start = 12;
             update_spinner.visible = false;
             update_wrapper.add_overlay(update_spinner);
             
-            actions_box.append(update_wrapper);
-            refresh_update_action_row();
+            row1.append(update_wrapper);
+            refresh_update_button();
 
-            // Only show extract action for non-terminal, portable installs
-            if (record.mode == InstallMode.PORTABLE && (desktop_props.get("Terminal") ?? "false").down() != "true") {
-                var extract_row = new Adw.ButtonRow();
-                extract_row.title = I18n.tr("Extract AppImage");
-                extract_row.sensitive = true;
-                extract_row.activated.connect(() => {
-                    if (extract_row.get_sensitive()) {
-                        present_extract_warning();
-                    }
-                });
-                actions_box.append(create_list_box_for_row(extract_row));
-            }
-            
-            var delete_row = new Adw.ButtonRow();
-            delete_row.title = I18n.tr("Move to Trash");
-            delete_row.start_icon_name = "user-trash-symbolic";
-            delete_row.add_css_class("destructive-action");
-            delete_row.activated.connect(() => {
+            // Extract button - always shown, disabled when not applicable
+            extract_button = new Gtk.Button.with_label(I18n.tr("Extract AppImage"));
+            extract_button.add_css_class("pill");
+            extract_button.width_request = 200;
+            extract_button.hexpand = false;
+            // Enable only for non-terminal, portable installs
+            var can_extract = record.mode == InstallMode.PORTABLE && (desktop_props.get("Terminal") ?? "false").down() != "true";
+            extract_button.sensitive = can_extract;
+            extract_button.clicked.connect(() => {
+                present_extract_warning();
+            });
+            row1.append(extract_button);
+
+            actions_box.append(row1);
+
+            // Second row: Delete button
+            var delete_button = new Gtk.Button();
+            delete_button.add_css_class("pill");
+            delete_button.width_request = 200;
+            delete_button.hexpand = false;
+            var delete_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
+            delete_box.set_halign(Gtk.Align.CENTER);
+            delete_box.append(new Gtk.Image.from_icon_name("user-trash-symbolic"));
+            delete_box.append(new Gtk.Label(I18n.tr("Move to Trash")));
+            delete_button.set_child(delete_box);
+            delete_button.add_css_class("destructive-action");
+            delete_button.clicked.connect(() => {
                 uninstall_requested(record);
             });
             
-            actions_box.append(create_list_box_for_row(delete_row));
+            actions_box.append(delete_button);
             detail_page.add(actions_group);
             
             var toolbar = new Adw.ToolbarView();
@@ -571,33 +580,34 @@ namespace AppManager {
             this.child = toolbar;
         }
 
-        private void refresh_update_action_row() {
-            if (update_action_row == null || update_spinner == null) {
+        private void refresh_update_button() {
+            if (update_button == null || update_spinner == null) {
                 return;
             }
 
             if (update_loading) {
-                update_action_row.title = I18n.tr("Checking...");
-                update_action_row.start_icon_name = null;
+                update_button.set_label(I18n.tr("Checking..."));
                 update_spinner.visible = true;
                 update_spinner.start();
-                update_action_row.sensitive = false;
-                update_action_row.remove_css_class("suggested-action");
+                update_button.sensitive = false;
+                update_button.remove_css_class("suggested-action");
                 return;
             }
 
             update_spinner.visible = false;
             update_spinner.stop();
-            update_action_row.sensitive = true;
+            update_button.sensitive = true;
 
             if (update_available) {
-                update_action_row.title = I18n.tr("Update");
-                update_action_row.start_icon_name = "software-update-available-symbolic";
-                update_action_row.add_css_class("suggested-action");
+                var update_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
+                update_box.set_halign(Gtk.Align.CENTER);
+                update_box.append(new Gtk.Image.from_icon_name("software-update-available-symbolic"));
+                update_box.append(new Gtk.Label(I18n.tr("Update")));
+                update_button.set_child(update_box);
+                update_button.add_css_class("suggested-action");
             } else {
-                update_action_row.title = I18n.tr("Check Update");
-                update_action_row.start_icon_name = null;
-                update_action_row.remove_css_class("suggested-action");
+                update_button.set_label(I18n.tr("Check Update"));
+                update_button.remove_css_class("suggested-action");
             }
         }
 
@@ -791,14 +801,6 @@ namespace AppManager {
             } catch (Error e) {
                 warning("Failed to update desktop file %s: %s", desktop_file_path, e.message);
             }
-        }
-
-        private Gtk.ListBox create_list_box_for_row(Adw.PreferencesRow row) {
-            var list = new Gtk.ListBox();
-            list.add_css_class("boxed-list");
-            list.selection_mode = Gtk.SelectionMode.NONE;
-            list.append(row);
-            return list;
         }
 
         private void present_extract_warning() {
