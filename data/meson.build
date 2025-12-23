@@ -22,7 +22,25 @@ install_data(gsettings_schemas,
   install_dir: schema_dir
 )
 
-meson.add_install_script(join_paths(meson.project_source_root(), 'meson', 'post_install.sh'), schema_dir)
+# Pre-compile GSettings schema at build time so the package works without post-install hooks
+compiled_schemas = custom_target('gschemas.compiled',
+  input: gsettings_schemas,
+  output: 'gschemas.compiled',
+  command: [
+    find_program('glib-compile-schemas'),
+    '--targetdir=@OUTDIR@',
+    meson.current_source_dir()
+  ],
+  install: true,
+  install_dir: schema_dir
+)
+
+# Use gnome.post_install() for standard system integration (desktop DB, icon cache, schemas)
+gnome.post_install(
+  glib_compile_schemas: true,
+  gtk_update_icon_cache: true,
+  update_desktop_database: true
+)
 
 install_data('icons/com.github.AppManager.svg',
   install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable', 'apps')
