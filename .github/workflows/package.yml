@@ -50,24 +50,7 @@ jobs:
             echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports ${CODENAME}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/arm64-ports.list
           fi
           sudo apt-get update
-          if [ "${{ matrix.is_cross }}" = "true" ]; then
-            sudo apt-get install -y \
-              gcc-aarch64-linux-gnu \
-              g++-aarch64-linux-gnu \
-              valac \
-              libglib2.0-dev:arm64 \
-              libgtk-4-dev:arm64 \
-              libadwaita-1-dev:arm64 \
-              libjson-glib-dev:arm64 \
-              libgee-0.8-dev:arm64 \
-              libsoup-3.0-dev:arm64 \
-              libportal-dev:arm64 \
-              libportal-gtk4-dev:arm64
-            # Create pkg-config wrapper for cross-compilation
-            echo '#!/bin/sh' | sudo tee /usr/local/bin/aarch64-linux-gnu-pkg-config
-            echo 'PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig pkg-config "$@"' | sudo tee -a /usr/local/bin/aarch64-linux-gnu-pkg-config
-            sudo chmod +x /usr/local/bin/aarch64-linux-gnu-pkg-config
-          fi
+          # Install host (amd64) build tools first
           sudo apt-get install -y \
             curl \
             meson \
@@ -91,6 +74,26 @@ jobs:
             ruby-dev \
             rpm \
             p7zip-full
+          if [ "${{ matrix.is_cross }}" = "true" ]; then
+            # Install cross-compilation toolchain and arm64 libraries
+            # Use --force-overwrite to handle shared header file conflicts
+            sudo apt-get install -y \
+              gcc-aarch64-linux-gnu \
+              g++-aarch64-linux-gnu
+            sudo apt-get install -y -o Dpkg::Options::="--force-overwrite" \
+              libglib2.0-dev:arm64 \
+              libgtk-4-dev:arm64 \
+              libadwaita-1-dev:arm64 \
+              libjson-glib-dev:arm64 \
+              libgee-0.8-dev:arm64 \
+              libsoup-3.0-dev:arm64 \
+              libportal-dev:arm64 \
+              libportal-gtk4-dev:arm64
+            # Create pkg-config wrapper for cross-compilation
+            echo '#!/bin/sh' | sudo tee /usr/local/bin/aarch64-linux-gnu-pkg-config
+            echo 'PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig pkg-config "$@"' | sudo tee -a /usr/local/bin/aarch64-linux-gnu-pkg-config
+            sudo chmod +x /usr/local/bin/aarch64-linux-gnu-pkg-config
+          fi
           sudo gem install --no-document fpm
 
       - name: Install appimagetool
