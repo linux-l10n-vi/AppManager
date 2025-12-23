@@ -14,6 +14,12 @@ namespace AppManager.Core {
             }
         }
 
+        public static string updates_log_file {
+            owned get {
+                return Path.build_filename(data_dir, UPDATES_LOG_FILENAME);
+            }
+        }
+
         public static string applications_dir {
             owned get {
                 var dir = Path.build_filename(Environment.get_home_dir(), APPLICATIONS_DIRNAME);

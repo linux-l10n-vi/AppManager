@@ -34,7 +34,7 @@ namespace AppManager {
             thumbnails_group.title = I18n.tr("Thumbnails");
 
             var thumbnail_background_row = new Adw.SwitchRow();
-            thumbnail_background_row.title = I18n.tr("Hide checkered thumbnail background");
+            thumbnail_background_row.title = I18n.tr("Hide Nautilus thumbnail background");
             thumbnail_background_row.subtitle = I18n.tr("Remove the alpha checkerboard behind thumbnails and icons");
             settings.bind("remove-thumbnail-checkerboard", thumbnail_background_row, "active", GLib.SettingsBindFlags.DEFAULT);
 
@@ -47,6 +47,22 @@ namespace AppManager {
             var updates_group = new Adw.PreferencesGroup();
             updates_group.title = I18n.tr("Automatic updates");
             updates_group.description = I18n.tr("Configure automatic update checking");
+
+            // Add log button to header
+            var log_button = new Gtk.Button.from_icon_name("text-x-generic-symbolic");
+            log_button.valign = Gtk.Align.CENTER;
+            log_button.add_css_class("flat");
+            log_button.tooltip_text = I18n.tr("Open update log");
+            var log_file = File.new_for_path(AppPaths.updates_log_file);
+            log_button.sensitive = log_file.query_exists();
+            log_button.clicked.connect(() => {
+                try {
+                    AppInfo.launch_default_for_uri(log_file.get_uri(), null);
+                } catch (Error e) {
+                    warning("Failed to open update log: %s", e.message);
+                }
+            });
+            updates_group.header_suffix = log_button;
 
             var auto_check_row = new Adw.SwitchRow();
             auto_check_row.title = I18n.tr("Check for updates automatically");
