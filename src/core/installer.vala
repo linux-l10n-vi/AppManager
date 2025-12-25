@@ -15,13 +15,13 @@ namespace AppManager.Core {
      * Data structure holding original values extracted from an AppImage's bundled .desktop file.
      */
     internal class ExtractedDesktopProps : Object {
-        public string? icon_name { get; set; }
-        public string? keywords { get; set; }
-        public string? startup_wm_class { get; set; }
-        public string? exec_args { get; set; }
-        public string? homepage { get; set; }
-        public string? update_url { get; set; }
-        public string? resolved_exec { get; set; }
+        public string? icon_name;
+        public string? keywords;
+        public string? startup_wm_class;
+        public string? exec_args;
+        public string? homepage;
+        public string? update_url;
+        public string? resolved_exec;
     }
 
     public class Installer : Object {
