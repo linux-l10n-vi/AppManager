@@ -932,67 +932,11 @@ namespace AppManager.Core {
         }
 
         private static string? sanitize_version(string? value) {
-            if (value == null) return null;
-            
-            var trimmed = value.strip();
-            if (trimmed.length == 0) return null;
-
-            // Skip leading channel prefix (e.g., "desktop-v1.0") to get version
-            int start = 0;
-            for (int i = 0; i < trimmed.length; i++) {
-                char ch = trimmed[i];
-                if (ch >= '0' && ch <= '9') {
-                    start = i;
-                    if (i > 0 && (trimmed[i - 1] == 'v' || trimmed[i - 1] == 'V')) {
-                        start = i - 1;
-                    }
-                    break;
-                }
-            }
-            if (start > 0) {
-                trimmed = trimmed.substring(start);
-            }
-
-            // Strip leading 'v'
-            if (trimmed.has_prefix("v") || trimmed.has_prefix("V")) {
-                trimmed = trimmed.substring(1);
-            }
-
-            // Extract numeric version (digits and dots)
-            var builder = new StringBuilder();
-            for (int i = 0; i < trimmed.length; i++) {
-                char ch = trimmed[i];
-                if ((ch >= '0' && ch <= '9') || ch == '.') {
-                    builder.append_c(ch);
-                } else {
-                    break;
-                }
-            }
-
-            var result = builder.len > 0 ? builder.str.strip() : null;
-            return (result != null && result.length > 0) ? result : null;
+            return VersionUtils.sanitize(value);
         }
 
         private static int compare_versions(string? left, string? right) {
-            var a = sanitize_version(left);
-            var b = sanitize_version(right);
-            
-            if (a == null && b == null) return 0;
-            if (a == null) return -1;
-            if (b == null) return 1;
-
-            var left_parts = a.split(".");
-            var right_parts = b.split(".");
-            var max_parts = int.max(left_parts.length, right_parts.length);
-
-            for (int i = 0; i < max_parts; i++) {
-                var lv = i < left_parts.length ? int.parse(left_parts[i]) : 0;
-                var rv = i < right_parts.length ? int.parse(right_parts[i]) : 0;
-                if (lv != rv) {
-                    return lv > rv ? 1 : -1;
-                }
-            }
-            return 0;
+            return VersionUtils.compare(left, right);
         }
 
         private DownloadArtifact download_file(string url, GLib.Cancellable? cancellable) throws Error {

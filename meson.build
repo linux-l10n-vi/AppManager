@@ -49,6 +49,7 @@ core_sources = files(
   'src/core/updater.vala',
   'src/core/background_update_service.vala',
   'src/core/i18n.vala',
+  'src/core/version_utils.vala',
   'src/utils/file_utils.vala'
 )
 

@@ -251,7 +251,7 @@ namespace AppManager {
             if (record.version == null || resolved_app_version == null) {
                 return VersionRelation.UNKNOWN;
             }
-            var comparison = compare_version_strings(record.version, resolved_app_version);
+            var comparison = VersionUtils.compare(record.version, resolved_app_version);
             if (comparison < 0) {
                 return VersionRelation.CANDIDATE_NEWER;
             }
@@ -268,43 +268,6 @@ namespace AppManager {
                 subtitle.set_text(I18n.tr("Missing required files (AppRun, .desktop, or icon)"));
                 drag_box.set_sensitive(false);
             }
-        }
-
-        private int compare_version_strings(string installed, string candidate) {
-            var installed_segments = extract_numeric_segments(installed);
-            var candidate_segments = extract_numeric_segments(candidate);
-            var max_len = installed_segments.size > candidate_segments.size ? installed_segments.size : candidate_segments.size;
-            for (int i = 0; i < max_len; i++) {
-                int lhs = i < installed_segments.size ? installed_segments.get(i) : 0;
-                int rhs = i < candidate_segments.size ? candidate_segments.get(i) : 0;
-                if (lhs == rhs) {
-                    continue;
-                }
-                return lhs > rhs ? 1 : -1;
-            }
-            return installed.down().collate(candidate.down());
-        }
-
-        private ArrayList<int> extract_numeric_segments(string value) {
-            var segments = new ArrayList<int>();
-            var current = new StringBuilder();
-            for (int i = 0; i < value.length; i++) {
-                char ch = value[i];
-                if (ch >= '0' && ch <= '9') {
-                    current.append_c(ch);
-                } else if (current.len > 0) {
-                    segments.add(int.parse(current.str));
-                    current.erase(0, current.len);
-                }
-            }
-            if (current.len > 0) {
-                segments.add(int.parse(current.str));
-                current.erase(0, current.len);
-            }
-            if (segments.size == 0) {
-                segments.add(0);
-            }
-            return segments;
         }
 
         private bool prepare_staging_copy(out string staged_path, out string staged_dir, out string? error_message) {
