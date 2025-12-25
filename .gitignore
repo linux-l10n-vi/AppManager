@@ -11,3 +11,4 @@ squashfs-root/
 squashfs-*.img
 build/
 .directory
+*ns.md
