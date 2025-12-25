@@ -200,7 +200,7 @@ namespace AppManager.Core {
                 Utils.FileUtils.remove_dir_recursive(dest_dir);
                 throw e;
             }
-            ensure_executable(app_run);
+            Utils.FileUtils.ensure_executable(app_run);
             
             // Check if desktop file Exec points to AppRun, and if so, resolve the actual binary
             string exec_target = app_run;
@@ -218,7 +218,7 @@ namespace AppManager.Core {
                             if (bin_name != null && bin_name != "") {
                                 var bin_path = Path.build_filename(dest_dir, bin_name);
                                 if (File.new_for_path(bin_path).query_exists()) {
-                                    ensure_executable(bin_path);
+                                    Utils.FileUtils.ensure_executable(bin_path);
                                     exec_target = bin_path;
                                     debug("Resolved exec from AppRun BIN=%s to %s", bin_name, exec_target);
                                 }
@@ -649,23 +649,14 @@ namespace AppManager.Core {
             return exec_token;
         }
 
-        private void ensure_executable(string path) {
-            if (Posix.chmod(path, 0755) != 0) {
-                warning("Failed to chmod %s", path);
-            }
-        }
-
-        private string escape_exec_arg(string value) {
-            return value.replace("\"", "\\\"");
-        }
 
         private string build_uninstall_exec(string installed_path) {
             var parts = new Gee.ArrayList<string>();
             foreach (var token in uninstall_prefix) {
-                parts.add(quote_exec_token(token));
+                parts.add(Utils.FileUtils.quote_exec_token(token));
             }
             parts.add("--uninstall");
-            parts.add("\"%s\"".printf(escape_exec_arg(installed_path)));
+            parts.add("\"%s\"".printf(Utils.FileUtils.escape_exec_arg(installed_path)));
             var builder = new StringBuilder();
             for (int i = 0; i < parts.size; i++) {
                 if (i > 0) {
@@ -676,15 +667,6 @@ namespace AppManager.Core {
             return builder.str;
         }
 
-        private string quote_exec_token(string token) {
-            for (int i = 0; i < token.length; i++) {
-                var ch = token[i];
-                if (ch == ' ' || ch == '\t') {
-                    return "\"%s\"".printf(escape_exec_arg(token));
-                }
-            }
-            return token;
-        }
 
         private string slugify_app_name(string name) {
             var normalized = name.strip().down();
@@ -748,7 +730,7 @@ namespace AppManager.Core {
             var source = File.new_for_path(source_path);
             var dest = File.new_for_path(final_path);
             source.move(dest, FileCopyFlags.NONE, null, null);
-            ensure_executable(final_path);
+            Utils.FileUtils.ensure_executable(final_path);
             return final_path;
         }
 
@@ -828,7 +810,7 @@ namespace AppManager.Core {
         }
 
         private void run_appimage_extract(string appimage_path, string working_dir) throws Error {
-            ensure_executable(appimage_path);
+            Utils.FileUtils.ensure_executable(appimage_path);
             var cmd = new string[2];
             cmd[0] = appimage_path;
             cmd[1] = "--appimage-extract";
