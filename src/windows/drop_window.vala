@@ -579,7 +579,7 @@ namespace AppManager {
 
             new Thread<void>("appmgr-icon", () => {
                 try {
-                    texture = extract_icon_from_appimage(appimage_path);
+                    texture = UiUtils.load_icon_from_appimage(appimage_path);
                 } catch (Error e) {
                     warning("Icon preview failed: %s", e.message);
                 }
@@ -708,21 +708,6 @@ namespace AppManager {
             }
         }
 
-        private Gdk.Paintable? extract_icon_from_appimage(string path) throws Error {
-            var temp_dir = Utils.FileUtils.create_temp_dir("appmgr-icon-");
-            try {
-                var icon_path = AppImageAssets.extract_icon(path, temp_dir);
-                if (icon_path != null) {
-                    return Gdk.Texture.from_file(File.new_for_path(icon_path));
-                }
-            } catch (Error e) {
-                warning("Icon extraction error: %s", e.message);
-            } finally {
-                Utils.FileUtils.remove_dir_recursive(temp_dir);
-            }
-            return null;
-        }
-
         private string extract_app_name() {
             var resolved = metadata.display_name;
             resolved_app_version = null;
@@ -744,7 +729,7 @@ namespace AppManager {
                     if (desktop_info.version != null) {
                         resolved_app_version = desktop_info.version;
                     }
-                    is_terminal_app = desktop_info.is_terminal;
+                    is_terminal_app = desktop_info.terminal;
                 }
             } catch (Error e) {
                 warning("Desktop file extraction error: %s", e.message);

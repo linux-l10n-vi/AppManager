@@ -59,6 +59,24 @@ namespace AppManager.Utils {
             }
         """;
 
+        public static Gdk.Paintable? load_icon_from_appimage(string path) {
+            string? temp_dir = null;
+            try {
+                temp_dir = FileUtils.create_temp_dir("appmgr-icon-");
+                var icon_path = AppImageAssets.extract_icon(path, temp_dir);
+                if (icon_path != null) {
+                    return Gdk.Texture.from_file(File.new_for_path(icon_path));
+                }
+            } catch (Error e) {
+                warning("Icon extraction error: %s", e.message);
+            } finally {
+                if (temp_dir != null) {
+                    FileUtils.remove_dir_recursive(temp_dir);
+                }
+            }
+            return null;
+        }
+
         public static Gtk.Image? load_app_icon(string icon_path) {
             // Extract icon name from the path (without extension)
             var icon_file = File.new_for_path(icon_path);
