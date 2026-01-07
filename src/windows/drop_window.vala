@@ -409,8 +409,8 @@ namespace AppManager {
             }
             dialog.append_body(UiUtils.create_wrapped_label(GLib.Markup.escape_text(replace_text, -1), true));
             var stop_is_default = installed_newer;
-            dialog.add_option("stop", I18n.tr("Stop"), stop_is_default);
-            dialog.add_option("replace", I18n.tr("Replace"), !stop_is_default);
+            dialog.add_option("stop", I18n.tr("Stop"), !stop_is_default);
+            dialog.add_option("replace", I18n.tr("Replace"), stop_is_default);
 
             install_prompt_visible = true;
             dialog.close_request.connect(() => {
@@ -510,9 +510,28 @@ namespace AppManager {
             version_label.add_css_class("dim-label");
             dialog.append_body(version_label);
             
+            dialog.add_option("open", I18n.tr("Open"), true);
             dialog.add_option("done", I18n.tr("Done"));
             dialog.option_selected.connect((response) => {
-                this.close();
+                if (response == "open") {
+                    this.close();
+                    try {
+                        var exec_path = installer.resolve_exec_path_for_record(record);
+                        if (exec_path != null && exec_path.strip() != "") {
+                            try {
+                                string[] argv = { exec_path };
+                                Pid child_pid;
+                                Process.spawn_async(null, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out child_pid);
+                            } catch (Error e) {
+                                warning("Failed to launch app: %s", e.message);
+                            }
+                        }
+                    } catch (Error e) {
+                        warning("Launch error: %s", e.message);
+                    }
+                } else {
+                    this.close();
+                }
             });
             dialog.present();
         }
