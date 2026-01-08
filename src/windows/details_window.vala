@@ -809,12 +809,8 @@ namespace AppManager {
                     return true;
                 }
                 
-                try {
-                    if (File.new_for_path(clean_segment).equal(home_bin_file)) {
-                        return true;
-                    }
-                } catch (Error e) {
-                    // Ignore errors during path comparison
+                if (File.new_for_path(clean_segment).equal(home_bin_file)) {
+                    return true;
                 }
             }
             return false;

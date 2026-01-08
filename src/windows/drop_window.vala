@@ -518,13 +518,9 @@ namespace AppManager {
                     try {
                         var exec_path = installer.resolve_exec_path_for_record(record);
                         if (exec_path != null && exec_path.strip() != "") {
-                            try {
-                                string[] argv = { exec_path };
-                                Pid child_pid;
-                                Process.spawn_async(null, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out child_pid);
-                            } catch (Error e) {
-                                warning("Failed to launch app: %s", e.message);
-                            }
+                            string[] argv = { exec_path };
+                            Pid child_pid;
+                            Process.spawn_async(null, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out child_pid);
                         }
                     } catch (Error e) {
                         warning("Launch error: %s", e.message);

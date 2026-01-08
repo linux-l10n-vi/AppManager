@@ -47,8 +47,7 @@ namespace AppManager.Utils {
             var icon_theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
             if (icon_theme.has_icon(icon_name)) {
                 var icon_image = new Gtk.Image.from_icon_name(icon_name);
-                icon_image.set_pixel_size(48);
-                debug("Loaded icon '%s' from icon theme", icon_name);
+                icon_image.set_pixel_size(48);                
                 return icon_image;
             }
 
@@ -58,7 +57,6 @@ namespace AppManager.Utils {
                     var icon_texture = Gdk.Texture.from_file(icon_file);
                     var icon_image = new Gtk.Image.from_paintable(icon_texture);
                     icon_image.set_pixel_size(48);
-                    debug("Loaded icon from file: %s", icon_path);
                     return icon_image;
                 } catch (Error e) {
                     warning("Failed to load icon from file %s: %s", icon_path, e.message);
