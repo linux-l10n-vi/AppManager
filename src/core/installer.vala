@@ -270,6 +270,12 @@ namespace AppManager.Core {
                 if (desktop_entry.version != null) {
                     desktop_version = desktop_entry.version;
                 }
+                
+                // Fall back to metainfo if no version from desktop entry
+                if (desktop_version == null) {
+                    desktop_version = AppImageAssets.extract_version_from_metainfo(assets_path, temp_dir);
+                }
+                
                 is_terminal_app = desktop_entry.terminal;
                 
                 record.name = desktop_name;

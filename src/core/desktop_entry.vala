@@ -36,7 +36,6 @@ namespace AppManager.Core {
             
             // Standard keys
             name = get_string("Name");
-            version = get_string("Version");
             exec = get_string("Exec");
             icon = get_string("Icon");
             keywords = get_string("Keywords");
@@ -51,7 +50,7 @@ namespace AppManager.Core {
             appimage_update_url = get_string("X-AppImage-UpdateURL");
             appimage_version = get_string("X-AppImage-Version") ?? find_key_in_any_group("X-AppImage-Version");
             
-            // Prefer X-AppImage-Version over Version field for actual app version
+            // Use X-AppImage-Version for app version (standard Version field is desktop spec version, not app version)
             if (appimage_version != null && appimage_version.strip() != "") {
                 version = appimage_version;
             }

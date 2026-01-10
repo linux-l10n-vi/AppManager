@@ -310,6 +310,126 @@ namespace AppManager.Core {
             return null;
         }
 
+        /**
+         * Extracts and parses metainfo/appdata XML to get app version.
+         * Looks in usr/share/metainfo/*.metainfo.xml and usr/share/metainfo/*.appdata.xml
+         * Returns the latest release version or null if not found.
+         */
+        public static string? extract_version_from_metainfo(string appimage_path, string temp_root) {
+            var metainfo_root = Path.build_filename(temp_root, "metainfo");
+            try {
+                DirUtils.create_with_parents(metainfo_root, 0755);
+                
+                // Try to extract metainfo files from standard locations
+                // 7z preserves directory structure, so files will be at metainfo_root/usr/share/metainfo/
+                string[] patterns = {
+                    "usr/share/metainfo/*.metainfo.xml",
+                    "usr/share/metainfo/*.appdata.xml",
+                    "usr/share/appdata/*.appdata.xml"
+                };
+                
+                foreach (var pattern in patterns) {
+                    try_extract_entry(appimage_path, metainfo_root, pattern);
+                }
+                
+                // Search recursively since 7z preserves directory structure
+                var version = find_version_in_dir_recursive(metainfo_root);
+                if (version != null) {
+                    return version;
+                }
+            } catch (Error e) {
+                debug("Failed to extract metainfo: %s", e.message);
+            }
+            return null;
+        }
+
+        /**
+         * Recursively searches for metainfo XML files and parses them for version.
+         */
+        private static string? find_version_in_dir_recursive(string dir_path) {
+            try {
+                var dir = GLib.Dir.open(dir_path);
+                string? name;
+                while ((name = dir.read_name()) != null) {
+                    var path = Path.build_filename(dir_path, name);
+                    
+                    if (GLib.FileUtils.test(path, GLib.FileTest.IS_DIR)) {
+                        var version = find_version_in_dir_recursive(path);
+                        if (version != null) {
+                            return version;
+                        }
+                    } else if (name.has_suffix(".metainfo.xml") || name.has_suffix(".appdata.xml")) {
+                        var version = parse_metainfo_version(path);
+                        if (version != null) {
+                            return version;
+                        }
+                    }
+                }
+            } catch (Error e) {
+                debug("Failed to search metainfo dir %s: %s", dir_path, e.message);
+            }
+            return null;
+        }
+
+        /**
+         * Parses a metainfo XML file and extracts the latest release version.
+         * Looks for <releases><release version="..."/></releases>
+         */
+        private static string? parse_metainfo_version(string xml_path) {
+            try {
+                string contents;
+                FileUtils.get_contents(xml_path, out contents);
+                
+                // Simple XML parsing for <release version="...">
+                // The first <release version= tag is typically the latest version
+                // Use "release version" to avoid matching <releases> tag
+                var release_start = contents.index_of("<release version");
+                if (release_start < 0) {
+                    // Also try with space before version: <release  version
+                    release_start = contents.index_of("<release ");
+                    if (release_start < 0) {
+                        return null;
+                    }
+                }
+                
+                var release_end = contents.index_of(">", release_start);
+                if (release_end < 0) {
+                    return null;
+                }
+                
+                var release_tag = contents.substring(release_start, release_end - release_start + 1);
+                
+                // Extract version attribute
+                var version_attr = "version=\"";
+                var version_start = release_tag.index_of(version_attr);
+                if (version_start < 0) {
+                    // Try single quotes
+                    version_attr = "version='";
+                    version_start = release_tag.index_of(version_attr);
+                }
+                
+                if (version_start < 0) {
+                    return null;
+                }
+                
+                version_start += version_attr.length;
+                var quote_char = version_attr[version_attr.length - 1];
+                var version_end = release_tag.index_of_char(quote_char, version_start);
+                if (version_end < 0) {
+                    return null;
+                }
+                
+                var version = release_tag.substring(version_start, version_end - version_start).strip();
+                if (version.length > 0) {
+                    debug("Found version %s in metainfo: %s", version, xml_path);
+                    return version;
+                }
+            } catch (Error e) {
+                debug("Failed to parse metainfo %s: %s", xml_path, e.message);
+            }
+            return null;
+        }
+
         public static string ensure_apprun_present(string extracted_root) throws Error {
             var apprun_path = Path.build_filename(extracted_root, "AppRun");
             var apprun_file = File.new_for_path(apprun_path);
