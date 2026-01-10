@@ -317,28 +317,24 @@ namespace AppManager.Core {
          */
         public static string? extract_version_from_metainfo(string appimage_path, string temp_root) {
             var metainfo_root = Path.build_filename(temp_root, "metainfo");
-            try {
-                DirUtils.create_with_parents(metainfo_root, 0755);
-                
-                // Try to extract metainfo files from standard locations
-                // 7z preserves directory structure, so files will be at metainfo_root/usr/share/metainfo/
-                string[] patterns = {
-                    "usr/share/metainfo/*.metainfo.xml",
-                    "usr/share/metainfo/*.appdata.xml",
-                    "usr/share/appdata/*.appdata.xml"
-                };
-                
-                foreach (var pattern in patterns) {
-                    try_extract_entry(appimage_path, metainfo_root, pattern);
-                }
-                
-                // Search recursively since 7z preserves directory structure
-                var version = find_version_in_dir_recursive(metainfo_root);
-                if (version != null) {
-                    return version;
-                }
-            } catch (Error e) {
-                debug("Failed to extract metainfo: %s", e.message);
+            DirUtils.create_with_parents(metainfo_root, 0755);
+            
+            // Try to extract metainfo files from standard locations
+            // 7z preserves directory structure, so files will be at metainfo_root/usr/share/metainfo/
+            string[] patterns = {
+                "usr/share/metainfo/*.metainfo.xml",
+                "usr/share/metainfo/*.appdata.xml",
+                "usr/share/appdata/*.appdata.xml"
+            };
+            
+            foreach (var pattern in patterns) {
+                try_extract_entry(appimage_path, metainfo_root, pattern);
+            }
+            
+            // Search recursively since 7z preserves directory structure
+            var version = find_version_in_dir_recursive(metainfo_root);
+            if (version != null) {
+                return version;
             }
             return null;
         }

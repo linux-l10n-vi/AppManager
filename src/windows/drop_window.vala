@@ -514,20 +514,21 @@ namespace AppManager {
             dialog.add_option("done", I18n.tr("Done"));
             dialog.option_selected.connect((response) => {
                 if (response == "open") {
-                    this.close();
+                    // Launch the app BEFORE closing the window to ensure spawn completes
+                    // before the application potentially quits
                     try {
-                        var exec_path = installer.resolve_exec_path_for_record(record);
-                        if (exec_path != null && exec_path.strip() != "") {
-                            string[] argv = { exec_path };
-                            Pid child_pid;
-                            Process.spawn_async(null, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out child_pid);
+                        // Use DesktopAppInfo to launch with proper args from the desktop file
+                        if (record.desktop_file != null && record.desktop_file.strip() != "") {
+                            var app_info = new DesktopAppInfo.from_filename(record.desktop_file);
+                            if (app_info != null) {
+                                app_info.launch(null, null);
+                            }
                         }
                     } catch (Error e) {
                         warning("Launch error: %s", e.message);
                     }
-                } else {
-                    this.close();
                 }
+                this.close();
             });
             dialog.present();
         }
