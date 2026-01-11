@@ -28,7 +28,7 @@ namespace AppManager.Core {
                 candidates.add(env_dir.strip());
             }
 
-            // Build-time bundle dir (e.g., /usr/lib/app-manager/dwarfs)
+            // Build-time bundle dir (typically /usr/bin)
             if (DWARFS_BUNDLE_DIR != null && DWARFS_BUNDLE_DIR.strip() != "") {
                 var bundle_dir = DWARFS_BUNDLE_DIR.strip();
                 candidates.add(bundle_dir);
@@ -41,12 +41,10 @@ namespace AppManager.Core {
                         relative_bundle_dir = relative_bundle_dir.substring(1);
                     }
                     candidates.add(Path.build_filename(appdir, relative_bundle_dir));
-                    candidates.add(Path.build_filename(appdir, "usr", "bin"));
                 }
             }
 
-            // System-wide bundle locations
-            candidates.add("/usr/lib/app-manager");
+            // System-wide fallback locations (for compatibility with appimage-thumbnailer)
             candidates.add("/usr/lib/appimage-thumbnailer");
 
             // Per-user bundle locations

@@ -142,9 +142,7 @@ jobs:
           # Copy installed files
           cp -a "$DESTDIR/usr" "$APPDIR/"
 
-          # Move dwarfs tools to bin for easier discovery in AppImage
-          find "$APPDIR/usr/lib" -name dwarfsextract -exec mv {} "$APPDIR/usr/bin/" \;
-          find "$APPDIR/usr/lib" -name dwarfsck -exec mv {} "$APPDIR/usr/bin/" \;
+          # DwarFS tools are installed directly to bin via meson
 
           # Create AppRun script that sets up environment for GSettings schemas
           printf '%s\n' '#!/bin/bash' \

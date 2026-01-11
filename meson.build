@@ -16,9 +16,9 @@ libsoup_dep = dependency('libsoup-3.0')
 
 add_project_arguments(['--target-glib=2.74', '--pkg=posix'], language: 'vala')
 
-# DwarFS tools bundling (mirrors appimage-thumbnailer approach)
+# DwarFS tools bundling
 dwarfs_version = '0.14.1'
-dwarfs_tools_dir = get_option('prefix') / get_option('libdir') / 'app-manager' / 'dwarfs'
+dwarfs_tools_dir = get_option('prefix') / get_option('bindir')
 
 host_cpu = host_machine.cpu_family()
 dwarfs_arch_map = {

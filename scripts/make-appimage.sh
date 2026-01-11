@@ -86,9 +86,7 @@ echo "Creating AppDir structure..."
 mkdir -p "$APPDIR/usr"
 cp -a "$INSTALL_ROOT"/* "$APPDIR/usr/"
 
-# Move dwarfs tools to bin for easier discovery in AppImage (if present)
-find "$APPDIR/usr/lib" -name dwarfsextract -exec mv {} "$APPDIR/usr/bin/" \; 2>/dev/null || true
-find "$APPDIR/usr/lib" -name dwarfsck -exec mv {} "$APPDIR/usr/bin/" \; 2>/dev/null || true
+# DwarFS tools are now installed directly to bin via meson
 
 # Create AppRun script that sets up environment for GSettings schemas
 cat > "$APPDIR/AppRun" << 'EOF'
