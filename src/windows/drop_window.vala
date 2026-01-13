@@ -5,6 +5,13 @@ using Gee;
 namespace AppManager {
     private delegate void DialogCallback();
 
+    // Verification state for SHA256 hash check
+    private enum VerificationState {
+        UNVERIFIED,  // User has not attempted verification
+        VERIFIED,    // SHA256 hash matches - show golden checkmark
+        FAILED       // SHA256 hash does not match - show red cross
+    }
+
     public class DropWindow : Adw.Window {
         private Application app_ref;
         private InstallationRegistry registry;
@@ -20,6 +27,7 @@ namespace AppManager {
         private Gtk.Box drag_box;
         private Gtk.Spinner drag_spinner;
         private Adw.Banner incompatibility_banner;
+        private Adw.Banner verification_banner;
         private Gtk.Label subtitle;
         private string appimage_path;
         private bool installing = false;
@@ -31,6 +39,12 @@ namespace AppManager {
         private bool spinner_icon_active = false;
         private bool spinner_install_active = false;
         private Settings settings;
+        
+        // Verification state tracking
+        private VerificationState verification_state = VerificationState.UNVERIFIED;
+        private Gtk.Overlay app_icon_overlay;
+        private Gtk.Image verification_badge;
+        private Gtk.Button verify_button;
 
         public DropWindow(Application app, InstallationRegistry registry, Installer installer, Settings settings, string path) throws Error {
             Object(application: app,
@@ -66,6 +80,13 @@ namespace AppManager {
             var header = new Adw.HeaderBar();
             header.set_show_start_title_buttons(true);
             header.set_show_end_title_buttons(true);
+            
+            // Add Verify button to headerbar
+            verify_button = new Gtk.Button.with_label(I18n.tr("Verify"));
+            verify_button.tooltip_text = I18n.tr("Verify AppImage with SHA256 hash");
+            verify_button.clicked.connect(present_verification_dialog);
+            header.pack_end(verify_button);
+            
             toolbar_view.add_top_bar(header);
 
             incompatibility_banner = new Adw.Banner("");
@@ -76,6 +97,13 @@ namespace AppManager {
                 this.close();
             });
             toolbar_view.add_top_bar(incompatibility_banner);
+            
+            // Verification failed banner
+            verification_banner = new Adw.Banner(I18n.tr("SHA256 hash does not match. Verification failed."));
+            verification_banner.add_css_class("error");
+            verification_banner.use_markup = false;
+            verification_banner.revealed = false;
+            toolbar_view.add_top_bar(verification_banner);
 
             var clamp = new Adw.Clamp();
             clamp.margin_top = 24;
@@ -104,7 +132,20 @@ namespace AppManager {
             app_icon = new Gtk.Image();
             app_icon.set_pixel_size(96);
             app_icon.set_from_icon_name("application-x-executable");
-            var app_column = build_icon_column(app_icon, out app_name_label, resolved_app_name, true);
+            
+            // Create overlay for app icon with verification badge
+            app_icon_overlay = new Gtk.Overlay();
+            app_icon_overlay.set_child(app_icon);
+            
+            // Create verification badge (initially hidden)
+            verification_badge = new Gtk.Image();
+            verification_badge.set_pixel_size(24);
+            verification_badge.halign = Gtk.Align.END;
+            verification_badge.valign = Gtk.Align.END;
+            verification_badge.visible = false;
+            app_icon_overlay.add_overlay(verification_badge);
+            
+            var app_column = build_icon_column_with_overlay(app_icon_overlay, out app_name_label, resolved_app_name, true);
             drag_box.append(app_column);
 
             arrow_icon = new Gtk.Image.from_icon_name("pan-end-symbolic");
@@ -162,11 +203,11 @@ namespace AppManager {
                 return;
             }
 
-            var warning_icon = new Gtk.Image.from_icon_name("dialog-warning-symbolic");
-            warning_icon.set_pixel_size(64);
-            warning_icon.halign = Gtk.Align.CENTER;
+            // Use app icon with warning badge overlay
+            var icon_overlay = create_dialog_icon_with_badge(null, true);
 
-            var dialog = new DialogWindow(app_ref, this, I18n.tr("Open %s?").printf(resolved_app_name), warning_icon);
+            var dialog = new DialogWindow(app_ref, this, I18n.tr("Open %s?").printf(resolved_app_name), null);
+            dialog.append_body(icon_overlay);
 
             var warning_text = I18n.tr("Origins of %s application can not be verified. Are you sure you want to open it?").printf(resolved_app_name);
             var warning_markup = "<b>%s</b>".printf(GLib.Markup.escape_text(warning_text, -1));
@@ -202,24 +243,7 @@ namespace AppManager {
         }
 
         private InstallationRecord? detect_existing_installation() {
-            var by_source = registry.lookup_by_source(appimage_path);
-            if (by_source != null) {
-                return by_source;
-            }
-
-            var by_checksum = registry.lookup_by_checksum(metadata.checksum);
-            if (by_checksum != null) {
-                return by_checksum;
-            }
-
-            var target = resolved_app_name.down();
-            foreach (var record in registry.list()) {
-                if (record.name != null && record.name.strip().down() == target) {
-                    return record;
-                }
-            }
-
-            return null;
+            return registry.detect_existing(appimage_path, metadata.checksum, resolved_app_name);
         }
 
         private void start_install() {
@@ -236,7 +260,12 @@ namespace AppManager {
                     present_replace_dialog(existing, relation == VersionRelation.INSTALLED_NEWER);
                 }
             } else {
-                present_install_warning_dialog();
+                // If app is verified, skip warning dialog and install directly
+                if (verification_state == VerificationState.VERIFIED) {
+                    run_installation(InstallMode.PORTABLE, null, InstallIntent.NEW_INSTALL);
+                } else {
+                    present_install_warning_dialog();
+                }
             }
         }
 
@@ -346,17 +375,11 @@ namespace AppManager {
                 return;
             }
 
-            var image = new Gtk.Image();
-            image.set_pixel_size(64);
-            image.halign = Gtk.Align.CENTER;
-            var record_icon = UiUtils.load_record_icon(record);
-            if (record_icon != null) {
-                image.set_from_paintable(record_icon);
-            } else {
-                image.set_from_icon_name("application-x-executable");
-            }
+            // Use icon with verification badge overlay
+            var icon_overlay = create_dialog_icon_with_badge(record, true);
 
-            var dialog = new DialogWindow(app_ref, this, I18n.tr("Update %s?").printf(record.name), image);
+            var dialog = new DialogWindow(app_ref, this, I18n.tr("Update %s?").printf(record.name), null);
+            dialog.append_body(icon_overlay);
             dialog.append_body(build_update_dialog_content(record));
             dialog.add_option("update", I18n.tr("Update"), true);
             dialog.add_option("cancel", I18n.tr("Cancel"));
@@ -382,17 +405,11 @@ namespace AppManager {
                 return;
             }
 
-            var image = new Gtk.Image();
-            image.set_pixel_size(64);
-            image.halign = Gtk.Align.CENTER;
-            var record_icon = UiUtils.load_record_icon(record);
-            if (record_icon != null) {
-                image.set_from_paintable(record_icon);
-            } else {
-                image.set_from_icon_name("application-x-executable");
-            }
+            // Use icon with verification badge overlay
+            var icon_overlay = create_dialog_icon_with_badge(record, true);
 
-            var dialog = new DialogWindow(app_ref, this, I18n.tr("Replace %s?").printf(record.name), image);
+            var dialog = new DialogWindow(app_ref, this, I18n.tr("Replace %s?").printf(record.name), null);
+            dialog.append_body(icon_overlay);
             string replace_text;
             if (installed_newer) {
                 replace_text = I18n.tr("A newer item named %s already exists in this location. Do you want to replace it with the older one you're copying?").printf(record.name);
@@ -865,6 +882,189 @@ namespace AppManager {
             column.append(label);
 
             return column;
+        }
+
+        private Gtk.Box build_icon_column_with_overlay(Gtk.Overlay icon_overlay, out Gtk.Label label, string text, bool emphasize = false) {
+            var column = new Gtk.Box(Gtk.Orientation.VERTICAL, 6);
+            column.halign = Gtk.Align.CENTER;
+            column.valign = Gtk.Align.START;
+            column.append(icon_overlay);
+
+            label = new Gtk.Label(text);
+            label.halign = Gtk.Align.CENTER;
+            label.wrap = true;
+            label.max_width_chars = 15;
+            var attrs = new Pango.AttrList();
+            attrs.insert(Pango.attr_weight_new(Pango.Weight.BOLD));
+            label.set_attributes(attrs);
+            if (emphasize) {
+                label.add_css_class("title-5");
+            } else {
+                label.add_css_class("title-6");
+            }
+            column.append(label);
+
+            return column;
+        }
+
+        private void present_verification_dialog() {
+            var dialog = new Adw.Window();
+            dialog.set_title(I18n.tr("Verify AppImage"));
+            dialog.set_default_size(400, 180);
+            dialog.set_resizable(false);
+            dialog.set_modal(true);
+            dialog.set_transient_for(this);
+
+            var toolbar_view = new Adw.ToolbarView();
+            dialog.set_content(toolbar_view);
+
+            var header = new Adw.HeaderBar();
+            toolbar_view.add_top_bar(header);
+
+            var content = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+            content.valign = Gtk.Align.CENTER;
+            content.vexpand = true;
+            content.margin_start = 24;
+            content.margin_end = 24;
+
+            var description = new Gtk.Label(I18n.tr("Verify the authenticity of this AppImage."));
+            description.wrap = true;
+            description.halign = Gtk.Align.CENTER;
+            content.append(description);
+
+            var entry = new Gtk.Entry();
+            entry.set_placeholder_text(I18n.tr("Enter the SHA256 hash "));
+            entry.hexpand = true;
+            entry.max_width_chars = 64;
+            content.append(entry);
+
+            var button_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+            button_box.halign = Gtk.Align.CENTER;
+            button_box.margin_top = 12;
+
+            var cancel_button = new Gtk.Button.with_label(I18n.tr("Cancel"));
+            cancel_button.clicked.connect(() => {
+                dialog.close();
+            });
+            button_box.append(cancel_button);
+
+            var verify_btn = new Gtk.Button.with_label(I18n.tr("Verify"));
+            verify_btn.add_css_class("suggested-action");
+            verify_btn.clicked.connect(() => {
+                var entered_hash = entry.get_text().strip().down();
+                perform_verification(entered_hash);
+                dialog.close();
+            });
+            button_box.append(verify_btn);
+
+            // Allow Enter key to verify
+            entry.activate.connect(() => {
+                var entered_hash = entry.get_text().strip().down();
+                perform_verification(entered_hash);
+                dialog.close();
+            });
+
+            content.append(button_box);
+            toolbar_view.set_content(content);
+
+            dialog.present();
+        }
+
+        private void perform_verification(string entered_hash) {
+            if (entered_hash == "") {
+                return;
+            }
+
+            // Strip common prefixes like "sha256:" or "SHA256:"
+            var hash = entered_hash;
+            if (hash.down().has_prefix("sha256:")) {
+                hash = hash.substring(7).strip();
+            }
+
+            var actual_hash = metadata.checksum.down();
+            
+            if (hash.down() == actual_hash) {
+                set_verification_state(VerificationState.VERIFIED);
+            } else {
+                set_verification_state(VerificationState.FAILED);
+            }
+        }
+
+        private void set_verification_state(VerificationState state) {
+            verification_state = state;
+            update_verification_ui();
+        }
+
+        private void update_verification_ui() {
+            switch (verification_state) {
+                case VerificationState.VERIFIED:
+                    // Show verified badge using bundled icon
+                    verification_badge.set_from_icon_name("verify-ok");
+                    verification_badge.visible = true;
+                    verification_banner.revealed = false;
+                    // Re-enable drag if it was disabled
+                    drag_box.set_sensitive(true);
+                    break;
+                    
+                case VerificationState.FAILED:
+                    // Show failed badge using bundled icon
+                    verification_badge.set_from_icon_name("verify-failed");
+                    verification_badge.visible = true;
+                    verification_banner.revealed = true;
+                    // Disable installing
+                    drag_box.set_sensitive(false);
+                    break;
+                    
+                case VerificationState.UNVERIFIED:
+                default:
+                    verification_badge.visible = false;
+                    verification_banner.revealed = false;
+                    drag_box.set_sensitive(true);
+                    break;
+            }
+        }
+
+        // Create an image with verification badge overlay for dialogs
+        private Gtk.Overlay create_dialog_icon_with_badge(InstallationRecord? record, bool show_badge) {
+            var image = new Gtk.Image();
+            image.set_pixel_size(64);
+            image.halign = Gtk.Align.CENTER;
+            
+            if (record != null) {
+                var record_icon = UiUtils.load_record_icon(record);
+                if (record_icon != null) {
+                    image.set_from_paintable(record_icon);
+                } else {
+                    image.set_from_icon_name("application-x-executable");
+                }
+            } else if (app_icon.paintable != null) {
+                // Use the current app icon from drop window
+                image.set_from_paintable(app_icon.paintable);
+            } else {
+                image.set_from_icon_name("application-x-executable");
+            }
+
+            var overlay = new Gtk.Overlay();
+            overlay.set_child(image);
+            overlay.halign = Gtk.Align.CENTER;
+
+            if (show_badge) {
+                var badge = new Gtk.Image();
+                badge.set_pixel_size(20);
+                badge.halign = Gtk.Align.END;
+                badge.valign = Gtk.Align.END;
+                
+                if (verification_state == VerificationState.VERIFIED) {
+                    badge.set_from_icon_name("verify-ok");
+                    overlay.add_overlay(badge);
+                } else {
+                    // Show warning badge for unverified apps
+                    badge.set_from_icon_name("verify-warning");
+                    overlay.add_overlay(badge);
+                }
+            }
+
+            return overlay;
         }
 
     }

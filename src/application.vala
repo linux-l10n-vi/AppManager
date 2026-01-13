@@ -287,8 +287,16 @@ Examples:
 
             if (opt_install != null) {
                 try {
-                    var record = installer.install(opt_install);
-                    command_line.print("Installed %s\n", record.name);
+                    // Check for existing installation to replace/upgrade
+                    var existing = detect_existing_for_cli_install(opt_install);
+                    InstallationRecord record;
+                    if (existing != null) {
+                        record = installer.upgrade(opt_install, existing);
+                        command_line.print("Updated %s\n", record.name);
+                    } else {
+                        record = installer.install(opt_install);
+                        command_line.print("Installed %s\n", record.name);
+                    }
                     return 0;
                 } catch (Error e) {
                     command_line.printerr("Install failed: %s\n", e.message);
@@ -424,6 +432,45 @@ Examples:
             dialog.add_response("close", I18n.tr("Close"));
             dialog.set_close_response("close");
             dialog.present(parent_window ?? main_window);
+        }
+
+        /**
+         * Detects if an AppImage being installed via CLI matches an existing installation.
+         * Extracts metadata and uses shared registry detection.
+         */
+        private InstallationRecord? detect_existing_for_cli_install(string appimage_path) {
+            try {
+                var file = File.new_for_path(appimage_path);
+                if (!file.query_exists()) {
+                    return null;
+                }
+
+                var checksum = Utils.FileUtils.compute_checksum(appimage_path);
+                
+                // Try to extract app name from .desktop file
+                string? app_name = null;
+                string? temp_dir = null;
+                try {
+                    temp_dir = Utils.FileUtils.create_temp_dir("appmgr-cli-");
+                    var desktop_file = Core.AppImageAssets.extract_desktop_entry(appimage_path, temp_dir);
+                    if (desktop_file != null) {
+                        var desktop_info = Core.AppImageAssets.parse_desktop_file(desktop_file);
+                        if (desktop_info.name != null && desktop_info.name.strip() != "") {
+                            app_name = desktop_info.name.strip();
+                        }
+                    }
+                } finally {
+                    if (temp_dir != null) {
+                        Utils.FileUtils.remove_dir_recursive(temp_dir);
+                    }
+                }
+
+                return registry.detect_existing(appimage_path, checksum, app_name);
+            } catch (Error e) {
+                warning("Failed to detect existing installation: %s", e.message);
+            }
+
+            return null;
         }
 
         private InstallationRecord? locate_record(string target) {

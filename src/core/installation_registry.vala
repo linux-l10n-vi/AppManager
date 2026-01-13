@@ -54,6 +54,41 @@ namespace AppManager.Core {
             return null;
         }
 
+        public InstallationRecord? lookup_by_name(string name) {
+            var target = name.down();
+            foreach (var record in records.get_values()) {
+                if (record.name != null && record.name.strip().down() == target) {
+                    return record;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Detects if an AppImage matches an existing installation.
+         * Checks by source path, checksum, and app name.
+         */
+        public InstallationRecord? detect_existing(string source_path, string checksum, string? app_name) {
+            var by_source = lookup_by_source(source_path);
+            if (by_source != null) {
+                return by_source;
+            }
+
+            var by_checksum = lookup_by_checksum(checksum);
+            if (by_checksum != null) {
+                return by_checksum;
+            }
+
+            if (app_name != null && app_name.strip() != "") {
+                var by_name = lookup_by_name(app_name);
+                if (by_name != null) {
+                    return by_name;
+                }
+            }
+
+            return null;
+        }
+
         public void register(InstallationRecord record) {
             records.insert(record.id, record);
             // Remove any history entry for this app name since it's now registered
