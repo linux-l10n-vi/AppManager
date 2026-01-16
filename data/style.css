@@ -51,3 +51,6 @@
     color: @accent_color;
     font-size: 10px;
 }
+.main-apps-page > scrolledwindow > viewport > clamp > box {
+    padding-bottom: 30px;
+}

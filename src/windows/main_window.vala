@@ -86,6 +86,7 @@ namespace AppManager {
             this.set_content(toast_overlay);
 
             general_page = new Adw.PreferencesPage();
+            general_page.add_css_class("main-apps-page");
 
             apps_group = new Adw.PreferencesGroup();
             apps_group.title = I18n.tr("My Apps");
