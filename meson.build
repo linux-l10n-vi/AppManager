@@ -54,6 +54,20 @@ zsync_arch_map = {
 }
 zsync_arch = zsync_arch_map.get(host_cpu, '')
 
+# 7-Zip tools bundling
+# Version format: 2501 = 25.01 (version 25.01 adds zstd support)
+sevenzip_version = '2501'
+sevenzip_tools_dir = get_option('prefix') / get_option('bindir')
+bundle_7z = get_option('bundle_7z')
+
+# Map Meson's cpu_family to 7-Zip's naming convention
+sevenzip_arch_map = {
+  'x86_64': 'x86_64',
+  'aarch64': 'aarch64',
+  'arm': 'armhf',
+}
+sevenzip_arch = sevenzip_arch_map.get(host_cpu, '')
+
 core_sources = files(
   'src/core/app_constants.vala',
   'src/core/app_paths.vala',
@@ -77,6 +91,7 @@ build_info_conf = configuration_data()
 build_info_conf.set('VERSION', meson.project_version())
 build_info_conf.set('DWARFS_BUNDLE_DIR', dwarfs_tools_dir)
 build_info_conf.set('ZSYNC_BUNDLE_DIR', zsync_tools_dir)
+build_info_conf.set('SEVENZIP_BUNDLE_DIR', sevenzip_tools_dir)
 build_info = configure_file(
   input: 'src/core/build_info.vala.in',
   output: 'build_info.vala',
@@ -111,6 +126,20 @@ if bundle_zsync and zsync_arch != ''
   )
 elif bundle_zsync and zsync_arch == ''
   warning('Zsync tools bundling requested but architecture "@0@" is not supported'.format(host_cpu))
+endif
+
+# Fetch and install 7-Zip if requested and supported
+if bundle_7z and sevenzip_arch != ''
+  fetch_7z_script = files('scripts/fetch-7z-tools.sh')
+  sevenzip_tools = custom_target('7z-tools',
+    output: ['7z'],
+    build_by_default: bundle_7z,
+    command: ['sh', fetch_7z_script, sevenzip_version, sevenzip_arch, meson.current_build_dir()],
+    install: true,
+    install_dir: sevenzip_tools_dir
+  )
+elif bundle_7z and sevenzip_arch == ''
+  warning('7-Zip bundling requested but architecture "@0@" is not supported'.format(host_cpu))
 endif
 
 subdir('data')
