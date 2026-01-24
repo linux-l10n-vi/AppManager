@@ -416,20 +416,18 @@ namespace AppManager.Core {
 
                 // original_* values were already set above before get_effective_* calls
 
-                // Create symlink for terminal applications or if it's AppManager itself
-                if (is_terminal_app || record.original_startup_wm_class == Core.APPLICATION_ID) {
-                    progress("Creating symlink for application…");
-                    var symlink_name = final_slug;
+                // Create symlink for all applications by default (improves compatibility)
+                progress("Creating symlink for application…");
+                var symlink_name = final_slug;
 
-                    if (resolved_entry_exec != null && resolved_entry_exec.strip() != "") {
-                        symlink_name = Path.get_basename(resolved_entry_exec.strip());
-                    }
-
-                    if (record.original_startup_wm_class == Core.APPLICATION_ID) {
-                        symlink_name = "app-manager";
-                    }
-                    record.bin_symlink = create_bin_symlink(exec_path, symlink_name);
+                if (resolved_entry_exec != null && resolved_entry_exec.strip() != "") {
+                    symlink_name = Path.get_basename(resolved_entry_exec.strip());
                 }
+
+                if (record.original_startup_wm_class == Core.APPLICATION_ID) {
+                    symlink_name = "app-manager";
+                }
+                record.bin_symlink = create_bin_symlink(exec_path, symlink_name);
             } finally {
                 Utils.FileUtils.remove_dir_recursive(temp_dir);
             }
