@@ -1161,6 +1161,99 @@ namespace AppManager.Core {
         // ─────────────────────────────────────────────────────────────────────
 
         /**
+         * Information extracted from a zsync file header.
+         */
+        private class ZsyncFileInfo : Object {
+            public string? filename { get; set; }
+            public string? url { get; set; }
+            public string? version { get; set; }
+            
+            public ZsyncFileInfo() {
+                Object();
+            }
+        }
+
+        /**
+         * Fetch and parse zsync file header to extract metadata.
+         * Zsync files have a text header followed by binary data.
+         * Header format:
+         *   zsync: 0.6.2
+         *   Filename: app-1.2.3-x86_64.AppImage
+         *   MTime: ...
+         *   URL: https://example.com/app-1.2.3-x86_64.AppImage
+         *   ...
+         *   <blank line>
+         *   <binary data>
+         */
+        private ZsyncFileInfo? fetch_zsync_file_info(string zsync_url, GLib.Cancellable? cancellable) {
+            try {
+                // Fetch just the first 2KB - zsync headers are typically < 1KB
+                var message = new Soup.Message("GET", zsync_url);
+                message.request_headers.replace("Range", "bytes=0-2047");
+                message.request_headers.replace("User-Agent", user_agent);
+                
+                var bytes = session.send_and_read(message, cancellable);
+                var status = message.get_status();
+                
+                // Accept both 200 (full content) and 206 (partial content)
+                if (status != 200 && status != 206) {
+                    return null;
+                }
+                
+                var content = (string) bytes.get_data();
+                if (content == null || content.length == 0) {
+                    return null;
+                }
+                
+                var info = new ZsyncFileInfo();
+                
+                // Parse line by line until we hit a blank line or binary data
+                var lines = content.split("\n");
+                foreach (var line in lines) {
+                    var trimmed = line.strip();
+                    
+                    // Empty line marks end of header
+                    if (trimmed == "") {
+                        break;
+                    }
+                    
+                    // Check for binary data (zsync header lines are ASCII)
+                    bool has_binary = false;
+                    for (int i = 0; i < trimmed.length && i < 20; i++) {
+                        char c = trimmed[i];
+                        if (c < 32 && c != '\t') {
+                            has_binary = true;
+                            break;
+                        }
+                    }
+                    if (has_binary) {
+                        break;
+                    }
+                    
+                    // Parse header fields
+                    var colon_pos = trimmed.index_of(":");
+                    if (colon_pos > 0) {
+                        var key = trimmed.substring(0, colon_pos).strip().down();
+                        var value = trimmed.substring(colon_pos + 1).strip();
+                        
+                        if (key == "filename" && value != "") {
+                            info.filename = value;
+                            // Extract version from filename (e.g., "krita-5.2.15-x86_64.AppImage" -> "5.2.15")
+                            info.version = VersionUtils.sanitize(value);
+                        } else if (key == "url" && value != "") {
+                            info.url = value;
+                        }
+                    }
+                }
+                
+                return info;
+            } catch (Error e) {
+                warning("Failed to fetch zsync file info from %s: %s", zsync_url, e.message);
+                return null;
+            }
+        }
+
+        /**
          * Check if zsync update is available for a record.
          * Compares the remote version from the release with the installed version.
          */
@@ -1173,7 +1266,15 @@ namespace AppManager.Core {
             var remote_version = zsync_source.remote_version;
             var current_version = record.version;
             
-            // If we have version info from the release, use version comparison
+            // If we don't have version info from gh-releases-zsync, try to fetch it from the zsync file header
+            if (remote_version == null || remote_version.strip() == "") {
+                var zsync_info = fetch_zsync_file_info(zsync_source.zsync_url, cancellable);
+                if (zsync_info != null && zsync_info.version != null && zsync_info.version.strip() != "") {
+                    remote_version = zsync_info.version;
+                }
+            }
+            
+            // If we have version info, use version comparison
             if (remote_version != null && remote_version.strip() != "") {
                 // Compare versions
                 if (current_version != null && current_version.strip() != "") {
@@ -1189,7 +1290,7 @@ namespace AppManager.Core {
                 return new UpdateProbeResult(record, true, remote_version);
             }
             
-            // Fallback to fingerprint comparison for direct zsync URLs without version info
+            // Fallback to fingerprint comparison for zsync URLs without version info
             try {
                 var message = send_head(zsync_source.zsync_url, cancellable);
                 var fingerprint = build_direct_fingerprint(message);
@@ -1231,11 +1332,20 @@ namespace AppManager.Core {
             var zsync_source = source as ZsyncDirectSource;
             var zsync_url = zsync_source.zsync_url;
             
+            // Try to get version info for better update messages
+            string? new_version = zsync_source.remote_version;
+            if (new_version == null || new_version.strip() == "") {
+                var zsync_info = fetch_zsync_file_info(zsync_url, null);
+                if (zsync_info != null && zsync_info.version != null) {
+                    new_version = zsync_info.version;
+                }
+            }
+            
             var zsync_bin = AppPaths.zsync_path;
             if (zsync_bin == null) {
                 // Fall back to full download if zsync is not available
                 warning("zsync2 not available, falling back to full download for %s", record.name);
-                return update_zsync_fallback(record, zsync_url, cancellable);
+                return update_zsync_fallback(record, zsync_url, new_version, cancellable);
             }
 
             try {
@@ -1263,9 +1373,12 @@ namespace AppManager.Core {
                     }
                     
                     record_succeeded(record);
-                    log_update_event(record, "UPDATED", "zsync delta update");
+                    var version_msg = (new_version != null && new_version.strip() != "") 
+                        ? I18n.tr("Updated to %s").printf(new_version) 
+                        : I18n.tr("Updated");
+                    log_update_event(record, "UPDATED", "zsync delta update to %s".printf(new_version ?? "unknown"));
                     // Return new_record so the UI can refresh with updated data
-                    return new UpdateResult(new_record ?? record, UpdateStatus.UPDATED, I18n.tr("Updated"), null);
+                    return new UpdateResult(new_record ?? record, UpdateStatus.UPDATED, version_msg, new_version);
                 } finally {
                     AppManager.Utils.FileUtils.remove_dir_recursive(temp_dir);
                 }
@@ -1280,15 +1393,27 @@ namespace AppManager.Core {
         /**
          * Fallback to full download when zsync is not available.
          */
-        private UpdateResult update_zsync_fallback(InstallationRecord record, string zsync_url, GLib.Cancellable? cancellable) {
+        private UpdateResult update_zsync_fallback(InstallationRecord record, string zsync_url, string? new_version, GLib.Cancellable? cancellable) {
             try {
-                // Derive AppImage URL from zsync URL (remove .zsync suffix)
-                string download_url;
-                if (zsync_url.has_suffix(".zsync")) {
-                    download_url = zsync_url.substring(0, zsync_url.length - 6);
-                } else {
-                    record_skipped(record, UpdateSkipReason.UNSUPPORTED_SOURCE);
-                    return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Cannot determine download URL from zsync URL"), null, UpdateSkipReason.UNSUPPORTED_SOURCE);
+                // Try to get actual download URL from zsync file header first
+                string? download_url = null;
+                var zsync_info = fetch_zsync_file_info(zsync_url, cancellable);
+                if (zsync_info != null && zsync_info.url != null && zsync_info.url.strip() != "") {
+                    download_url = zsync_info.url;
+                    // Also update version if we got it from zsync header
+                    if (new_version == null && zsync_info.version != null) {
+                        new_version = zsync_info.version;
+                    }
+                }
+                
+                // Fallback: derive AppImage URL from zsync URL (remove .zsync suffix)
+                if (download_url == null) {
+                    if (zsync_url.has_suffix(".zsync")) {
+                        download_url = zsync_url.substring(0, zsync_url.length - 6);
+                    } else {
+                        record_skipped(record, UpdateSkipReason.UNSUPPORTED_SOURCE);
+                        return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Cannot determine download URL from zsync URL"), null, UpdateSkipReason.UNSUPPORTED_SOURCE);
+                    }
                 }
 
                 record_downloading(record);
@@ -1313,9 +1438,12 @@ namespace AppManager.Core {
                 }
 
                 record_succeeded(record);
-                log_update_event(record, "UPDATED", "full download (zsync unavailable)");
+                var version_msg = (new_version != null && new_version.strip() != "") 
+                    ? I18n.tr("Updated to %s").printf(new_version) 
+                    : I18n.tr("Updated");
+                log_update_event(record, "UPDATED", "full download (zsync unavailable) to %s".printf(new_version ?? "unknown"));
                 // Return new_record so the UI can refresh with updated data
-                return new UpdateResult(new_record ?? record, UpdateStatus.UPDATED, I18n.tr("Updated"), null);
+                return new UpdateResult(new_record ?? record, UpdateStatus.UPDATED, version_msg, new_version);
             } catch (Error e) {
                 warning("Fallback update failed for %s: %s", record.name, e.message);
                 record_failed(record, e.message);
