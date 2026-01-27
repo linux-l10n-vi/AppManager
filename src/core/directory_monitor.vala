@@ -14,7 +14,6 @@ namespace AppManager.Core {
         private FileMonitor? registry_file_monitor;
         private InstallationRegistry registry;
         
-        public signal void app_deleted(string path);
         public signal void changes_detected();
         
         public DirectoryMonitor(InstallationRegistry registry) {
@@ -98,7 +97,6 @@ namespace AppManager.Core {
                     return;
                 }
                 debug("Detected manual deletion of portable app: %s", path);
-                app_deleted(path);
                 changes_detected();
             }
         }
@@ -125,7 +123,6 @@ namespace AppManager.Core {
                             break;
                         }
                         debug("Detected manual deletion of extracted app: %s", record.name);
-                        app_deleted(record.installed_path);
                         changes_detected();
                         break;
                     }

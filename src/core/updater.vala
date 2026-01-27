@@ -51,21 +51,6 @@ namespace AppManager.Core {
         }
     }
 
-    public class UpdateCheckInfo : Object {
-        public bool has_update { get; private set; }
-        public string latest_version { get; private set; }
-        public string current_version { get; private set; }
-        public string? display_version { get; private set; }
-
-        public UpdateCheckInfo(bool has_update, string latest, string current, string? display) {
-            Object();
-            this.has_update = has_update;
-            this.latest_version = latest;
-            this.current_version = current;
-            this.display_version = display;
-        }
-    }
-
     public class Updater : Object {
         public signal void record_checking(InstallationRecord record);
         public signal void record_downloading(InstallationRecord record);
@@ -91,10 +76,6 @@ namespace AppManager.Core {
             update_log_path = Path.build_filename(AppPaths.data_dir, "updates.log");
         }
 
-        public string? get_update_url(InstallationRecord record) {
-            return read_update_url(record);
-        }
-
         public ArrayList<UpdateProbeResult> probe_updates(GLib.Cancellable? cancellable = null) {
             var records = registry.list();
             if (records.length == 0) {
@@ -117,10 +98,6 @@ namespace AppManager.Core {
 
         public UpdateResult update_single(InstallationRecord record, GLib.Cancellable? cancellable = null) {
             return update_record(record, cancellable);
-        }
-
-        public async UpdateCheckInfo? check_for_update_async(InstallationRecord record, GLib.Cancellable? cancellable = null) throws Error {
-            return check_for_update(record, cancellable);
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -715,22 +692,6 @@ namespace AppManager.Core {
                 return new UpdateResult(record, UpdateStatus.FAILED, e.message);
             }
         }
-
-        private UpdateCheckInfo? check_for_update(InstallationRecord record, GLib.Cancellable? cancellable) throws Error {
-            var probe = probe_record(record, cancellable);
-            
-            // No update URL or unsupported source
-            if (probe.skip_reason == UpdateSkipReason.NO_UPDATE_URL || 
-                probe.skip_reason == UpdateSkipReason.UNSUPPORTED_SOURCE) {
-                return null;
-            }
-            
-            var current = record.version ?? "";
-            var latest = probe.available_version ?? current;
-            
-            return new UpdateCheckInfo(probe.has_update, latest, current, latest);
-        }
-
         // ─────────────────────────────────────────────────────────────────────
         // Direct URL Updates (Last-Modified + Content-Length based)
         // Note: ETag is unreliable for mirror-based CDNs (each mirror generates different ETags)

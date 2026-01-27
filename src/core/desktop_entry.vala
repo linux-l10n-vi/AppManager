@@ -14,7 +14,6 @@ namespace AppManager.Core {
         public bool terminal { get; set; }
         public bool no_display { get; set; }
         public string? mime_type { get; set; }
-        public bool dbus_activatable { get; set; }
         public string? appimage_homepage { get; set; }
         public string? appimage_update_url { get; set; }
         public string? appimage_version { get; set; }
@@ -45,7 +44,6 @@ namespace AppManager.Core {
             mime_type = get_string("MimeType");
             terminal = get_boolean("Terminal");
             no_display = get_boolean("NoDisplay");
-            dbus_activatable = get_boolean("DBusActivatable");
             actions = get_string("Actions");
 
             // X-AppImage keys

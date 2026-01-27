@@ -54,37 +54,35 @@ namespace AppManager.Core {
         }
 
         /**
-         * Gets the effective value for a property, considering original and custom values.
-         * Returns custom value if set (CLEARED means null), otherwise returns original.
+         * Helper: gets effective value considering CLEARED_VALUE sentinel.
          */
+        private static string? get_effective(string? custom, string? original) {
+            if (custom == CLEARED_VALUE) return null;
+            return custom ?? original;
+        }
+
         public string? get_effective_commandline_args() {
-            if (custom_commandline_args == CLEARED_VALUE) return null;
-            return custom_commandline_args ?? original_commandline_args;
+            return get_effective(custom_commandline_args, original_commandline_args);
         }
 
         public string? get_effective_keywords() {
-            if (custom_keywords == CLEARED_VALUE) return null;
-            return custom_keywords ?? original_keywords;
+            return get_effective(custom_keywords, original_keywords);
         }
 
         public string? get_effective_icon_name() {
-            if (custom_icon_name == CLEARED_VALUE) return null;
-            return custom_icon_name ?? original_icon_name;
+            return get_effective(custom_icon_name, original_icon_name);
         }
 
         public string? get_effective_startup_wm_class() {
-            if (custom_startup_wm_class == CLEARED_VALUE) return null;
-            return custom_startup_wm_class ?? original_startup_wm_class;
+            return get_effective(custom_startup_wm_class, original_startup_wm_class);
         }
 
         public string? get_effective_update_link() {
-            if (custom_update_link == CLEARED_VALUE) return null;
-            return custom_update_link ?? original_update_link;
+            return get_effective(custom_update_link, original_update_link);
         }
 
         public string? get_effective_web_page() {
-            if (custom_web_page == CLEARED_VALUE) return null;
-            return custom_web_page ?? original_web_page;
+            return get_effective(custom_web_page, original_web_page);
         }
 
         /**
@@ -159,6 +157,16 @@ namespace AppManager.Core {
             builder.add_string_value(original_web_page ?? "");
             
             // Custom values set by user - only write if set (not null)
+            serialize_custom_values(builder);
+            
+            builder.end_object();
+            return builder.get_root();
+        }
+
+        /**
+         * Helper: writes all custom values to JSON builder.
+         */
+        private void serialize_custom_values(Json.Builder builder) {
             if (custom_commandline_args != null) {
                 builder.set_member_name("custom_commandline_args");
                 builder.add_string_value(custom_commandline_args);
@@ -191,9 +199,6 @@ namespace AppManager.Core {
                 }
                 builder.end_array();
             }
-            
-            builder.end_object();
-            return builder.get_root();
         }
 
         /**
@@ -205,41 +210,7 @@ namespace AppManager.Core {
             builder.begin_object();
             builder.set_member_name("name");
             builder.add_string_value(name);
-            
-            // Only write custom values if set
-            if (custom_commandline_args != null) {
-                builder.set_member_name("custom_commandline_args");
-                builder.add_string_value(custom_commandline_args);
-            }
-            if (custom_keywords != null) {
-                builder.set_member_name("custom_keywords");
-                builder.add_string_value(custom_keywords);
-            }
-            if (custom_icon_name != null) {
-                builder.set_member_name("custom_icon_name");
-                builder.add_string_value(custom_icon_name);
-            }
-            if (custom_startup_wm_class != null) {
-                builder.set_member_name("custom_startup_wm_class");
-                builder.add_string_value(custom_startup_wm_class);
-            }
-            if (custom_update_link != null) {
-                builder.set_member_name("custom_update_link");
-                builder.add_string_value(custom_update_link);
-            }
-            if (custom_web_page != null) {
-                builder.set_member_name("custom_web_page");
-                builder.add_string_value(custom_web_page);
-            }
-            if (custom_env_vars != null && custom_env_vars.length > 0) {
-                builder.set_member_name("custom_env_vars");
-                builder.begin_array();
-                foreach (var env_var in custom_env_vars) {
-                    builder.add_string_value(env_var);
-                }
-                builder.end_array();
-            }
-            
+            serialize_custom_values(builder);
             builder.end_object();
             return builder.get_root();
         }

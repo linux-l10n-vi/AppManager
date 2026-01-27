@@ -550,97 +550,82 @@ namespace AppManager {
             return env_expander;
         }
 
-        private Adw.EntryRow build_keywords_row() {
-            var keywords_row = new Adw.EntryRow();
-            keywords_row.title = _("Keywords");
-            keywords_row.text = record.get_effective_keywords() ?? "";
+        /**
+         * Delegate types for customizable entry row fields.
+         */
+        private delegate string? GetEffectiveFunc();
+        private delegate string? GetOriginalFunc();
+        private delegate string? GetCustomFunc();
+        private delegate void SetCustomFunc(string? val);
+
+        /**
+         * Generic factory for entry rows with restore button and change tracking.
+         */
+        private Adw.EntryRow build_customizable_entry_row(
+            string title,
+            GetEffectiveFunc get_effective,
+            GetOriginalFunc get_original,
+            GetCustomFunc get_custom,
+            SetCustomFunc set_custom
+        ) {
+            var row = new Adw.EntryRow();
+            row.title = title;
+            row.text = get_effective() ?? "";
             
-            var restore_keywords_button = create_restore_button(record.custom_keywords != null);
-            restore_keywords_button.clicked.connect(() => {
-                record.custom_keywords = null;
-                keywords_row.text = record.original_keywords ?? "";
+            var restore_button = create_restore_button(get_custom() != null);
+            restore_button.clicked.connect(() => {
+                set_custom(null);
+                row.text = get_original() ?? "";
                 persist_record_and_refresh_desktop();
-                restore_keywords_button.set_visible(false);
+                restore_button.set_visible(false);
             });
-            keywords_row.add_suffix(restore_keywords_button);
+            row.add_suffix(restore_button);
             
-            keywords_row.changed.connect(() => {
-                var new_val = keywords_row.text.strip();
-                var original_val = record.original_keywords ?? "";
+            row.changed.connect(() => {
+                var new_val = row.text.strip();
+                var original_val = get_original() ?? "";
                 if (new_val == original_val) {
-                    record.custom_keywords = null;
+                    set_custom(null);
                 } else if (new_val == "") {
-                    record.custom_keywords = CLEARED_VALUE;
+                    set_custom(CLEARED_VALUE);
                 } else {
-                    record.custom_keywords = new_val;
+                    set_custom(new_val);
                 }
                 persist_record_and_refresh_desktop();
-                restore_keywords_button.set_visible(record.custom_keywords != null);
+                restore_button.set_visible(get_custom() != null);
             });
             
-            return keywords_row;
+            return row;
+        }
+
+        private Adw.EntryRow build_keywords_row() {
+            return build_customizable_entry_row(
+                _("Keywords"),
+                () => record.get_effective_keywords(),
+                () => record.original_keywords,
+                () => record.custom_keywords,
+                (v) => { record.custom_keywords = v; }
+            );
         }
 
         private Adw.EntryRow build_icon_row() {
-            var icon_row = new Adw.EntryRow();
-            icon_row.title = _("Icon name");
-            icon_row.text = record.get_effective_icon_name() ?? "";
-            
-            var restore_icon_button = create_restore_button(record.custom_icon_name != null);
-            restore_icon_button.clicked.connect(() => {
-                record.custom_icon_name = null;
-                icon_row.text = record.original_icon_name ?? "";
-                persist_record_and_refresh_desktop();
-                restore_icon_button.set_visible(false);
-            });
-            icon_row.add_suffix(restore_icon_button);
-            
-            icon_row.changed.connect(() => {
-                var new_val = icon_row.text.strip();
-                var original_val = record.original_icon_name ?? "";
-                if (new_val == original_val) {
-                    record.custom_icon_name = null;
-                } else if (new_val == "") {
-                    record.custom_icon_name = CLEARED_VALUE;
-                } else {
-                    record.custom_icon_name = new_val;
-                }
-                persist_record_and_refresh_desktop();
-                restore_icon_button.set_visible(record.custom_icon_name != null);
-            });
-            
-            return icon_row;
+            return build_customizable_entry_row(
+                _("Icon name"),
+                () => record.get_effective_icon_name(),
+                () => record.original_icon_name,
+                () => record.custom_icon_name,
+                (v) => { record.custom_icon_name = v; }
+            );
         }
 
         private Adw.EntryRow build_wmclass_row() {
-            var wmclass_row = new Adw.EntryRow();
-            wmclass_row.title = _("Startup WM Class");
-            wmclass_row.text = record.get_effective_startup_wm_class() ?? "";
-            
-            var restore_wmclass_button = create_restore_button(record.custom_startup_wm_class != null);
-            restore_wmclass_button.clicked.connect(() => {
-                record.custom_startup_wm_class = null;
-                wmclass_row.text = record.original_startup_wm_class ?? "";
-                persist_record_and_refresh_desktop();
-                restore_wmclass_button.set_visible(false);
-            });
-            wmclass_row.add_suffix(restore_wmclass_button);
-            
-            wmclass_row.changed.connect(() => {
-                var new_val = wmclass_row.text.strip();
-                var original_val = record.original_startup_wm_class ?? "";
-                if (new_val == original_val) {
-                    record.custom_startup_wm_class = null;
-                } else if (new_val == "") {
-                    record.custom_startup_wm_class = CLEARED_VALUE;
-                } else {
-                    record.custom_startup_wm_class = new_val;
-                }
-                persist_record_and_refresh_desktop();
-                restore_wmclass_button.set_visible(record.custom_startup_wm_class != null);
-            });
-            
-            return wmclass_row;
+            return build_customizable_entry_row(
+                _("Startup WM Class"),
+                () => record.get_effective_startup_wm_class(),
+                () => record.original_startup_wm_class,
+                () => record.custom_startup_wm_class,
+                (v) => { record.custom_startup_wm_class = v; }
+            );
         }
 
         private Adw.EntryRow build_version_row() {

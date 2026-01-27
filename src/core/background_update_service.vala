@@ -36,7 +36,7 @@ Type=Application
 Name=AppManager Background Updater
 Exec=%s --background-update
 X-GNOME-Autostart-enabled=true
-X-GNOME-Autostart-Delay=60
+X-GNOME-Autostart-Delay=10
 NoDisplay=true
 X-XDP-Autostart=com.github.AppManager
 """.printf(exec_path);
