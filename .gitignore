@@ -14,3 +14,4 @@ build/
 *ns.md
 *RE.md
 *.log
+.vscode/

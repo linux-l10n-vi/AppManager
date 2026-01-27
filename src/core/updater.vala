@@ -567,12 +567,12 @@ namespace AppManager.Core {
             
             var update_url = read_update_url(record);
             if (update_url == null || update_url.strip() == "") {
-                return new UpdateProbeResult(record, false, null, UpdateSkipReason.NO_UPDATE_URL, I18n.tr("No update address configured"));
+                return new UpdateProbeResult(record, false, null, UpdateSkipReason.NO_UPDATE_URL, _("No update address configured"));
             }
 
             var source = resolve_update_source(update_url, record.version);
             if (source == null) {
-                return new UpdateProbeResult(record, false, null, UpdateSkipReason.UNSUPPORTED_SOURCE, I18n.tr("Update source not supported"));
+                return new UpdateProbeResult(record, false, null, UpdateSkipReason.UNSUPPORTED_SOURCE, _("Update source not supported"));
             }
 
             // Handle zsync sources (legacy path for apps with zsync URL in update_link)
@@ -588,12 +588,12 @@ namespace AppManager.Core {
                 var release_source = source as ReleaseSource;
                 var release = fetch_latest_release(release_source, cancellable);
                 if (release == null) {
-                    return new UpdateProbeResult(record, false, null, UpdateSkipReason.API_UNAVAILABLE, I18n.tr("Unable to read releases"));
+                    return new UpdateProbeResult(record, false, null, UpdateSkipReason.API_UNAVAILABLE, _("Unable to read releases"));
                 }
 
                 var asset = select_appimage_asset(release.assets);
                 if (asset == null) {
-                    return new UpdateProbeResult(record, false, release.version, UpdateSkipReason.MISSING_ASSET, I18n.tr("No matching AppImage found for %s").printf(get_system_arch()));
+                    return new UpdateProbeResult(record, false, release.version, UpdateSkipReason.MISSING_ASSET, _("No matching AppImage found for %s").printf(get_system_arch()));
                 }
 
                 var latest = release.version;
@@ -601,13 +601,13 @@ namespace AppManager.Core {
                 
                 // Version comparison: if both have versions, compare them
                 if (latest != null && current != null && compare_versions(latest, current) <= 0) {
-                    return new UpdateProbeResult(record, false, latest, UpdateSkipReason.ALREADY_CURRENT, I18n.tr("Already up to date"));
+                    return new UpdateProbeResult(record, false, latest, UpdateSkipReason.ALREADY_CURRENT, _("Already up to date"));
                 }
                 
                 // Fallback: if version is missing, compare release tags
                 if ((latest == null || current == null) && release.tag_name != null) {
                     if (record.last_release_tag == release.tag_name) {
-                        return new UpdateProbeResult(record, false, release.tag_name, UpdateSkipReason.ALREADY_CURRENT, I18n.tr("Already up to date"));
+                        return new UpdateProbeResult(record, false, release.tag_name, UpdateSkipReason.ALREADY_CURRENT, _("Already up to date"));
                     }
                 }
 
@@ -632,7 +632,7 @@ namespace AppManager.Core {
             if (update_url == null || update_url.strip() == "") {
                 record_skipped(record, UpdateSkipReason.NO_UPDATE_URL);
                 log_update_event(record, "SKIP", "no update url configured");
-                return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("No update address configured"), null, UpdateSkipReason.NO_UPDATE_URL);
+                return new UpdateResult(record, UpdateStatus.SKIPPED, _("No update address configured"), null, UpdateSkipReason.NO_UPDATE_URL);
             }
 
             record_checking(record);
@@ -641,7 +641,7 @@ namespace AppManager.Core {
             if (source == null) {
                 record_skipped(record, UpdateSkipReason.UNSUPPORTED_SOURCE);
                 log_update_event(record, "SKIP", "unsupported update source");
-                return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Update source not supported"), null, UpdateSkipReason.UNSUPPORTED_SOURCE);
+                return new UpdateResult(record, UpdateStatus.SKIPPED, _("Update source not supported"), null, UpdateSkipReason.UNSUPPORTED_SOURCE);
             }
 
             // Handle zsync sources (legacy path for apps with zsync URL in update_link)
@@ -659,7 +659,7 @@ namespace AppManager.Core {
                 if (release == null) {
                     record_skipped(record, UpdateSkipReason.API_UNAVAILABLE);
                     log_update_event(record, "SKIP", "release API unavailable");
-                    return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Unable to read releases"), null, UpdateSkipReason.API_UNAVAILABLE);
+                    return new UpdateResult(record, UpdateStatus.SKIPPED, _("Unable to read releases"), null, UpdateSkipReason.API_UNAVAILABLE);
                 }
 
                 var latest = release.version;
@@ -669,7 +669,7 @@ namespace AppManager.Core {
                 if (latest != null && current != null && compare_versions(latest, current) <= 0) {
                     record_skipped(record, UpdateSkipReason.ALREADY_CURRENT);
                     log_update_event(record, "SKIP", "already current");
-                    return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Already up to date"), latest, UpdateSkipReason.ALREADY_CURRENT);
+                    return new UpdateResult(record, UpdateStatus.SKIPPED, _("Already up to date"), latest, UpdateSkipReason.ALREADY_CURRENT);
                 }
                 
                 // Fallback: if version is missing, compare release tags
@@ -677,7 +677,7 @@ namespace AppManager.Core {
                     if (record.last_release_tag == release.tag_name) {
                         record_skipped(record, UpdateSkipReason.ALREADY_CURRENT);
                         log_update_event(record, "SKIP", "release tag unchanged");
-                        return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Already up to date"), release.tag_name, UpdateSkipReason.ALREADY_CURRENT);
+                        return new UpdateResult(record, UpdateStatus.SKIPPED, _("Already up to date"), release.tag_name, UpdateSkipReason.ALREADY_CURRENT);
                     }
                 }
 
@@ -685,7 +685,7 @@ namespace AppManager.Core {
                 if (asset == null) {
                     record_skipped(record, UpdateSkipReason.MISSING_ASSET);
                     log_update_event(record, "SKIP", "no matching AppImage for " + get_system_arch());
-                    return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("No matching AppImage found for %s").printf(get_system_arch()), latest, UpdateSkipReason.MISSING_ASSET);
+                    return new UpdateResult(record, UpdateStatus.SKIPPED, _("No matching AppImage found for %s").printf(get_system_arch()), latest, UpdateSkipReason.MISSING_ASSET);
                 }
 
                 record_downloading(record);
@@ -707,7 +707,7 @@ namespace AppManager.Core {
                 var display_version = release.tag_name ?? asset.name;
                 record_succeeded(record);
                 log_update_event(record, "UPDATED", "updated to %s".printf(display_version));
-                return new UpdateResult(record, UpdateStatus.UPDATED, I18n.tr("Updated to %s").printf(display_version), release.version ?? display_version);
+                return new UpdateResult(record, UpdateStatus.UPDATED, _("Updated to %s").printf(display_version), release.version ?? display_version);
             } catch (Error e) {
                 warning("Failed to update %s: %s", record.name, e.message);
                 record_failed(record, e.message);
@@ -794,7 +794,7 @@ namespace AppManager.Core {
                 var current_fingerprint = build_direct_fingerprint(message);
                 
                 if (current_fingerprint == null) {
-                    return new UpdateProbeResult(record, false, null, UpdateSkipReason.NO_TRACKING_HEADERS, I18n.tr("Server does not provide change tracking headers"));
+                    return new UpdateProbeResult(record, false, null, UpdateSkipReason.NO_TRACKING_HEADERS, _("Server does not provide change tracking headers"));
                 }
 
                 var stored_fingerprint = get_stored_fingerprint(record);
@@ -802,11 +802,11 @@ namespace AppManager.Core {
                     // First time: record baseline
                     store_fingerprint(record, message);
                     registry.persist(false);
-                    return new UpdateProbeResult(record, false, current_fingerprint, UpdateSkipReason.ALREADY_CURRENT, I18n.tr("Baseline recorded"));
+                    return new UpdateProbeResult(record, false, current_fingerprint, UpdateSkipReason.ALREADY_CURRENT, _("Baseline recorded"));
                 }
 
                 if (stored_fingerprint == current_fingerprint) {
-                    return new UpdateProbeResult(record, false, current_fingerprint, UpdateSkipReason.ALREADY_CURRENT, I18n.tr("Already up to date"));
+                    return new UpdateProbeResult(record, false, current_fingerprint, UpdateSkipReason.ALREADY_CURRENT, _("Already up to date"));
                 }
 
                 return new UpdateProbeResult(record, true, current_fingerprint);
@@ -824,14 +824,14 @@ namespace AppManager.Core {
                 if (current_fingerprint == null) {
                     record_skipped(record, UpdateSkipReason.NO_TRACKING_HEADERS);
                     log_update_event(record, "SKIP", "direct url missing tracking headers");
-                    return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Server does not provide change tracking headers"), null, UpdateSkipReason.NO_TRACKING_HEADERS);
+                    return new UpdateResult(record, UpdateStatus.SKIPPED, _("Server does not provide change tracking headers"), null, UpdateSkipReason.NO_TRACKING_HEADERS);
                 }
 
                 var stored_fingerprint = get_stored_fingerprint(record);
                 if (stored_fingerprint != null && stored_fingerprint == current_fingerprint) {
                     record_skipped(record, UpdateSkipReason.ALREADY_CURRENT);
                     log_update_event(record, "SKIP", "fingerprint unchanged");
-                    return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Already up to date"), current_fingerprint, UpdateSkipReason.ALREADY_CURRENT);
+                    return new UpdateResult(record, UpdateStatus.SKIPPED, _("Already up to date"), current_fingerprint, UpdateSkipReason.ALREADY_CURRENT);
                 }
 
                 record_downloading(record);
@@ -851,7 +851,7 @@ namespace AppManager.Core {
                 registry.persist();
                 record_succeeded(record);
                 log_update_event(record, "UPDATED", "direct url fingerprint=%s".printf(current_fingerprint));
-                return new UpdateResult(record, UpdateStatus.UPDATED, I18n.tr("Updated"), current_fingerprint);
+                return new UpdateResult(record, UpdateStatus.UPDATED, _("Updated"), current_fingerprint);
             } catch (Error e) {
                 warning("Failed to update %s via direct URL: %s", record.name, e.message);
                 record_failed(record, e.message);
@@ -1259,7 +1259,7 @@ namespace AppManager.Core {
          */
         private UpdateProbeResult probe_zsync(InstallationRecord record, UpdateSource source, GLib.Cancellable? cancellable) {
             if (!(source is ZsyncDirectSource)) {
-                return new UpdateProbeResult(record, false, null, UpdateSkipReason.UNSUPPORTED_SOURCE, I18n.tr("Unknown zsync source type"));
+                return new UpdateProbeResult(record, false, null, UpdateSkipReason.UNSUPPORTED_SOURCE, _("Unknown zsync source type"));
             }
             
             var zsync_source = source as ZsyncDirectSource;
@@ -1281,7 +1281,7 @@ namespace AppManager.Core {
                     var cmp = compare_versions(remote_version, current_version);
                     if (cmp <= 0) {
                         // Remote version is same or older than current
-                        return new UpdateProbeResult(record, false, remote_version, UpdateSkipReason.ALREADY_CURRENT, I18n.tr("Already up to date"));
+                        return new UpdateProbeResult(record, false, remote_version, UpdateSkipReason.ALREADY_CURRENT, _("Already up to date"));
                     }
                     // Remote version is newer
                     return new UpdateProbeResult(record, true, remote_version);
@@ -1296,7 +1296,7 @@ namespace AppManager.Core {
                 var fingerprint = build_direct_fingerprint(message);
                 
                 if (fingerprint == null) {
-                    return new UpdateProbeResult(record, false, null, UpdateSkipReason.NO_TRACKING_HEADERS, I18n.tr("Server does not provide change tracking headers"));
+                    return new UpdateProbeResult(record, false, null, UpdateSkipReason.NO_TRACKING_HEADERS, _("Server does not provide change tracking headers"));
                 }
                 
                 var stored = get_stored_fingerprint(record);
@@ -1305,11 +1305,11 @@ namespace AppManager.Core {
                     // First time: record baseline fingerprint
                     store_fingerprint(record, message);
                     registry.persist(false);
-                    return new UpdateProbeResult(record, false, fingerprint, UpdateSkipReason.ALREADY_CURRENT, I18n.tr("Baseline recorded"));
+                    return new UpdateProbeResult(record, false, fingerprint, UpdateSkipReason.ALREADY_CURRENT, _("Baseline recorded"));
                 }
                 
                 if (stored == fingerprint) {
-                    return new UpdateProbeResult(record, false, fingerprint, UpdateSkipReason.ALREADY_CURRENT, I18n.tr("Already up to date"));
+                    return new UpdateProbeResult(record, false, fingerprint, UpdateSkipReason.ALREADY_CURRENT, _("Already up to date"));
                 }
                 
                 return new UpdateProbeResult(record, true, fingerprint);
@@ -1326,7 +1326,7 @@ namespace AppManager.Core {
         private UpdateResult update_zsync(InstallationRecord record, UpdateSource source, GLib.Cancellable? cancellable) {
             if (!(source is ZsyncDirectSource)) {
                 record_skipped(record, UpdateSkipReason.UNSUPPORTED_SOURCE);
-                return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Unknown zsync source"), null, UpdateSkipReason.UNSUPPORTED_SOURCE);
+                return new UpdateResult(record, UpdateStatus.SKIPPED, _("Unknown zsync source"), null, UpdateSkipReason.UNSUPPORTED_SOURCE);
             }
             
             var zsync_source = source as ZsyncDirectSource;
@@ -1374,8 +1374,8 @@ namespace AppManager.Core {
                     
                     record_succeeded(record);
                     var version_msg = (new_version != null && new_version.strip() != "") 
-                        ? I18n.tr("Updated to %s").printf(new_version) 
-                        : I18n.tr("Updated");
+                        ? _("Updated to %s").printf(new_version) 
+                        : _("Updated");
                     log_update_event(record, "UPDATED", "zsync delta update to %s".printf(new_version ?? "unknown"));
                     // Return new_record so the UI can refresh with updated data
                     return new UpdateResult(new_record ?? record, UpdateStatus.UPDATED, version_msg, new_version);
@@ -1412,7 +1412,7 @@ namespace AppManager.Core {
                         download_url = zsync_url.substring(0, zsync_url.length - 6);
                     } else {
                         record_skipped(record, UpdateSkipReason.UNSUPPORTED_SOURCE);
-                        return new UpdateResult(record, UpdateStatus.SKIPPED, I18n.tr("Cannot determine download URL from zsync URL"), null, UpdateSkipReason.UNSUPPORTED_SOURCE);
+                        return new UpdateResult(record, UpdateStatus.SKIPPED, _("Cannot determine download URL from zsync URL"), null, UpdateSkipReason.UNSUPPORTED_SOURCE);
                     }
                 }
 
@@ -1439,8 +1439,8 @@ namespace AppManager.Core {
 
                 record_succeeded(record);
                 var version_msg = (new_version != null && new_version.strip() != "") 
-                    ? I18n.tr("Updated to %s").printf(new_version) 
-                    : I18n.tr("Updated");
+                    ? _("Updated to %s").printf(new_version) 
+                    : _("Updated");
                 log_update_event(record, "UPDATED", "full download (zsync unavailable) to %s".printf(new_version ?? "unknown"));
                 // Return new_record so the UI can refresh with updated data
                 return new UpdateResult(new_record ?? record, UpdateStatus.UPDATED, version_msg, new_version);

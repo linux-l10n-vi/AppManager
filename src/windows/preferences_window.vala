@@ -22,7 +22,7 @@ namespace AppManager {
         public PreferencesDialog(GLib.Settings settings) {
             Object();
             this.settings = settings;
-            this.set_title(I18n.tr("Preferences"));
+            this.set_title(_("Preferences"));
             this.content_height = 500;
             build_ui();
         }
@@ -32,14 +32,14 @@ namespace AppManager {
 
             // Automatic updates group
             var updates_group = new Adw.PreferencesGroup();
-            updates_group.title = I18n.tr("Automatic updates");
-            updates_group.description = I18n.tr("Configure automatic update checking");
+            updates_group.title = _("Automatic updates");
+            updates_group.description = _("Configure automatic update checking");
 
             // Add log button to header
             var log_button = new Gtk.Button.from_icon_name("text-x-generic-symbolic");
             log_button.valign = Gtk.Align.CENTER;
             log_button.add_css_class("flat");
-            log_button.tooltip_text = I18n.tr("Open update log");
+            log_button.tooltip_text = _("Open update log");
             var log_file = File.new_for_path(AppPaths.updates_log_file);
             log_button.sensitive = log_file.query_exists();
             log_button.clicked.connect(() => {
@@ -53,8 +53,8 @@ namespace AppManager {
 
             // Background update check expander row
             var auto_check_expander = new Adw.ExpanderRow();
-            auto_check_expander.title = I18n.tr("Background update check");
-            auto_check_expander.subtitle = I18n.tr("Will notify when new app updates are available");
+            auto_check_expander.title = _("Background update check");
+            auto_check_expander.subtitle = _("Will notify when new app updates are available");
             auto_check_expander.show_enable_switch = true;
             settings.bind("auto-check-updates", auto_check_expander, "enable-expansion", GLib.SettingsBindFlags.DEFAULT);
             this.auto_check_expander = auto_check_expander;
@@ -65,18 +65,18 @@ namespace AppManager {
 
             // Auto update apps toggle (inside expander)
             var auto_update_row = new Adw.SwitchRow();
-            auto_update_row.title = I18n.tr("Auto update apps");
-            auto_update_row.subtitle = I18n.tr("Will update apps automatically in background");
+            auto_update_row.title = _("Auto update apps");
+            auto_update_row.subtitle = _("Will update apps automatically in background");
             settings.bind("auto-update-apps", auto_update_row, "active", GLib.SettingsBindFlags.DEFAULT);
             this.auto_update_row = auto_update_row;
 
             // Check interval (inside expander)
             var interval_row = new Adw.ComboRow();
-            interval_row.title = I18n.tr("Check interval");
+            interval_row.title = _("Check interval");
             var interval_model = new Gtk.StringList(null);
-            interval_model.append(I18n.tr("Daily"));
-            interval_model.append(I18n.tr("Weekly"));
-            interval_model.append(I18n.tr("Monthly"));
+            interval_model.append(_("Daily"));
+            interval_model.append(_("Weekly"));
+            interval_model.append(_("Monthly"));
             interval_row.model = interval_model;
             interval_row.selected = interval_index_for_value(settings.get_int("update-check-interval"));
             this.interval_row = interval_row;
@@ -101,11 +101,11 @@ namespace AppManager {
 
             // Thumbnails group
             var thumbnails_group = new Adw.PreferencesGroup();
-            thumbnails_group.title = I18n.tr("Thumbnails");
+            thumbnails_group.title = _("Thumbnails");
 
             var thumbnailer_row = new Adw.ActionRow();
-            thumbnailer_row.title = I18n.tr("AppImage Thumbnailer");
-            thumbnailer_row.subtitle = I18n.tr("Install appimage-thumbnailer to generate thumbnails for AppImages");
+            thumbnailer_row.title = _("AppImage Thumbnailer");
+            thumbnailer_row.subtitle = _("Install appimage-thumbnailer to generate thumbnails for AppImages");
             thumbnailer_row.activatable = true;
             thumbnailer_row.add_suffix(new Gtk.Image.from_icon_name("external-link-symbolic"));
             thumbnailer_row.activated.connect(() => {
@@ -114,8 +114,8 @@ namespace AppManager {
             thumbnails_group.add(thumbnailer_row);
 
             var thumbnail_background_row = new Adw.SwitchRow();
-            thumbnail_background_row.title = I18n.tr("Hide Nautilus thumbnail background");
-            thumbnail_background_row.subtitle = I18n.tr("Remove the alpha checkerboard behind thumbnails and icons");
+            thumbnail_background_row.title = _("Hide Nautilus thumbnail background");
+            thumbnail_background_row.subtitle = _("Remove the alpha checkerboard behind thumbnails and icons");
             settings.bind("remove-thumbnail-checkerboard", thumbnail_background_row, "active", GLib.SettingsBindFlags.DEFAULT);
 
             settings.changed["remove-thumbnail-checkerboard"].connect(() => {

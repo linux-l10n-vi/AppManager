@@ -48,7 +48,7 @@ namespace AppManager {
 
         public DropWindow(Application app, InstallationRegistry registry, Installer installer, Settings settings, string path) throws Error {
             Object(application: app,
-                title: I18n.tr("AppImage Installer"),
+                title: _("AppImage Installer"),
                 modal: true,
                 default_width: 500,
                 default_height: 300,
@@ -72,7 +72,7 @@ namespace AppManager {
         }
 
         private void build_ui() {
-            title = I18n.tr("AppImage Installer");
+            title = _("AppImage Installer");
             //add_css_class("devel");
 
             var toolbar_view = new Adw.ToolbarView();
@@ -83,15 +83,15 @@ namespace AppManager {
             header.set_show_end_title_buttons(true);
             
             // Add Verify button to headerbar
-            verify_button = new Gtk.Button.with_label(I18n.tr("Verify"));
-            verify_button.tooltip_text = I18n.tr("Verify AppImage with SHA256 hash");
+            verify_button = new Gtk.Button.with_label(_("Verify"));
+            verify_button.tooltip_text = _("Verify AppImage with SHA256 hash");
             verify_button.clicked.connect(present_verification_dialog);
             header.pack_end(verify_button);
             
             toolbar_view.add_top_bar(header);
 
             incompatibility_banner = new Adw.Banner("");
-            incompatibility_banner.button_label = I18n.tr("Close");
+            incompatibility_banner.button_label = _("Close");
             incompatibility_banner.use_markup = false;
             incompatibility_banner.revealed = false;
             incompatibility_banner.button_clicked.connect(() => {
@@ -100,7 +100,7 @@ namespace AppManager {
             toolbar_view.add_top_bar(incompatibility_banner);
             
             // Verification failed banner
-            verification_banner = new Adw.Banner(I18n.tr("SHA256 hash does not match. Verification failed."));
+            verification_banner = new Adw.Banner(_("SHA256 hash does not match. Verification failed."));
             verification_banner.add_css_class("error");
             verification_banner.use_markup = false;
             verification_banner.revealed = false;
@@ -116,7 +116,7 @@ namespace AppManager {
             var outer = new Gtk.Box(Gtk.Orientation.VERTICAL, 18);
             clamp.child = outer;
 
-            subtitle = new Gtk.Label(I18n.tr("Drag and drop to install into Applications"));
+            subtitle = new Gtk.Label(_("Drag and drop to install into Applications"));
             subtitle.add_css_class("dim-label");
             subtitle.halign = Gtk.Align.CENTER;
             subtitle.wrap = true;
@@ -171,7 +171,7 @@ namespace AppManager {
             drag_box.append(arrow_overlay);
 
             folder_icon = create_applications_icon();
-            var folder_column = build_icon_column(folder_icon, out folder_name_label, I18n.tr("Applications"));
+            var folder_column = build_icon_column(folder_icon, out folder_name_label, _("Applications"));
             drag_box.append(folder_column);
 
             drag_overlay = new Gtk.Overlay();
@@ -207,21 +207,21 @@ namespace AppManager {
             // Use app icon with warning badge overlay
             var icon_overlay = create_dialog_icon_with_badge(null, true);
 
-            var dialog = new DialogWindow(app_ref, this, I18n.tr("Open %s?").printf(resolved_app_name), null);
+            var dialog = new DialogWindow(app_ref, this, _("Open %s?").printf(resolved_app_name), null);
             dialog.append_body(icon_overlay);
 
-            var warning_text = I18n.tr("Origins of %s application can not be verified. Are you sure you want to open it?").printf(resolved_app_name);
+            var warning_text = _("Origins of %s application can not be verified. Are you sure you want to open it?").printf(resolved_app_name);
             var warning_markup = "<b>%s</b>".printf(GLib.Markup.escape_text(warning_text, -1));
             dialog.append_body(UiUtils.create_wrapped_label(warning_markup, true));
             
             if (is_terminal_app) {
-                dialog.append_body(UiUtils.create_wrapped_label(I18n.tr("This is a terminal application and will be installed in portable mode."), false, true));
+                dialog.append_body(UiUtils.create_wrapped_label(_("This is a terminal application and will be installed in portable mode."), false, true));
             } else {
-                dialog.append_body(UiUtils.create_wrapped_label(I18n.tr("Install the AppImage to add it to your applications."), false, true));
+                dialog.append_body(UiUtils.create_wrapped_label(_("Install the AppImage to add it to your applications."), false, true));
             }
 
-            dialog.add_option("install", I18n.tr("Install"));
-            dialog.add_option("cancel", I18n.tr("Cancel"), true);
+            dialog.add_option("install", _("Install"));
+            dialog.add_option("cancel", _("Cancel"), true);
 
             install_prompt_visible = true;
             dialog.close_request.connect(() => {
@@ -293,9 +293,9 @@ namespace AppManager {
 
         private void check_compatibility() {
             if (!AppImageAssets.check_compatibility(appimage_path)) {
-                incompatibility_banner.title = I18n.tr("This AppImage is incompatible or corrupted");
+                incompatibility_banner.title = _("This AppImage is incompatible or corrupted");
                 incompatibility_banner.revealed = true;
-                subtitle.set_text(I18n.tr("Missing required files (AppRun, .desktop, or icon)"));
+                subtitle.set_text(_("Missing required files (AppRun, .desktop, or icon)"));
                 drag_box.set_sensitive(false);
             }
         }
@@ -355,15 +355,15 @@ namespace AppManager {
             name_label.wrap = true;
             column.append(name_label);
 
-            var version_text = record.version ?? I18n.tr("Version unknown");
+            var version_text = record.version ?? _("Version unknown");
             var current_label = new Gtk.Label(version_text);
             current_label.add_css_class("dim-label");
             current_label.halign = Gtk.Align.CENTER;
             current_label.wrap = true;
             column.append(current_label);
 
-            var new_version_label = resolved_app_version ?? I18n.tr("Unknown version");
-            var update_label = new Gtk.Label(I18n.tr("Will update to version %s").printf(new_version_label));
+            var new_version_label = resolved_app_version ?? _("Unknown version");
+            var update_label = new Gtk.Label(_("Will update to version %s").printf(new_version_label));
             update_label.halign = Gtk.Align.CENTER;
             update_label.wrap = true;
             column.append(update_label);
@@ -379,11 +379,11 @@ namespace AppManager {
             // Use icon with verification badge overlay
             var icon_overlay = create_dialog_icon_with_badge(record, true);
 
-            var dialog = new DialogWindow(app_ref, this, I18n.tr("Update %s?").printf(record.name), null);
+            var dialog = new DialogWindow(app_ref, this, _("Update %s?").printf(record.name), null);
             dialog.append_body(icon_overlay);
             dialog.append_body(build_update_dialog_content(record));
-            dialog.add_option("update", I18n.tr("Update"), true);
-            dialog.add_option("cancel", I18n.tr("Cancel"));
+            dialog.add_option("update", _("Update"), true);
+            dialog.add_option("cancel", _("Cancel"));
 
             install_prompt_visible = true;
             dialog.close_request.connect(() => {
@@ -409,22 +409,22 @@ namespace AppManager {
             // Use icon with verification badge overlay
             var icon_overlay = create_dialog_icon_with_badge(record, true);
 
-            var dialog = new DialogWindow(app_ref, this, I18n.tr("Replace %s?").printf(record.name), null);
+            var dialog = new DialogWindow(app_ref, this, _("Replace %s?").printf(record.name), null);
             dialog.append_body(icon_overlay);
             string replace_text;
             if (installed_newer) {
-                replace_text = I18n.tr("A newer item named %s already exists in this location. Do you want to replace it with the older one you're copying?").printf(record.name);
+                replace_text = _("A newer item named %s already exists in this location. Do you want to replace it with the older one you're copying?").printf(record.name);
                 if (record.version != null && resolved_app_version != null) {
-                    var versions = I18n.tr("Installed: %s | Incoming: %s").printf(record.version, resolved_app_version);
+                    var versions = _("Installed: %s | Incoming: %s").printf(record.version, resolved_app_version);
                     dialog.append_body(UiUtils.create_wrapped_label(GLib.Markup.escape_text(versions, -1), true, true));
                 }
             } else {
-                replace_text = I18n.tr("An item named %s already exists in this location. Do you want to replace it with one you're copying?").printf(record.name);
+                replace_text = _("An item named %s already exists in this location. Do you want to replace it with one you're copying?").printf(record.name);
             }
             dialog.append_body(UiUtils.create_wrapped_label(GLib.Markup.escape_text(replace_text, -1), true));
             var replace_is_default = !installed_newer;
-            dialog.add_option("stop", I18n.tr("Stop"), !replace_is_default);
-            dialog.add_option("replace", I18n.tr("Replace"), replace_is_default);
+            dialog.add_option("stop", _("Stop"), !replace_is_default);
+            dialog.add_option("replace", _("Replace"), replace_is_default);
 
             install_prompt_visible = true;
             dialog.close_request.connect(() => {
@@ -459,7 +459,7 @@ namespace AppManager {
             string staged_dir;
             string? stage_error;
             if (!prepare_staging_copy(out staged_path, out staged_dir, out stage_error)) {
-                handle_install_failure(stage_error ?? I18n.tr("Unable to prepare AppImage for installation"));
+                handle_install_failure(stage_error ?? _("Unable to prepare AppImage for installation"));
                 return;
             }
 
@@ -500,9 +500,9 @@ namespace AppManager {
             set_drag_spinner_install_active(false);
             cleanup_staging_dir(staging_dir);
             remove_source_appimage();
-            var title = I18n.tr("Successfully Installed");
+            var title = _("Successfully Installed");
             if (upgraded) {
-                title = intent == InstallIntent.UPDATE ? I18n.tr("Successfully Updated") : I18n.tr("Successfully Replaced");
+                title = intent == InstallIntent.UPDATE ? _("Successfully Updated") : _("Successfully Replaced");
             }
             
             var image = new Gtk.Image();
@@ -519,13 +519,13 @@ namespace AppManager {
             var app_name_markup = "<b>%s</b>".printf(GLib.Markup.escape_text(record.name, -1));
             dialog.append_body(UiUtils.create_wrapped_label(app_name_markup, true));
             
-            var version_text = record.version ?? I18n.tr("Unknown version");
-            var version_label = UiUtils.create_wrapped_label(I18n.tr("Version %s").printf(version_text), false);
+            var version_text = record.version ?? _("Unknown version");
+            var version_label = UiUtils.create_wrapped_label(_("Version %s").printf(version_text), false);
             version_label.add_css_class("dim-label");
             dialog.append_body(version_label);
             
-            dialog.add_option("open", I18n.tr("Open"), true);
-            dialog.add_option("done", I18n.tr("Done"));
+            dialog.add_option("open", _("Open"), true);
+            dialog.add_option("done", _("Done"));
             dialog.option_selected.connect((response) => {
                 if (response == "open") {
                     // Launch the app BEFORE closing the window to ensure spawn completes
@@ -551,7 +551,7 @@ namespace AppManager {
             installing = false;
             set_drag_spinner_install_active(false);
             cleanup_staging_dir(staging_dir);
-            var title = I18n.tr("Installation failed");
+            var title = _("Installation failed");
             
             var error_icon = new Gtk.Image.from_icon_name("dialog-error-symbolic");
             error_icon.set_pixel_size(64);
@@ -561,7 +561,7 @@ namespace AppManager {
             
             var body_markup = GLib.Markup.escape_text(message, -1);
             dialog.append_body(UiUtils.create_wrapped_label(body_markup, true));
-            dialog.add_option("dismiss", I18n.tr("Dismiss"));
+            dialog.add_option("dismiss", _("Dismiss"));
             dialog.present();
         }
 
@@ -906,7 +906,7 @@ namespace AppManager {
 
         private void present_verification_dialog() {
             var dialog = new Adw.Window();
-            dialog.set_title(I18n.tr("Verify AppImage"));
+            dialog.set_title(_("Verify AppImage"));
             dialog.set_default_size(400, 180);
             dialog.set_resizable(false);
             dialog.set_modal(true);
@@ -924,13 +924,13 @@ namespace AppManager {
             content.margin_start = 24;
             content.margin_end = 24;
 
-            var description = new Gtk.Label(I18n.tr("Verify the authenticity of this AppImage."));
+            var description = new Gtk.Label(_("Verify the authenticity of this AppImage."));
             description.wrap = true;
             description.halign = Gtk.Align.CENTER;
             content.append(description);
 
             var entry = new Gtk.Entry();
-            entry.set_placeholder_text(I18n.tr("Enter the SHA256 hash "));
+            entry.set_placeholder_text(_("Enter the SHA256 hash "));
             entry.hexpand = true;
             entry.max_width_chars = 64;
             content.append(entry);
@@ -939,13 +939,13 @@ namespace AppManager {
             button_box.halign = Gtk.Align.CENTER;
             button_box.margin_top = 12;
 
-            var cancel_button = new Gtk.Button.with_label(I18n.tr("Cancel"));
+            var cancel_button = new Gtk.Button.with_label(_("Cancel"));
             cancel_button.clicked.connect(() => {
                 dialog.close();
             });
             button_box.append(cancel_button);
 
-            var verify_btn = new Gtk.Button.with_label(I18n.tr("Verify"));
+            var verify_btn = new Gtk.Button.with_label(_("Verify"));
             verify_btn.add_css_class("suggested-action");
             verify_btn.clicked.connect(() => {
                 var entered_hash = entry.get_text().strip().down();

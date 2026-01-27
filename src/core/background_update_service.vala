@@ -244,9 +244,9 @@ X-XDP-Autostart=com.github.AppManager
          * The notification includes a default action to open AppManager.
          */
         private void send_updates_notification(int count, Gee.ArrayList<string> app_names) {
-            string title = I18n.tr("App updates available");
+            string title = _("App updates available");
             // Always show aggregate count
-            string body = I18n.tr("%d app update(s) available").printf(count);
+            string body = _("%d app update(s) available").printf(count);
 
             try {
                 if (dbus_connection == null) {
@@ -255,7 +255,7 @@ X-XDP-Autostart=com.github.AppManager
 
                 // Build actions array: pairs of (action_key, label)
                 // "default" action is invoked when user clicks the notification body
-                string[] actions = { "default", I18n.tr("Open AppManager") };
+                string[] actions = { "default", _("Open AppManager") };
 
                 // Hints dict - empty for now
                 var hints_builder = new VariantBuilder(new VariantType("a{sv}"));

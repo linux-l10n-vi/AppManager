@@ -83,7 +83,7 @@ namespace AppManager {
 
     public class UninstallNotification : Object {
         public static DialogWindow present(Application app, Gtk.Window? parent, InstallationRecord record) {
-            var dialog = new DialogWindow(app, parent, I18n.tr("App removed"), build_image(record));
+            var dialog = new DialogWindow(app, parent, _("App removed"), build_image(record));
 
             var app_name = record.name ?? record.installed_path;
             if (app_name != null && app_name.strip() != "") {
@@ -91,8 +91,8 @@ namespace AppManager {
                 dialog.append_body(UiUtils.create_wrapped_label(markup, true));
             }
 
-            dialog.append_body(UiUtils.create_wrapped_label(I18n.tr("The application was uninstalled successfully.")));
-            dialog.add_option("close", I18n.tr("Close"), true);
+            dialog.append_body(UiUtils.create_wrapped_label(_("The application was uninstalled successfully.")));
+            dialog.add_option("close", _("Close"), true);
             dialog.present();
             return dialog;
         }

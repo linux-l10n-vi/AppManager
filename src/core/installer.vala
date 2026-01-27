@@ -590,7 +590,7 @@ namespace AppManager.Core {
             
             // Add Uninstall action block
             var uninstall_exec = build_uninstall_exec(record.installed_path);
-            entry.set_action_group("Uninstall", I18n.tr("Move to Trash"), uninstall_exec, "user-trash");
+            entry.set_action_group("Uninstall", _("Move to Trash"), uninstall_exec, "user-trash");
             
             return entry.to_data();
         }
@@ -974,7 +974,7 @@ namespace AppManager.Core {
             try {
                 var entry = new DesktopEntry(record.desktop_file);
                 var uninstall_exec = build_uninstall_exec(record.installed_path);
-                entry.set_action_group("Uninstall", I18n.tr("Move to Trash"), uninstall_exec, "user-trash");
+                entry.set_action_group("Uninstall", _("Move to Trash"), uninstall_exec, "user-trash");
                 entry.save();
             } catch (Error e) {
                 warning("Failed to sanitize uninstall action for %s: %s", record.name, e.message);

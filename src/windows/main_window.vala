@@ -45,7 +45,7 @@ namespace AppManager {
         public MainWindow(Application app, InstallationRegistry registry, Installer installer, Settings settings) {
             Object(application: app);
             debug("MainWindow: constructor called");
-            this.title = I18n.tr("AppManager");
+            this.title = _("AppManager");
             this.app_ref = app;
             this.registry = registry;
             this.installer = installer;
@@ -118,7 +118,7 @@ namespace AppManager {
             general_page.add_css_class("main-apps-page");
 
             apps_group = new Adw.PreferencesGroup();
-            apps_group.title = I18n.tr("My Apps");
+            apps_group.title = _("My Apps");
             
             general_page.add(apps_group);
 
@@ -134,7 +134,7 @@ namespace AppManager {
 
             var root_toolbar = create_toolbar_with_header(content_stack, true);
             var root_page = new Adw.NavigationPage(root_toolbar, "main");
-            root_page.title = I18n.tr("AppManager");
+            root_page.title = _("AppManager");
             navigation_view.add(root_page);
 
             // Show/hide bottom bar based on navigation depth
@@ -163,7 +163,7 @@ namespace AppManager {
             box.margin_top = 12;
             box.margin_bottom = 12;
             box.append(new Gtk.Image.from_icon_name("folder-download-symbolic"));
-            box.append(new Gtk.Label(I18n.tr("Get more ...")));
+            box.append(new Gtk.Label(_("Get more ...")));
             return box;
         }
 
@@ -175,8 +175,8 @@ namespace AppManager {
 
             var page = new Adw.PreferencesPage();
             var links_group = new Adw.PreferencesGroup();
-            links_group.title = I18n.tr("Find more AppImages");
-            links_group.description = I18n.tr("Browse these sources to discover and download AppImages");
+            links_group.title = _("Find more AppImages");
+            links_group.description = _("Browse these sources to discover and download AppImages");
 
             var pkgforge_row = new Adw.ActionRow();
             pkgforge_row.title = "Anylinux AppImages";
@@ -216,7 +216,7 @@ namespace AppManager {
         private void ensure_apps_group_present() {
             if (apps_group == null) {
                 apps_group = new Adw.PreferencesGroup();
-                apps_group.title = I18n.tr("My Apps");
+                apps_group.title = _("My Apps");
             }
             if (apps_group.get_parent() == null) {
                 general_page.add(apps_group);
@@ -237,12 +237,12 @@ namespace AppManager {
         }
 
         private Gtk.Box build_empty_state() {
-            empty_state_label = new Gtk.Label(I18n.tr("No AppImage apps installed"));
+            empty_state_label = new Gtk.Label(_("No AppImage apps installed"));
             empty_state_label.add_css_class("title-1");
             empty_state_label.set_wrap(true);
             empty_state_label.set_justify(Gtk.Justification.CENTER);
 
-            var subtitle = new Gtk.Label(I18n.tr("Download AppImage and double click to install with AppManager"));
+            var subtitle = new Gtk.Label(_("Download AppImage and double click to install with AppManager"));
             subtitle.add_css_class("dim-label");
             subtitle.set_wrap(true);
             subtitle.set_justify(Gtk.Justification.CENTER);
@@ -295,7 +295,7 @@ namespace AppManager {
             update_update_button_sensitive();
 
             if (filtered_list.size == 0) {
-                var message = current_search_query != "" ? I18n.tr("No results found") : I18n.tr("No AppImage apps installed");
+                var message = current_search_query != "" ? _("No results found") : _("No AppImage apps installed");
                 show_empty_state(message);
                 return;
             }
@@ -344,7 +344,7 @@ namespace AppManager {
             if (apps_group == null) {
                 return;
             }
-            var base_title = I18n.tr("My Apps");
+            var base_title = _("My Apps");
             apps_group.title = count > 0 ? "%s (%d)".printf(base_title, count) : base_title;
         }
 
@@ -408,14 +408,14 @@ namespace AppManager {
                     var spinner = new Gtk.Spinner();
                     spinner.set_size_request(16, 16);
                     spinner.set_valign(Gtk.Align.CENTER);
-                    spinner.set_tooltip_text(I18n.tr("Updating..."));
+                    spinner.set_tooltip_text(_("Updating..."));
                     spinner.spinning = true;
                     suffix_box.append(spinner);
                 } else if (pending_update_keys.contains(state_key)) {
                     var update_dot = new Gtk.Label("●");
                     update_dot.add_css_class("update-indicator");
                     update_dot.set_valign(Gtk.Align.CENTER);
-                    update_dot.set_tooltip_text(I18n.tr("Update available"));
+                    update_dot.set_tooltip_text(_("Update available"));
                     suffix_box.append(update_dot);
                 }
 
@@ -441,7 +441,7 @@ namespace AppManager {
             }
 
             if (record.mode == InstallMode.EXTRACTED) {
-                parts.add(I18n.tr("extracted"));
+                parts.add(_("extracted"));
             }
 
             // Build native string array to avoid Gee.to_array() void** warning
@@ -498,7 +498,7 @@ namespace AppManager {
 
             var seconds = delta / 1000000;
             if (seconds < 60) {
-                return is_updated ? I18n.tr("Updated just now") : I18n.tr("Installed just now");
+                return is_updated ? _("Updated just now") : _("Installed just now");
             }
 
             if (seconds < 3600) {
@@ -506,7 +506,7 @@ namespace AppManager {
                 if (minutes == 0) {
                     minutes = 1;
                 }
-                return is_updated ? I18n.tr("Updated %d min ago").printf(minutes) : I18n.tr("Installed %d min ago").printf(minutes);
+                return is_updated ? _("Updated %d min ago").printf(minutes) : _("Installed %d min ago").printf(minutes);
             }
 
             if (seconds < 86400) {
@@ -514,14 +514,14 @@ namespace AppManager {
                 if (hours == 0) {
                     hours = 1;
                 }
-                return is_updated ? I18n.tr("Updated %d hours ago").printf(hours) : I18n.tr("Installed %d hours ago").printf(hours);
+                return is_updated ? _("Updated %d hours ago").printf(hours) : _("Installed %d hours ago").printf(hours);
             }
 
             var days = (int)(seconds / 86400);
             if (days == 0) {
                 days = 1;
             }
-            return is_updated ? I18n.tr("Updated %d days ago").printf(days) : I18n.tr("Installed %d days ago").printf(days);
+            return is_updated ? _("Updated %d days ago").printf(days) : _("Installed %d days ago").printf(days);
         }
 
 
@@ -537,10 +537,10 @@ namespace AppManager {
 
         private GLib.MenuModel build_menu_model() {
             var menu = new GLib.Menu();
-            menu.append(I18n.tr("Preferences"), "app.show_preferences");
-            menu.append(I18n.tr("Keyboard shortcuts"), "app.show_shortcuts");
-            menu.append(I18n.tr("About AppManager"), "app.show_about");
-            menu.append(I18n.tr("Quit"), "app.quit");
+            menu.append(_("Preferences"), "app.show_preferences");
+            menu.append(_("Keyboard shortcuts"), "app.show_shortcuts");
+            menu.append(_("About AppManager"), "app.show_about");
+            menu.append(_("Quit"), "app.quit");
             return menu;
         }
 
@@ -551,13 +551,13 @@ namespace AppManager {
             if (include_menu_button) {
                 search_button = new Gtk.ToggleButton();
                 search_button.icon_name = "system-search-symbolic";
-                search_button.tooltip_text = I18n.tr("Search");
+                search_button.tooltip_text = _("Search");
                 header.pack_start(search_button);
 
                 main_menu_button = new Gtk.MenuButton();
                 main_menu_button.set_icon_name("open-menu-symbolic");
                 main_menu_button.menu_model = build_menu_model();
-                main_menu_button.tooltip_text = I18n.tr("More actions");
+                main_menu_button.tooltip_text = _("More actions");
                 header.pack_end(main_menu_button);
                 ensure_update_button(header);
             }
@@ -572,7 +572,7 @@ namespace AppManager {
                 }
                 
                 search_entry = new Gtk.SearchEntry();
-                search_entry.placeholder_text = I18n.tr("Search apps...");
+                search_entry.placeholder_text = _("Search apps...");
                 search_entry.search_changed.connect(on_search_changed);
                 search_bar.set_child(search_entry);
                 search_bar.connect_entry(search_entry);
@@ -580,9 +580,9 @@ namespace AppManager {
                 toolbar.add_top_bar(search_bar);
 
                 // FUSE is not installed warning banner
-                fuse_banner = new Adw.Banner(I18n.tr("FUSE is not installed. Some AppImages may fail to run"));
+                fuse_banner = new Adw.Banner(_("FUSE is not installed. Some AppImages may fail to run"));
                 fuse_banner.add_css_class("warning");
-                fuse_banner.button_label = I18n.tr("Learn More");
+                fuse_banner.button_label = _("Learn More");
                 fuse_banner.button_clicked.connect(() => {
                     var launcher = new Gtk.UriLauncher("https://github.com/AppImage/AppImageKit/wiki/FUSE");
                     launcher.launch.begin(this, null);
@@ -658,7 +658,7 @@ namespace AppManager {
 
         private void on_check_updates_accel() {
             if (update_state == UpdateWorkflowState.CHECKING || update_state == UpdateWorkflowState.UPDATING) {
-                add_toast(I18n.tr("Updates already running"));
+                add_toast(_("Updates already running"));
                 return;
             }
             start_update_check();
@@ -706,7 +706,7 @@ namespace AppManager {
             if (cancel_button == null) {
                 cancel_button = new Gtk.Button();
                 cancel_button.set_icon_name("process-stop-symbolic");
-                cancel_button.set_tooltip_text(I18n.tr("Cancel update"));
+                cancel_button.set_tooltip_text(_("Cancel update"));
                 cancel_button.add_css_class("flat");
                 cancel_button.set_visible(false);
                 cancel_button.clicked.connect(handle_cancel_clicked);
@@ -729,7 +729,7 @@ namespace AppManager {
                     break;
                 case UpdateWorkflowState.CHECKING:
                 case UpdateWorkflowState.UPDATING:
-                    add_toast(I18n.tr("Updates already running"));
+                    add_toast(_("Updates already running"));
                     break;
             }
         }
@@ -737,7 +737,7 @@ namespace AppManager {
         private void handle_cancel_clicked() {
             if (update_cancellable != null && !update_cancellable.is_cancelled()) {
                 update_cancellable.cancel();
-                add_toast(I18n.tr("Cancelling..."));
+                add_toast(_("Cancelling..."));
                 if (cancel_button != null) {
                     cancel_button.set_sensitive(false);
                 }
@@ -763,7 +763,7 @@ namespace AppManager {
             yield;
 
             if (cancellable != null && cancellable.is_cancelled()) {
-                add_toast(I18n.tr("Update check cancelled"));
+                add_toast(_("Update check cancelled"));
                 set_update_button_state(UpdateWorkflowState.READY_TO_CHECK);
                 return;
             }
@@ -789,17 +789,17 @@ namespace AppManager {
             }
             refresh_installations();
             if (available > 0) {
-                add_toast(I18n.tr("%d app(s) have updates").printf(available));
+                add_toast(_("%d app(s) have updates").printf(available));
                 set_update_button_state(UpdateWorkflowState.READY_TO_UPDATE);
             } else {
-                add_toast(I18n.tr("No updates available right now"));
+                add_toast(_("No updates available right now"));
                 set_update_button_state(UpdateWorkflowState.READY_TO_CHECK);
             }
         }
 
         private void start_update_install() {
             if (pending_update_keys.size == 0) {
-                add_toast(I18n.tr("Nothing queued for updating"));
+                add_toast(_("Nothing queued for updating"));
                 set_update_button_state(UpdateWorkflowState.READY_TO_CHECK);
                 return;
             }
@@ -826,7 +826,7 @@ namespace AppManager {
             yield;
 
             if (cancellable != null && cancellable.is_cancelled()) {
-                add_toast(I18n.tr("Update cancelled"));
+                add_toast(_("Update cancelled"));
                 updating_records.clear();
                 refresh_installations();
                 update_global_update_state_from_pending();
@@ -963,16 +963,16 @@ namespace AppManager {
             string label;
             switch (state) {
                 case UpdateWorkflowState.CHECKING:
-                    label = I18n.tr("Checking updates");
+                    label = _("Checking updates");
                     break;
                 case UpdateWorkflowState.READY_TO_UPDATE:
-                    label = I18n.tr("Update Apps");
+                    label = _("Update Apps");
                     break;
                 case UpdateWorkflowState.UPDATING:
-                    label = I18n.tr("Updating apps");
+                    label = _("Updating apps");
                     break;
                 default:
-                    label = I18n.tr("Check updates");
+                    label = _("Check updates");
                     break;
             }
             update_button_label_widget.set_text(label);
@@ -996,7 +996,7 @@ namespace AppManager {
 
         private void handle_update_results(Gee.ArrayList<UpdateResult> results) {
             if (results.size == 0) {
-                add_toast(I18n.tr("No installed apps to update"));
+                add_toast(_("No installed apps to update"));
                 return;
             }
 
@@ -1036,10 +1036,10 @@ namespace AppManager {
             }
 
             if (updated > 0) {
-                add_toast(I18n.tr("Updated %d app(s)").printf(updated));
+                add_toast(_("Updated %d app(s)").printf(updated));
             }
             if (failed > 0) {
-                add_toast(I18n.tr("%d update(s) failed").printf(failed));
+                add_toast(_("%d update(s) failed").printf(failed));
             }
 
             var total = results.size;
@@ -1047,13 +1047,13 @@ namespace AppManager {
             var actionable = supported - unsupported;
 
             if (supported == 0) {
-                add_toast(I18n.tr("Add update addresses in Details to enable updates"));
+                add_toast(_("Add update addresses in Details to enable updates"));
             } else if (updated == 0 && failed == 0 && actionable > 0 && already_current == actionable) {
-                add_toast(I18n.tr("All supported apps are already up to date"));
+                add_toast(_("All supported apps are already up to date"));
             }
 
             if (unsupported > 0) {
-                add_toast(I18n.tr("%d app(s) use unsupported update links").printf(unsupported));
+                add_toast(_("%d app(s) use unsupported update links").printf(unsupported));
             }
         }
 
@@ -1110,7 +1110,7 @@ namespace AppManager {
             }
 
             if (result.has_update) {
-                add_toast(I18n.tr("Update available for %s").printf(result.record.name));
+                add_toast(_("Update available for %s").printf(result.record.name));
             } else if (result.message != null && result.message.strip() != "") {
                 add_toast(result.message);
             }
@@ -1150,23 +1150,23 @@ namespace AppManager {
 
                 var section = builder.get_object("general_section") as Gtk.ShortcutsSection;
                 if (section != null) {
-                    section.title = I18n.tr("General");
+                    section.title = _("General");
                 }
                 var navigation = builder.get_object("navigation_group") as Gtk.ShortcutsGroup;
                 if (navigation != null) {
-                    navigation.title = I18n.tr("Navigation");
+                    navigation.title = _("Navigation");
                 }
                 var window_group = builder.get_object("window_group") as Gtk.ShortcutsGroup;
                 if (window_group != null) {
-                    window_group.title = I18n.tr("Window");
+                    window_group.title = _("Window");
                 }
-                assign_shortcut_title(builder, "shortcut_check_updates", I18n.tr("Check for updates"));
-                assign_shortcut_title(builder, "shortcut_main_menu", I18n.tr("Show main menu"));
-                assign_shortcut_title(builder, "shortcut_search", I18n.tr("Search"));
-                assign_shortcut_title(builder, "shortcut_show_overlay", I18n.tr("Show shortcuts"));
-                assign_shortcut_title(builder, "shortcut_about", I18n.tr("About AppManager"));
-                assign_shortcut_title(builder, "shortcut_close_window", I18n.tr("Close window"));
-                assign_shortcut_title(builder, "shortcut_quit", I18n.tr("Quit AppManager"));
+                assign_shortcut_title(builder, "shortcut_check_updates", _("Check for updates"));
+                assign_shortcut_title(builder, "shortcut_main_menu", _("Show main menu"));
+                assign_shortcut_title(builder, "shortcut_search", _("Search"));
+                assign_shortcut_title(builder, "shortcut_show_overlay", _("Show shortcuts"));
+                assign_shortcut_title(builder, "shortcut_about", _("About AppManager"));
+                assign_shortcut_title(builder, "shortcut_close_window", _("Close window"));
+                assign_shortcut_title(builder, "shortcut_quit", _("Quit AppManager"));
             } catch (Error e) {
                 warning("Failed to load shortcuts UI: %s", e.message);
             }
@@ -1183,7 +1183,7 @@ namespace AppManager {
             var dialog = new Adw.AboutDialog.from_appdata(APPDATA_RESOURCE, null);
             dialog.version = APPLICATION_VERSION;
             string[] credits = { "Contributors https://github.com/kem-a/AppManager/graphs/contributors" };
-            dialog.add_credit_section(I18n.tr("Credits"), credits);
+            dialog.add_credit_section(_("Credits"), credits);
             dialog.present(this);
         }
 

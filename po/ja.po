@@ -1,0 +1,555 @@
+# Japanese translation for app-manager
+# Copyright (C) 2026 AppManager Contributors
+# This file is distributed under the same license as the app-manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: app-manager\n"
+"Report-Msgid-Bugs-To: https://github.com/kem-a/AppManager/issues\n"
+"POT-Creation-Date: 2026-01-27 12:00+0000\n"
+"PO-Revision-Date: 2026-01-27 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "AppManager"
+msgstr "AppManager"
+
+msgid "My Apps"
+msgstr "マイアプリ"
+
+msgid "Get more ..."
+msgstr "もっと入手..."
+
+msgid "Find more AppImages"
+msgstr "AppImageをもっと探す"
+
+msgid "Browse these sources to discover and download AppImages"
+msgstr "これらのソースを参照してAppImageを発見・ダウンロード"
+
+msgid "No AppImage apps installed"
+msgstr "インストール済みのAppImageアプリはありません"
+
+msgid "Download AppImage and double click to install with AppManager"
+msgstr "AppImageをダウンロードしてダブルクリックでAppManagerからインストール"
+
+msgid "No results found"
+msgstr "結果が見つかりません"
+
+msgid "Updating..."
+msgstr "更新中..."
+
+msgid "Update available"
+msgstr "更新可能"
+
+msgid "extracted"
+msgstr "展開済み"
+
+msgid "Updated just now"
+msgstr "たった今更新"
+
+msgid "Installed just now"
+msgstr "たった今インストール"
+
+#, c-format
+msgid "Updated %d min ago"
+msgstr "%d分前に更新"
+
+#, c-format
+msgid "Installed %d min ago"
+msgstr "%d分前にインストール"
+
+#, c-format
+msgid "Updated %d hours ago"
+msgstr "%d時間前に更新"
+
+#, c-format
+msgid "Installed %d hours ago"
+msgstr "%d時間前にインストール"
+
+#, c-format
+msgid "Updated %d days ago"
+msgstr "%d日前に更新"
+
+#, c-format
+msgid "Installed %d days ago"
+msgstr "%d日前にインストール"
+
+msgid "Preferences"
+msgstr "設定"
+
+msgid "Keyboard shortcuts"
+msgstr "キーボードショートカット"
+
+msgid "About AppManager"
+msgstr "AppManagerについて"
+
+msgid "Quit"
+msgstr "終了"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "More actions"
+msgstr "その他のアクション"
+
+msgid "Search apps..."
+msgstr "アプリを検索..."
+
+msgid "FUSE is not installed. Some AppImages may fail to run"
+msgstr "FUSEがインストールされていません。一部のAppImageが実行できない可能性があります"
+
+msgid "Learn More"
+msgstr "詳細を見る"
+
+msgid "Updates already running"
+msgstr "更新は既に実行中です"
+
+msgid "Cancel update"
+msgstr "更新をキャンセル"
+
+msgid "Cancelling..."
+msgstr "キャンセル中..."
+
+msgid "Update check cancelled"
+msgstr "更新チェックがキャンセルされました"
+
+#, c-format
+msgid "%d app(s) have updates"
+msgstr "%d個のアプリに更新があります"
+
+msgid "No updates available right now"
+msgstr "現在利用可能な更新はありません"
+
+msgid "Nothing queued for updating"
+msgstr "更新キューに何もありません"
+
+msgid "Update cancelled"
+msgstr "更新がキャンセルされました"
+
+msgid "Checking updates"
+msgstr "更新を確認中"
+
+msgid "Update Apps"
+msgstr "アプリを更新"
+
+msgid "Updating apps"
+msgstr "アプリを更新中"
+
+msgid "Check updates"
+msgstr "更新を確認"
+
+msgid "No installed apps to update"
+msgstr "更新するインストール済みアプリがありません"
+
+#, c-format
+msgid "Updated %d app(s)"
+msgstr "%d個のアプリを更新しました"
+
+#, c-format
+msgid "%d update(s) failed"
+msgstr "%d個の更新に失敗しました"
+
+msgid "Add update addresses in Details to enable updates"
+msgstr "詳細で更新アドレスを追加して更新を有効にしてください"
+
+msgid "All supported apps are already up to date"
+msgstr "すべてのサポート対象アプリは最新です"
+
+#, c-format
+msgid "%d app(s) use unsupported update links"
+msgstr "%d個のアプリがサポートされていない更新リンクを使用しています"
+
+#, c-format
+msgid "Update available for %s"
+msgstr "%sの更新が利用可能です"
+
+msgid "General"
+msgstr "一般"
+
+msgid "Navigation"
+msgstr "ナビゲーション"
+
+msgid "Window"
+msgstr "ウィンドウ"
+
+msgid "Check for updates"
+msgstr "更新を確認"
+
+msgid "Show main menu"
+msgstr "メインメニューを表示"
+
+msgid "Show shortcuts"
+msgstr "ショートカットを表示"
+
+msgid "Close window"
+msgstr "ウィンドウを閉じる"
+
+msgid "Quit AppManager"
+msgstr "AppManagerを終了"
+
+msgid "Credits"
+msgstr "クレジット"
+
+msgid "⚠️ '~/.local/bin' is not in $PATH. App will not launch from the terminal"
+msgstr "⚠️ '~/.local/bin'が$PATHにありません。アプリはターミナルから起動できません"
+
+msgid "Version unknown"
+msgstr "バージョン不明"
+
+msgid "Show in Files"
+msgstr "ファイルで表示"
+
+msgid "Portable"
+msgstr "ポータブル"
+
+msgid "Extracted"
+msgstr "展開済み"
+
+msgid "Terminal"
+msgstr "ターミナル"
+
+msgid "This app supports efficient delta updates"
+msgstr "このアプリは効率的なデルタ更新をサポートしています"
+
+msgid "Hidden"
+msgstr "非表示"
+
+msgid "Properties"
+msgstr "プロパティ"
+
+msgid "Command line arguments"
+msgstr "コマンドライン引数"
+
+msgid "Update info"
+msgstr "更新情報"
+
+msgid "How update links work"
+msgstr "更新リンクの仕組み"
+
+msgid "Update Link"
+msgstr "更新リンク"
+
+msgid "Update link is managed by zsync and cannot be edited"
+msgstr "更新リンクはzsyncで管理されており編集できません"
+
+msgid "Web Page"
+msgstr "Webページ"
+
+msgid "Open web page"
+msgstr "Webページを開く"
+
+msgid "Advanced"
+msgstr "詳細設定"
+
+msgid "Environment Variables"
+msgstr "環境変数"
+
+msgid "Set custom environment variables for this app"
+msgstr "このアプリ用のカスタム環境変数を設定"
+
+msgid "NAME"
+msgstr "名前"
+
+msgid "value"
+msgstr "値"
+
+msgid "Remove variable"
+msgstr "変数を削除"
+
+msgid "Keywords"
+msgstr "キーワード"
+
+msgid "Icon name"
+msgstr "アイコン名"
+
+msgid "Startup WM Class"
+msgstr "起動時WMクラス"
+
+msgid "Version"
+msgstr "バージョン"
+
+msgid "Hide from app drawer"
+msgstr "アプリ一覧から非表示"
+
+msgid "Don't show in application menu"
+msgstr "アプリケーションメニューに表示しない"
+
+msgid "Add to $PATH"
+msgstr "$PATHに追加"
+
+msgid "Create a launcher in ~/.local/bin so you can run it from the terminal"
+msgstr "ターミナルから実行できるよう~/.local/binにランチャーを作成"
+
+msgid "Actions"
+msgstr "アクション"
+
+msgid "Extract AppImage"
+msgstr "AppImageを展開"
+
+msgid "Move to Trash"
+msgstr "ゴミ箱に移動"
+
+msgid "Restore default"
+msgstr "デフォルトに戻す"
+
+msgid "Checking..."
+msgstr "確認中..."
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Check Update"
+msgstr "更新を確認"
+
+msgid "Update info lets AppManager fetch new builds for you. Paste the download link and AppManager will do the rest."
+msgstr "更新情報を使うとAppManagerが新しいビルドを取得できます。ダウンロードリンクを貼り付けると、残りはAppManagerが行います。"
+
+msgid "Currently GitHub and GitLab URL formats are fully supported. Direct download links also work if the server provides Last-Modified or Content-Length headers."
+msgstr "現在、GitHubとGitLabのURL形式が完全にサポートされています。サーバーがLast-ModifiedまたはContent-Lengthヘッダーを提供している場合、直接ダウンロードリンクも機能します。"
+
+msgid "Update links"
+msgstr "更新リンク"
+
+msgid "Got it"
+msgstr "了解"
+
+msgid "Extracting will unpack the application so it opens faster, but it will consume more disk space. This action cannot be reversed automatically."
+msgstr "展開するとアプリケーションが解凍され、より速く開きますが、ディスク容量を多く消費します。この操作は自動的に元に戻せません。"
+
+msgid "Extract application?"
+msgstr "アプリケーションを展開しますか？"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Extract"
+msgstr "展開"
+
+msgid "Automatic updates"
+msgstr "自動更新"
+
+msgid "Configure automatic update checking"
+msgstr "自動更新チェックを設定"
+
+msgid "Open update log"
+msgstr "更新ログを開く"
+
+msgid "Background update check"
+msgstr "バックグラウンド更新チェック"
+
+msgid "Will notify when new app updates are available"
+msgstr "新しいアプリの更新が利用可能になったら通知します"
+
+msgid "Auto update apps"
+msgstr "アプリを自動更新"
+
+msgid "Will update apps automatically in background"
+msgstr "バックグラウンドでアプリを自動的に更新します"
+
+msgid "Check interval"
+msgstr "チェック間隔"
+
+msgid "Daily"
+msgstr "毎日"
+
+msgid "Weekly"
+msgstr "毎週"
+
+msgid "Monthly"
+msgstr "毎月"
+
+msgid "Thumbnails"
+msgstr "サムネイル"
+
+msgid "AppImage Thumbnailer"
+msgstr "AppImageサムネイル生成"
+
+msgid "Install appimage-thumbnailer to generate thumbnails for AppImages"
+msgstr "appimage-thumbnailerをインストールしてAppImageのサムネイルを生成"
+
+msgid "Hide Nautilus thumbnail background"
+msgstr "Nautilusサムネイルの背景を非表示"
+
+msgid "Remove the alpha checkerboard behind thumbnails and icons"
+msgstr "サムネイルとアイコンの後ろのアルファチェッカーボードを削除"
+
+msgid "App removed"
+msgstr "アプリを削除しました"
+
+msgid "The application was uninstalled successfully."
+msgstr "アプリケーションは正常にアンインストールされました。"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Uninstall failed"
+msgstr "アンインストール失敗"
+
+#, c-format
+msgid "%s could not be removed: %s"
+msgstr "%sを削除できませんでした: %s"
+
+msgid "Moved to Trash"
+msgstr "ゴミ箱に移動しました"
+
+msgid "Extraction is only available for portable installations."
+msgstr "展開はポータブルインストールでのみ利用可能です。"
+
+msgid "Extracted for faster launch"
+msgstr "より速い起動のために展開されました"
+
+msgid "Extraction complete"
+msgstr "展開完了"
+
+#, c-format
+msgid "%s was extracted and will open faster."
+msgstr "%sが展開され、より速く開くようになります。"
+
+msgid "Extraction failed"
+msgstr "展開失敗"
+
+#, c-format
+msgid "%s could not be extracted: %s"
+msgstr "%sを展開できませんでした: %s"
+
+msgid "AppImage Installer"
+msgstr "AppImageインストーラー"
+
+msgid "Verify"
+msgstr "検証"
+
+msgid "Verify AppImage with SHA256 hash"
+msgstr "SHA256ハッシュでAppImageを検証"
+
+msgid "SHA256 hash does not match. Verification failed."
+msgstr "SHA256ハッシュが一致しません。検証に失敗しました。"
+
+msgid "Drag and drop to install into Applications"
+msgstr "ドラッグ＆ドロップでアプリケーションにインストール"
+
+msgid "Applications"
+msgstr "アプリケーション"
+
+#, c-format
+msgid "Open %s?"
+msgstr "%sを開きますか？"
+
+#, c-format
+msgid "Origins of %s application can not be verified. Are you sure you want to open it?"
+msgstr "アプリケーション%sの出所を確認できません。開いてもよろしいですか？"
+
+msgid "This is a terminal application and will be installed in portable mode."
+msgstr "これはターミナルアプリケーションであり、ポータブルモードでインストールされます。"
+
+msgid "Install the AppImage to add it to your applications."
+msgstr "AppImageをインストールしてアプリケーションに追加します。"
+
+msgid "Install"
+msgstr "インストール"
+
+msgid "This AppImage is incompatible or corrupted"
+msgstr "このAppImageは互換性がないか破損しています"
+
+msgid "Missing required files (AppRun, .desktop, or icon)"
+msgstr "必要なファイルがありません（AppRun、.desktop、またはアイコン）"
+
+msgid "Unknown version"
+msgstr "不明なバージョン"
+
+#, c-format
+msgid "Will update to version %s"
+msgstr "バージョン%sに更新されます"
+
+#, c-format
+msgid "Update %s?"
+msgstr "%sを更新しますか？"
+
+#, c-format
+msgid "Replace %s?"
+msgstr "%sを置き換えますか？"
+
+#, c-format
+msgid "A newer item named %s already exists in this location. Do you want to replace it with the older one you're copying?"
+msgstr "この場所には%sという名前の新しいアイテムが既に存在します。コピーしている古いもので置き換えますか？"
+
+#, c-format
+msgid "Installed: %s | Incoming: %s"
+msgstr "インストール済み: %s | 受信: %s"
+
+#, c-format
+msgid "An item named %s already exists in this location. Do you want to replace it with one you're copying?"
+msgstr "この場所には%sという名前のアイテムが既に存在します。コピーしているもので置き換えますか？"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Replace"
+msgstr "置き換え"
+
+msgid "Unable to prepare AppImage for installation"
+msgstr "AppImageをインストール用に準備できません"
+
+msgid "Successfully Installed"
+msgstr "正常にインストールされました"
+
+msgid "Successfully Updated"
+msgstr "正常に更新されました"
+
+msgid "Successfully Replaced"
+msgstr "正常に置き換えられました"
+
+#, c-format
+msgid "Version %s"
+msgstr "バージョン %s"
+
+msgid "Open"
+msgstr "開く"
+
+msgid "Done"
+msgstr "完了"
+
+msgid "Installation failed"
+msgstr "インストール失敗"
+
+msgid "Dismiss"
+msgstr "閉じる"
+
+msgid "Verify AppImage"
+msgstr "AppImageを検証"
+
+msgid "Verify the authenticity of this AppImage."
+msgstr "このAppImageの真正性を検証します。"
+
+msgid "Enter the SHA256 hash "
+msgstr "SHA256ハッシュを入力 "
+
+msgid "App updates available"
+msgstr "アプリの更新が利用可能です"
+
+#, c-format
+msgid "%d app update(s) available"
+msgstr "%d個のアプリ更新が利用可能です"
+
+msgid "Open AppManager"
+msgstr "AppManagerを開く"
+
+msgid "No update address configured"
+msgstr "更新アドレスが設定されていません"
+
+msgid "Update source not supported"
+msgstr "更新ソースがサポートされていません"
+
+msgid "Unable to read releases"
+msgstr "リリースを読み取れません"
+
+#, c-format
+msgid "No matching AppImage found for %s"
+msgstr "%s用の一致するAppImageが見つかりません"
+
+msgid "Already up to date"
+msgstr "既に最新です"

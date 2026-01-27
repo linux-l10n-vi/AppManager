@@ -355,15 +355,15 @@ Examples:
 
             if (error != null) {
                 var dialog = new Adw.AlertDialog(
-                    I18n.tr("Uninstall failed"),
-                    I18n.tr("%s could not be removed: %s").printf(record.name, error.message)
+                    _("Uninstall failed"),
+                    _("%s could not be removed: %s").printf(record.name, error.message)
                 );
-                dialog.add_response("close", I18n.tr("Close"));
+                dialog.add_response("close", _("Close"));
                 dialog.set_default_response("close");
                 dialog.present(parent_window ?? main_window);
             } else {
                 if (parent_window != null && parent_window is MainWindow) {
-                    ((MainWindow)parent_window).add_toast(I18n.tr("Moved to Trash"));
+                    ((MainWindow)parent_window).add_toast(_("Moved to Trash"));
                 }
             }
         }
@@ -371,7 +371,7 @@ Examples:
         public void extract_installation(InstallationRecord record, Gtk.Window? parent_window) {
             var source_path = record.installed_path ?? "";
             if (record.mode != InstallMode.PORTABLE || source_path.strip() == "") {
-                present_extract_error(parent_window, record, I18n.tr("Extraction is only available for portable installations."));
+                present_extract_error(parent_window, record, _("Extraction is only available for portable installations."));
                 return;
             }
 
@@ -407,13 +407,13 @@ Examples:
                 present_extract_error(parent_window, record, error.message);
             } else if (new_record != null) {
                 if (parent_window != null && parent_window is MainWindow) {
-                    ((MainWindow)parent_window).add_toast(I18n.tr("Extracted for faster launch"));
+                    ((MainWindow)parent_window).add_toast(_("Extracted for faster launch"));
                 } else {
                     var dialog = new Adw.AlertDialog(
-                        I18n.tr("Extraction complete"),
-                        I18n.tr("%s was extracted and will open faster.").printf(new_record.name)
+                        _("Extraction complete"),
+                        _("%s was extracted and will open faster.").printf(new_record.name)
                     );
-                    dialog.add_response("close", I18n.tr("Close"));
+                    dialog.add_response("close", _("Close"));
                     dialog.set_close_response("close");
                     dialog.present(parent_window ?? main_window);
                 }
@@ -422,10 +422,10 @@ Examples:
 
         private void present_extract_error(Gtk.Window? parent_window, InstallationRecord record, string message) {
             var dialog = new Adw.AlertDialog(
-                I18n.tr("Extraction failed"),
-                I18n.tr("%s could not be extracted: %s").printf(record.name, message)
+                _("Extraction failed"),
+                _("%s could not be extracted: %s").printf(record.name, message)
             );
-            dialog.add_response("close", I18n.tr("Close"));
+            dialog.add_response("close", _("Close"));
             dialog.set_close_response("close");
             dialog.present(parent_window ?? main_window);
         }

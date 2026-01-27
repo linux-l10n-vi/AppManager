@@ -97,7 +97,7 @@ namespace AppManager {
 
             var content_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
 
-            path_banner = new Adw.Banner(I18n.tr("⚠️ '~/.local/bin' is not in $PATH. App will not launch from the terminal"));
+            path_banner = new Adw.Banner(_("⚠️ '~/.local/bin' is not in $PATH. App will not launch from the terminal"));
             content_box.append(path_banner);
             update_path_banner_visibility();
 
@@ -132,7 +132,7 @@ namespace AppManager {
             header_box.append(name_label);
             
             // App version
-            var version_label = new Gtk.Label(record.version ?? I18n.tr("Version unknown"));
+            var version_label = new Gtk.Label(record.version ?? _("Version unknown"));
             version_label.add_css_class("dim-label");
             header_box.append(version_label);
             
@@ -157,9 +157,9 @@ namespace AppManager {
                 mode_button.add_css_class("accent");
             }
             mode_button.set_valign(Gtk.Align.CENTER);
-            mode_button.set_tooltip_text(I18n.tr("Show in Files"));
+            mode_button.set_tooltip_text(_("Show in Files"));
 
-            var mode_label = new Gtk.Label(record.mode == InstallMode.PORTABLE ? I18n.tr("Portable") : I18n.tr("Extracted"));
+            var mode_label = new Gtk.Label(record.mode == InstallMode.PORTABLE ? _("Portable") : _("Extracted"));
             mode_label.add_css_class("caption");
             mode_label.set_margin_start(8);
             mode_label.set_margin_end(8);
@@ -181,7 +181,7 @@ namespace AppManager {
             
             // Terminal app card (only show if is_terminal)
             if (record.is_terminal) {
-                var terminal_card = create_info_card(I18n.tr("Terminal"));
+                var terminal_card = create_info_card(_("Terminal"));
                 terminal_card.add_css_class("terminal");
                 cards_box.append(terminal_card);
             }
@@ -189,14 +189,14 @@ namespace AppManager {
             // Zsync delta updates badge (only show if app supports zsync)
             if (record.zsync_update_info != null && record.zsync_update_info.strip() != "") {
                 var zsync_card = create_info_card("Zsync");
-                zsync_card.set_tooltip_text(I18n.tr("This app supports efficient delta updates"));
+                zsync_card.set_tooltip_text(_("This app supports efficient delta updates"));
                 cards_box.append(zsync_card);
             }
             
             // Hidden from app drawer card (only show if NoDisplay=true)
             var nodisplay_value = desktop_props.get("NoDisplay") ?? "false";
             if (nodisplay_value.down() == "true") {
-                var hidden_card = create_info_card(I18n.tr("Hidden"));
+                var hidden_card = create_info_card(_("Hidden"));
                 cards_box.append(hidden_card);
             }
 
@@ -206,12 +206,12 @@ namespace AppManager {
 
         private Adw.PreferencesGroup build_properties_group() {
             var props_group = new Adw.PreferencesGroup();
-            props_group.title = I18n.tr("Properties");
+            props_group.title = _("Properties");
             
             // Command line arguments
             var current_args = record.get_effective_commandline_args() ?? "";
             var exec_row = new Adw.EntryRow();
-            exec_row.title = I18n.tr("Command line arguments");
+            exec_row.title = _("Command line arguments");
             exec_row.text = current_args;
             
             var restore_exec_button = create_restore_button(record.custom_commandline_args != null);
@@ -243,13 +243,13 @@ namespace AppManager {
 
         private Adw.PreferencesGroup build_update_info_group() {
             var update_group = new Adw.PreferencesGroup();
-            update_group.title = I18n.tr("Update info");
+            update_group.title = _("Update info");
             
             var update_info_button = new Gtk.Button.from_icon_name("dialog-information-symbolic");
             update_info_button.add_css_class("circular");
             update_info_button.add_css_class("flat");
             update_info_button.set_valign(Gtk.Align.CENTER);
-            update_info_button.tooltip_text = I18n.tr("How update links work");
+            update_info_button.tooltip_text = _("How update links work");
             update_info_button.clicked.connect(() => {
                 show_update_info_help();
             });
@@ -268,14 +268,14 @@ namespace AppManager {
 
         private Adw.EntryRow build_update_link_row() {
             var update_row = new Adw.EntryRow();
-            update_row.title = I18n.tr("Update Link");
+            update_row.title = _("Update Link");
             update_row.text = record.get_effective_update_link() ?? "";
             
             // If app uses zsync updates, disable the row entirely (zsync info is embedded in AppImage)
             var uses_zsync = record.zsync_update_info != null && record.zsync_update_info.strip() != "";
             if (uses_zsync) {
                 update_row.sensitive = false;
-                update_row.set_tooltip_text(I18n.tr("Update link is managed by zsync and cannot be edited"));
+                update_row.set_tooltip_text(_("Update link is managed by zsync and cannot be edited"));
                 return update_row;
             }
             
@@ -325,7 +325,7 @@ namespace AppManager {
 
         private Adw.EntryRow build_webpage_row() {
             var webpage_row = new Adw.EntryRow();
-            webpage_row.title = I18n.tr("Web Page");
+            webpage_row.title = _("Web Page");
             webpage_row.text = record.get_effective_web_page() ?? "";
             
             var restore_webpage_button = create_restore_button(record.custom_web_page != null);
@@ -354,7 +354,7 @@ namespace AppManager {
             var open_web_button = new Gtk.Button.from_icon_name("external-link-symbolic");
             open_web_button.add_css_class("flat");
             open_web_button.set_valign(Gtk.Align.CENTER);
-            open_web_button.tooltip_text = I18n.tr("Open web page");
+            open_web_button.tooltip_text = _("Open web page");
             open_web_button.clicked.connect(() => {
                 var url = webpage_row.text.strip();
                 if (url.length > 0) {
@@ -368,7 +368,7 @@ namespace AppManager {
 
         private Adw.ExpanderRow build_advanced_group() {
             var advanced_group = new Adw.ExpanderRow();
-            advanced_group.title = I18n.tr("Advanced");
+            advanced_group.title = _("Advanced");
 
             // Keywords
             advanced_group.add_row(build_keywords_row());
@@ -395,8 +395,8 @@ namespace AppManager {
 
         private Adw.ExpanderRow build_env_vars_group() {
             var env_expander = new Adw.ExpanderRow();
-            env_expander.title = I18n.tr("Environment Variables");
-            env_expander.subtitle = I18n.tr("Set custom environment variables for this app");
+            env_expander.title = _("Environment Variables");
+            env_expander.subtitle = _("Set custom environment variables for this app");
 
             // Load existing env vars
             var env_vars = record.custom_env_vars ?? new string[0];
@@ -449,7 +449,7 @@ namespace AppManager {
                 content_box.set_hexpand(true);
                 
                 var name_entry = new Gtk.Entry();
-                name_entry.set_placeholder_text(I18n.tr("NAME"));
+                name_entry.set_placeholder_text(_("NAME"));
                 name_entry.set_hexpand(true);
                 name_entry.set_max_length(64);
                 name_entry.text = initial_name ?? "";
@@ -463,7 +463,7 @@ namespace AppManager {
                 content_box.append(equals_label);
                 
                 var value_entry = new Gtk.Entry();
-                value_entry.set_placeholder_text(I18n.tr("value"));
+                value_entry.set_placeholder_text(_("value"));
                 value_entry.set_hexpand(true);
                 value_entry.set_max_length(256);
                 value_entry.text = initial_value ?? "";
@@ -475,7 +475,7 @@ namespace AppManager {
                 var delete_button = new Gtk.Button.from_icon_name("user-trash-symbolic");
                 delete_button.add_css_class("flat");
                 delete_button.set_valign(Gtk.Align.CENTER);
-                delete_button.tooltip_text = I18n.tr("Remove variable");
+                delete_button.tooltip_text = _("Remove variable");
                 delete_button.clicked.connect(() => {
                     env_rows.remove(row);
                     env_expander.remove(row);
@@ -552,7 +552,7 @@ namespace AppManager {
 
         private Adw.EntryRow build_keywords_row() {
             var keywords_row = new Adw.EntryRow();
-            keywords_row.title = I18n.tr("Keywords");
+            keywords_row.title = _("Keywords");
             keywords_row.text = record.get_effective_keywords() ?? "";
             
             var restore_keywords_button = create_restore_button(record.custom_keywords != null);
@@ -583,7 +583,7 @@ namespace AppManager {
 
         private Adw.EntryRow build_icon_row() {
             var icon_row = new Adw.EntryRow();
-            icon_row.title = I18n.tr("Icon name");
+            icon_row.title = _("Icon name");
             icon_row.text = record.get_effective_icon_name() ?? "";
             
             var restore_icon_button = create_restore_button(record.custom_icon_name != null);
@@ -614,7 +614,7 @@ namespace AppManager {
 
         private Adw.EntryRow build_wmclass_row() {
             var wmclass_row = new Adw.EntryRow();
-            wmclass_row.title = I18n.tr("Startup WM Class");
+            wmclass_row.title = _("Startup WM Class");
             wmclass_row.text = record.get_effective_startup_wm_class() ?? "";
             
             var restore_wmclass_button = create_restore_button(record.custom_startup_wm_class != null);
@@ -645,7 +645,7 @@ namespace AppManager {
 
         private Adw.EntryRow build_version_row() {
             var version_row = new Adw.EntryRow();
-            version_row.title = I18n.tr("Version");
+            version_row.title = _("Version");
             version_row.text = record.version ?? "";
             version_row.changed.connect(() => {
                 record.version = version_row.text.strip() == "" ? null : version_row.text;
@@ -657,8 +657,8 @@ namespace AppManager {
 
         private Adw.SwitchRow build_nodisplay_row() {
             var nodisplay_row = new Adw.SwitchRow();
-            nodisplay_row.title = I18n.tr("Hide from app drawer");
-            nodisplay_row.subtitle = I18n.tr("Don't show in application menu");
+            nodisplay_row.title = _("Hide from app drawer");
+            nodisplay_row.subtitle = _("Don't show in application menu");
             var nodisplay_current = desktop_props.get("NoDisplay") ?? "false";
             nodisplay_row.active = (nodisplay_current.down() == "true");
             nodisplay_row.notify["active"].connect(() => {
@@ -669,8 +669,8 @@ namespace AppManager {
 
         private Adw.SwitchRow build_path_row() {
             path_row = new Adw.SwitchRow();
-            path_row.title = I18n.tr("Add to $PATH");
-            path_row.subtitle = I18n.tr("Create a launcher in ~/.local/bin so you can run it from the terminal");
+            path_row.title = _("Add to $PATH");
+            path_row.subtitle = _("Create a launcher in ~/.local/bin so you can run it from the terminal");
 
             var symlink_name = "";
 
@@ -731,7 +731,7 @@ namespace AppManager {
 
         private Adw.PreferencesGroup build_actions_group() {
             var actions_group = new Adw.PreferencesGroup();
-            actions_group.title = I18n.tr("Actions");
+            actions_group.title = _("Actions");
             
             var actions_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 8);
             actions_box.set_halign(Gtk.Align.CENTER);
@@ -770,7 +770,7 @@ namespace AppManager {
             refresh_update_button();
 
             // Extract button
-            extract_button = new Gtk.Button.with_label(I18n.tr("Extract AppImage"));
+            extract_button = new Gtk.Button.with_label(_("Extract AppImage"));
             extract_button.add_css_class("pill");
             extract_button.width_request = 200;
             extract_button.hexpand = false;
@@ -791,7 +791,7 @@ namespace AppManager {
             var delete_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
             delete_box.set_halign(Gtk.Align.CENTER);
             delete_box.append(new Gtk.Image.from_icon_name("user-trash-symbolic"));
-            delete_box.append(new Gtk.Label(I18n.tr("Move to Trash")));
+            delete_box.append(new Gtk.Label(_("Move to Trash")));
             delete_button.set_child(delete_box);
             delete_button.add_css_class("destructive-action");
             delete_button.clicked.connect(() => {
@@ -807,7 +807,7 @@ namespace AppManager {
             var button = new Gtk.Button.from_icon_name("edit-undo-symbolic");
             button.add_css_class("flat");
             button.set_valign(Gtk.Align.CENTER);
-            button.tooltip_text = I18n.tr("Restore default");
+            button.tooltip_text = _("Restore default");
             button.set_visible(visible);
             return button;
         }
@@ -819,9 +819,9 @@ namespace AppManager {
 
             if (update_loading) {
                 if (update_updating) {
-                    update_button.set_label(I18n.tr("Updating..."));
+                    update_button.set_label(_("Updating..."));
                 } else {
-                    update_button.set_label(I18n.tr("Checking..."));
+                    update_button.set_label(_("Checking..."));
                 }
                 update_spinner.visible = true;
                 update_spinner.start();
@@ -839,11 +839,11 @@ namespace AppManager {
                 var update_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
                 update_box.set_halign(Gtk.Align.CENTER);
                 update_box.append(new Gtk.Image.from_icon_name("software-update-available-symbolic"));
-                update_box.append(new Gtk.Label(I18n.tr("Update")));
+                update_box.append(new Gtk.Label(_("Update")));
                 update_button.set_child(update_box);
                 update_button.add_css_class("suggested-action");
             } else {
-                update_button.set_label(I18n.tr("Check Update"));
+                update_button.set_label(_("Check Update"));
                 update_button.remove_css_class("suggested-action");
             }
         }
@@ -909,10 +909,10 @@ namespace AppManager {
         }
 
         private void show_update_info_help() {
-            var body = I18n.tr("Update info lets AppManager fetch new builds for you. Paste the download link and AppManager will do the rest.");
-            body += "\n\n" + I18n.tr("Currently GitHub and GitLab URL formats are fully supported. Direct download links also work if the server provides Last-Modified or Content-Length headers.");
-            var dialog = new Adw.AlertDialog(I18n.tr("Update links"), body);
-            dialog.add_response("close", I18n.tr("Got it"));
+            var body = _("Update info lets AppManager fetch new builds for you. Paste the download link and AppManager will do the rest.");
+            body += "\n\n" + _("Currently GitHub and GitLab URL formats are fully supported. Direct download links also work if the server provides Last-Modified or Content-Length headers.");
+            var dialog = new Adw.AlertDialog(_("Update links"), body);
+            dialog.add_response("close", _("Got it"));
             dialog.set_close_response("close");
             dialog.present(this);
         }
@@ -929,10 +929,10 @@ namespace AppManager {
         }
         
         private void present_extract_warning() {
-            var body = I18n.tr("Extracting will unpack the application so it opens faster, but it will consume more disk space. This action cannot be reversed automatically.");
-            var dialog = new Adw.AlertDialog(I18n.tr("Extract application?"), body);
-            dialog.add_response("cancel", I18n.tr("Cancel"));
-            dialog.add_response("extract", I18n.tr("Extract"));
+            var body = _("Extracting will unpack the application so it opens faster, but it will consume more disk space. This action cannot be reversed automatically.");
+            var dialog = new Adw.AlertDialog(_("Extract application?"), body);
+            dialog.add_response("cancel", _("Cancel"));
+            dialog.add_response("extract", _("Extract"));
             dialog.set_response_appearance("extract", Adw.ResponseAppearance.DESTRUCTIVE);
             dialog.set_close_response("cancel");
             dialog.set_default_response("cancel");

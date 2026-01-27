@@ -1,0 +1,555 @@
+# Brazilian Portuguese translation for app-manager
+# Copyright (C) 2026 AppManager Contributors
+# This file is distributed under the same license as the app-manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: app-manager\n"
+"Report-Msgid-Bugs-To: https://github.com/kem-a/AppManager/issues\n"
+"POT-Creation-Date: 2026-01-27 12:00+0000\n"
+"PO-Revision-Date: 2026-01-27 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Brazilian Portuguese\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "AppManager"
+msgstr "AppManager"
+
+msgid "My Apps"
+msgstr "Meus Aplicativos"
+
+msgid "Get more ..."
+msgstr "Obter mais ..."
+
+msgid "Find more AppImages"
+msgstr "Encontrar mais AppImages"
+
+msgid "Browse these sources to discover and download AppImages"
+msgstr "Navegue por essas fontes para descobrir e baixar AppImages"
+
+msgid "No AppImage apps installed"
+msgstr "Nenhum aplicativo AppImage instalado"
+
+msgid "Download AppImage and double click to install with AppManager"
+msgstr "Baixe um AppImage e clique duas vezes para instalar com o AppManager"
+
+msgid "No results found"
+msgstr "Nenhum resultado encontrado"
+
+msgid "Updating..."
+msgstr "Atualizando..."
+
+msgid "Update available"
+msgstr "Atualização disponível"
+
+msgid "extracted"
+msgstr "extraído"
+
+msgid "Updated just now"
+msgstr "Atualizado agora mesmo"
+
+msgid "Installed just now"
+msgstr "Instalado agora mesmo"
+
+#, c-format
+msgid "Updated %d min ago"
+msgstr "Atualizado há %d min"
+
+#, c-format
+msgid "Installed %d min ago"
+msgstr "Instalado há %d min"
+
+#, c-format
+msgid "Updated %d hours ago"
+msgstr "Atualizado há %d horas"
+
+#, c-format
+msgid "Installed %d hours ago"
+msgstr "Instalado há %d horas"
+
+#, c-format
+msgid "Updated %d days ago"
+msgstr "Atualizado há %d dias"
+
+#, c-format
+msgid "Installed %d days ago"
+msgstr "Instalado há %d dias"
+
+msgid "Preferences"
+msgstr "Preferências"
+
+msgid "Keyboard shortcuts"
+msgstr "Atalhos de teclado"
+
+msgid "About AppManager"
+msgstr "Sobre o AppManager"
+
+msgid "Quit"
+msgstr "Sair"
+
+msgid "Search"
+msgstr "Pesquisar"
+
+msgid "More actions"
+msgstr "Mais ações"
+
+msgid "Search apps..."
+msgstr "Pesquisar aplicativos..."
+
+msgid "FUSE is not installed. Some AppImages may fail to run"
+msgstr "FUSE não está instalado. Alguns AppImages podem falhar ao executar"
+
+msgid "Learn More"
+msgstr "Saiba mais"
+
+msgid "Updates already running"
+msgstr "Atualizações já estão em execução"
+
+msgid "Cancel update"
+msgstr "Cancelar atualização"
+
+msgid "Cancelling..."
+msgstr "Cancelando..."
+
+msgid "Update check cancelled"
+msgstr "Verificação de atualização cancelada"
+
+#, c-format
+msgid "%d app(s) have updates"
+msgstr "%d aplicativo(s) têm atualizações"
+
+msgid "No updates available right now"
+msgstr "Nenhuma atualização disponível no momento"
+
+msgid "Nothing queued for updating"
+msgstr "Nada na fila para atualizar"
+
+msgid "Update cancelled"
+msgstr "Atualização cancelada"
+
+msgid "Checking updates"
+msgstr "Verificando atualizações"
+
+msgid "Update Apps"
+msgstr "Atualizar aplicativos"
+
+msgid "Updating apps"
+msgstr "Atualizando aplicativos"
+
+msgid "Check updates"
+msgstr "Verificar atualizações"
+
+msgid "No installed apps to update"
+msgstr "Nenhum aplicativo instalado para atualizar"
+
+#, c-format
+msgid "Updated %d app(s)"
+msgstr "%d aplicativo(s) atualizado(s)"
+
+#, c-format
+msgid "%d update(s) failed"
+msgstr "%d atualização(ões) falhou(aram)"
+
+msgid "Add update addresses in Details to enable updates"
+msgstr "Adicione endereços de atualização em Detalhes para habilitar atualizações"
+
+msgid "All supported apps are already up to date"
+msgstr "Todos os aplicativos suportados já estão atualizados"
+
+#, c-format
+msgid "%d app(s) use unsupported update links"
+msgstr "%d aplicativo(s) usam links de atualização não suportados"
+
+#, c-format
+msgid "Update available for %s"
+msgstr "Atualização disponível para %s"
+
+msgid "General"
+msgstr "Geral"
+
+msgid "Navigation"
+msgstr "Navegação"
+
+msgid "Window"
+msgstr "Janela"
+
+msgid "Check for updates"
+msgstr "Verificar atualizações"
+
+msgid "Show main menu"
+msgstr "Mostrar menu principal"
+
+msgid "Show shortcuts"
+msgstr "Mostrar atalhos"
+
+msgid "Close window"
+msgstr "Fechar janela"
+
+msgid "Quit AppManager"
+msgstr "Sair do AppManager"
+
+msgid "Credits"
+msgstr "Créditos"
+
+msgid "⚠️ '~/.local/bin' is not in $PATH. App will not launch from the terminal"
+msgstr "⚠️ '~/.local/bin' não está no $PATH. O aplicativo não será iniciado pelo terminal"
+
+msgid "Version unknown"
+msgstr "Versão desconhecida"
+
+msgid "Show in Files"
+msgstr "Mostrar nos Arquivos"
+
+msgid "Portable"
+msgstr "Portátil"
+
+msgid "Extracted"
+msgstr "Extraído"
+
+msgid "Terminal"
+msgstr "Terminal"
+
+msgid "This app supports efficient delta updates"
+msgstr "Este aplicativo suporta atualizações delta eficientes"
+
+msgid "Hidden"
+msgstr "Oculto"
+
+msgid "Properties"
+msgstr "Propriedades"
+
+msgid "Command line arguments"
+msgstr "Argumentos de linha de comando"
+
+msgid "Update info"
+msgstr "Informações de atualização"
+
+msgid "How update links work"
+msgstr "Como os links de atualização funcionam"
+
+msgid "Update Link"
+msgstr "Link de atualização"
+
+msgid "Update link is managed by zsync and cannot be edited"
+msgstr "O link de atualização é gerenciado pelo zsync e não pode ser editado"
+
+msgid "Web Page"
+msgstr "Página web"
+
+msgid "Open web page"
+msgstr "Abrir página web"
+
+msgid "Advanced"
+msgstr "Avançado"
+
+msgid "Environment Variables"
+msgstr "Variáveis de ambiente"
+
+msgid "Set custom environment variables for this app"
+msgstr "Definir variáveis de ambiente personalizadas para este aplicativo"
+
+msgid "NAME"
+msgstr "NOME"
+
+msgid "value"
+msgstr "valor"
+
+msgid "Remove variable"
+msgstr "Remover variável"
+
+msgid "Keywords"
+msgstr "Palavras-chave"
+
+msgid "Icon name"
+msgstr "Nome do ícone"
+
+msgid "Startup WM Class"
+msgstr "Classe WM de inicialização"
+
+msgid "Version"
+msgstr "Versão"
+
+msgid "Hide from app drawer"
+msgstr "Ocultar da gaveta de aplicativos"
+
+msgid "Don't show in application menu"
+msgstr "Não mostrar no menu de aplicativos"
+
+msgid "Add to $PATH"
+msgstr "Adicionar ao $PATH"
+
+msgid "Create a launcher in ~/.local/bin so you can run it from the terminal"
+msgstr "Criar um lançador em ~/.local/bin para executá-lo pelo terminal"
+
+msgid "Actions"
+msgstr "Ações"
+
+msgid "Extract AppImage"
+msgstr "Extrair AppImage"
+
+msgid "Move to Trash"
+msgstr "Mover para a lixeira"
+
+msgid "Restore default"
+msgstr "Restaurar padrão"
+
+msgid "Checking..."
+msgstr "Verificando..."
+
+msgid "Update"
+msgstr "Atualizar"
+
+msgid "Check Update"
+msgstr "Verificar atualização"
+
+msgid "Update info lets AppManager fetch new builds for you. Paste the download link and AppManager will do the rest."
+msgstr "As informações de atualização permitem que o AppManager obtenha novas versões para você. Cole o link de download e o AppManager fará o resto."
+
+msgid "Currently GitHub and GitLab URL formats are fully supported. Direct download links also work if the server provides Last-Modified or Content-Length headers."
+msgstr "Atualmente, os formatos de URL do GitHub e GitLab são totalmente suportados. Links de download direto também funcionam se o servidor fornecer cabeçalhos Last-Modified ou Content-Length."
+
+msgid "Update links"
+msgstr "Links de atualização"
+
+msgid "Got it"
+msgstr "Entendi"
+
+msgid "Extracting will unpack the application so it opens faster, but it will consume more disk space. This action cannot be reversed automatically."
+msgstr "A extração descompactará o aplicativo para que ele abra mais rápido, mas consumirá mais espaço em disco. Esta ação não pode ser revertida automaticamente."
+
+msgid "Extract application?"
+msgstr "Extrair aplicativo?"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Extract"
+msgstr "Extrair"
+
+msgid "Automatic updates"
+msgstr "Atualizações automáticas"
+
+msgid "Configure automatic update checking"
+msgstr "Configurar verificação automática de atualizações"
+
+msgid "Open update log"
+msgstr "Abrir registro de atualizações"
+
+msgid "Background update check"
+msgstr "Verificação de atualização em segundo plano"
+
+msgid "Will notify when new app updates are available"
+msgstr "Notificará quando novas atualizações estiverem disponíveis"
+
+msgid "Auto update apps"
+msgstr "Atualizar aplicativos automaticamente"
+
+msgid "Will update apps automatically in background"
+msgstr "Atualizará os aplicativos automaticamente em segundo plano"
+
+msgid "Check interval"
+msgstr "Intervalo de verificação"
+
+msgid "Daily"
+msgstr "Diário"
+
+msgid "Weekly"
+msgstr "Semanal"
+
+msgid "Monthly"
+msgstr "Mensal"
+
+msgid "Thumbnails"
+msgstr "Miniaturas"
+
+msgid "AppImage Thumbnailer"
+msgstr "Gerador de miniaturas de AppImage"
+
+msgid "Install appimage-thumbnailer to generate thumbnails for AppImages"
+msgstr "Instalar appimage-thumbnailer para gerar miniaturas para AppImages"
+
+msgid "Hide Nautilus thumbnail background"
+msgstr "Ocultar fundo de miniatura do Nautilus"
+
+msgid "Remove the alpha checkerboard behind thumbnails and icons"
+msgstr "Remover o padrão de xadrez alfa atrás das miniaturas e ícones"
+
+msgid "App removed"
+msgstr "Aplicativo removido"
+
+msgid "The application was uninstalled successfully."
+msgstr "O aplicativo foi desinstalado com sucesso."
+
+msgid "Close"
+msgstr "Fechar"
+
+msgid "Uninstall failed"
+msgstr "Falha na desinstalação"
+
+#, c-format
+msgid "%s could not be removed: %s"
+msgstr "%s não pôde ser removido: %s"
+
+msgid "Moved to Trash"
+msgstr "Movido para a lixeira"
+
+msgid "Extraction is only available for portable installations."
+msgstr "A extração está disponível apenas para instalações portáteis."
+
+msgid "Extracted for faster launch"
+msgstr "Extraído para inicialização mais rápida"
+
+msgid "Extraction complete"
+msgstr "Extração concluída"
+
+#, c-format
+msgid "%s was extracted and will open faster."
+msgstr "%s foi extraído e abrirá mais rápido."
+
+msgid "Extraction failed"
+msgstr "Falha na extração"
+
+#, c-format
+msgid "%s could not be extracted: %s"
+msgstr "%s não pôde ser extraído: %s"
+
+msgid "AppImage Installer"
+msgstr "Instalador de AppImage"
+
+msgid "Verify"
+msgstr "Verificar"
+
+msgid "Verify AppImage with SHA256 hash"
+msgstr "Verificar AppImage com hash SHA256"
+
+msgid "SHA256 hash does not match. Verification failed."
+msgstr "O hash SHA256 não corresponde. A verificação falhou."
+
+msgid "Drag and drop to install into Applications"
+msgstr "Arraste e solte para instalar em Aplicativos"
+
+msgid "Applications"
+msgstr "Aplicativos"
+
+#, c-format
+msgid "Open %s?"
+msgstr "Abrir %s?"
+
+#, c-format
+msgid "Origins of %s application can not be verified. Are you sure you want to open it?"
+msgstr "A origem do aplicativo %s não pode ser verificada. Tem certeza de que deseja abri-lo?"
+
+msgid "This is a terminal application and will be installed in portable mode."
+msgstr "Este é um aplicativo de terminal e será instalado em modo portátil."
+
+msgid "Install the AppImage to add it to your applications."
+msgstr "Instale o AppImage para adicioná-lo aos seus aplicativos."
+
+msgid "Install"
+msgstr "Instalar"
+
+msgid "This AppImage is incompatible or corrupted"
+msgstr "Este AppImage é incompatível ou está corrompido"
+
+msgid "Missing required files (AppRun, .desktop, or icon)"
+msgstr "Arquivos necessários ausentes (AppRun, .desktop ou ícone)"
+
+msgid "Unknown version"
+msgstr "Versão desconhecida"
+
+#, c-format
+msgid "Will update to version %s"
+msgstr "Será atualizado para a versão %s"
+
+#, c-format
+msgid "Update %s?"
+msgstr "Atualizar %s?"
+
+#, c-format
+msgid "Replace %s?"
+msgstr "Substituir %s?"
+
+#, c-format
+msgid "A newer item named %s already exists in this location. Do you want to replace it with the older one you're copying?"
+msgstr "Um item mais recente chamado %s já existe neste local. Deseja substituí-lo pelo mais antigo que você está copiando?"
+
+#, c-format
+msgid "Installed: %s | Incoming: %s"
+msgstr "Instalado: %s | Recebido: %s"
+
+#, c-format
+msgid "An item named %s already exists in this location. Do you want to replace it with one you're copying?"
+msgstr "Um item chamado %s já existe neste local. Deseja substituí-lo pelo que você está copiando?"
+
+msgid "Stop"
+msgstr "Parar"
+
+msgid "Replace"
+msgstr "Substituir"
+
+msgid "Unable to prepare AppImage for installation"
+msgstr "Não foi possível preparar o AppImage para instalação"
+
+msgid "Successfully Installed"
+msgstr "Instalado com sucesso"
+
+msgid "Successfully Updated"
+msgstr "Atualizado com sucesso"
+
+msgid "Successfully Replaced"
+msgstr "Substituído com sucesso"
+
+#, c-format
+msgid "Version %s"
+msgstr "Versão %s"
+
+msgid "Open"
+msgstr "Abrir"
+
+msgid "Done"
+msgstr "Concluído"
+
+msgid "Installation failed"
+msgstr "Falha na instalação"
+
+msgid "Dismiss"
+msgstr "Dispensar"
+
+msgid "Verify AppImage"
+msgstr "Verificar AppImage"
+
+msgid "Verify the authenticity of this AppImage."
+msgstr "Verificar a autenticidade deste AppImage."
+
+msgid "Enter the SHA256 hash "
+msgstr "Digite o hash SHA256 "
+
+msgid "App updates available"
+msgstr "Atualizações de aplicativos disponíveis"
+
+#, c-format
+msgid "%d app update(s) available"
+msgstr "%d atualização(ões) de aplicativo(s) disponível(is)"
+
+msgid "Open AppManager"
+msgstr "Abrir AppManager"
+
+msgid "No update address configured"
+msgstr "Nenhum endereço de atualização configurado"
+
+msgid "Update source not supported"
+msgstr "Fonte de atualização não suportada"
+
+msgid "Unable to read releases"
+msgstr "Não foi possível ler os lançamentos"
+
+#, c-format
+msgid "No matching AppImage found for %s"
+msgstr "Nenhum AppImage correspondente encontrado para %s"
+
+msgid "Already up to date"
+msgstr "Já está atualizado"

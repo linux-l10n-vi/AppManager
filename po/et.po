@@ -1,0 +1,755 @@
+# Estonian translation for app-manager
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the app-manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: app-manager\n"
+"Report-Msgid-Bugs-To: https://github.com/kem-a/AppManager/issues\n"
+"POT-Creation-Date: 2026-01-27 12:00+0000\n"
+"PO-Revision-Date: 2026-01-27 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Estonian\n"
+"Language: et\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/windows/main_window.vala:48 src/windows/main_window.vala:137
+msgid "AppManager"
+msgstr "AppManager"
+
+#: src/windows/main_window.vala:121 src/windows/main_window.vala:219
+#: src/windows/main_window.vala:347
+msgid "My Apps"
+msgstr "Minu rakendused"
+
+#: src/windows/main_window.vala:166
+msgid "Get more ..."
+msgstr "Hangi rohkem ..."
+
+#: src/windows/main_window.vala:178
+msgid "Find more AppImages"
+msgstr "Leia rohkem AppImage'e"
+
+#: src/windows/main_window.vala:179
+msgid "Browse these sources to discover and download AppImages"
+msgstr "Sirvi neid allikaid AppImage'ide avastamiseks ja allalaadimiseks"
+
+#: src/windows/main_window.vala:240 src/windows/main_window.vala:298
+msgid "No AppImage apps installed"
+msgstr "Ühtegi AppImage rakendust pole paigaldatud"
+
+#: src/windows/main_window.vala:245
+msgid "Download AppImage and double click to install with AppManager"
+msgstr "Laadi alla AppImage ja topeltklõpsa AppManageriga paigaldamiseks"
+
+#: src/windows/main_window.vala:298
+msgid "No results found"
+msgstr "Tulemusi ei leitud"
+
+#: src/windows/main_window.vala:411 src/windows/details_window.vala:822
+msgid "Updating..."
+msgstr "Uuendamine..."
+
+#: src/windows/main_window.vala:418
+msgid "Update available"
+msgstr "Uuendus saadaval"
+
+#: src/windows/main_window.vala:444
+msgid "extracted"
+msgstr "ekstraheeritud"
+
+#: src/windows/main_window.vala:501
+msgid "Updated just now"
+msgstr "Uuendati just"
+
+#: src/windows/main_window.vala:501
+msgid "Installed just now"
+msgstr "Paigaldati just"
+
+#: src/windows/main_window.vala:509
+#, c-format
+msgid "Updated %d min ago"
+msgstr "Uuendati %d min tagasi"
+
+#: src/windows/main_window.vala:509
+#, c-format
+msgid "Installed %d min ago"
+msgstr "Paigaldati %d min tagasi"
+
+#: src/windows/main_window.vala:517
+#, c-format
+msgid "Updated %d hours ago"
+msgstr "Uuendati %d tundi tagasi"
+
+#: src/windows/main_window.vala:517
+#, c-format
+msgid "Installed %d hours ago"
+msgstr "Paigaldati %d tundi tagasi"
+
+#: src/windows/main_window.vala:524
+#, c-format
+msgid "Updated %d days ago"
+msgstr "Uuendati %d päeva tagasi"
+
+#: src/windows/main_window.vala:524
+#, c-format
+msgid "Installed %d days ago"
+msgstr "Paigaldati %d päeva tagasi"
+
+#: src/windows/main_window.vala:540 src/windows/preferences_window.vala:25
+msgid "Preferences"
+msgstr "Eelistused"
+
+#: src/windows/main_window.vala:541
+msgid "Keyboard shortcuts"
+msgstr "Klaviatuurikombinatsioonid"
+
+#: src/windows/main_window.vala:542 src/windows/main_window.vala:1167
+msgid "About AppManager"
+msgstr "AppManageri kohta"
+
+#: src/windows/main_window.vala:543
+msgid "Quit"
+msgstr "Välju"
+
+#: src/windows/main_window.vala:554 src/windows/main_window.vala:1165
+msgid "Search"
+msgstr "Otsi"
+
+#: src/windows/main_window.vala:560
+msgid "More actions"
+msgstr "Rohkem toiminguid"
+
+#: src/windows/main_window.vala:575
+msgid "Search apps..."
+msgstr "Otsi rakendusi..."
+
+#: src/windows/main_window.vala:583
+msgid "FUSE is not installed. Some AppImages may fail to run"
+msgstr "FUSE pole paigaldatud. Mõned AppImage'd võivad mitte käivituda"
+
+#: src/windows/main_window.vala:585
+msgid "Learn More"
+msgstr "Lisateave"
+
+#: src/windows/main_window.vala:661 src/windows/main_window.vala:732
+msgid "Updates already running"
+msgstr "Uuendused juba käivad"
+
+#: src/windows/main_window.vala:709
+msgid "Cancel update"
+msgstr "Tühista uuendus"
+
+#: src/windows/main_window.vala:740
+msgid "Cancelling..."
+msgstr "Tühistamine..."
+
+#: src/windows/main_window.vala:766
+msgid "Update check cancelled"
+msgstr "Uuenduste kontroll tühistati"
+
+#: src/windows/main_window.vala:792
+#, c-format
+msgid "%d app(s) have updates"
+msgstr "%d rakendusel on uuendusi"
+
+#: src/windows/main_window.vala:795
+msgid "No updates available right now"
+msgstr "Praegu pole uuendusi saadaval"
+
+#: src/windows/main_window.vala:802
+msgid "Nothing queued for updating"
+msgstr "Midagi pole uuendamiseks järjekorras"
+
+#: src/windows/main_window.vala:829
+msgid "Update cancelled"
+msgstr "Uuendus tühistati"
+
+#: src/windows/main_window.vala:966
+msgid "Checking updates"
+msgstr "Uuenduste kontrollimine"
+
+#: src/windows/main_window.vala:969
+msgid "Update Apps"
+msgstr "Uuenda rakendusi"
+
+#: src/windows/main_window.vala:972
+msgid "Updating apps"
+msgstr "Rakenduste uuendamine"
+
+#: src/windows/main_window.vala:975
+msgid "Check updates"
+msgstr "Kontrolli uuendusi"
+
+#: src/windows/main_window.vala:999
+msgid "No installed apps to update"
+msgstr "Pole paigaldatud rakendusi uuendamiseks"
+
+#: src/windows/main_window.vala:1039
+#, c-format
+msgid "Updated %d app(s)"
+msgstr "Uuendati %d rakendust"
+
+#: src/windows/main_window.vala:1042
+#, c-format
+msgid "%d update(s) failed"
+msgstr "%d uuendust ebaõnnestus"
+
+#: src/windows/main_window.vala:1050
+msgid "Add update addresses in Details to enable updates"
+msgstr "Lisa uuenduste aadressid üksikasjades uuenduste lubamiseks"
+
+#: src/windows/main_window.vala:1052
+msgid "All supported apps are already up to date"
+msgstr "Kõik toetatud rakendused on juba ajakohased"
+
+#: src/windows/main_window.vala:1056
+#, c-format
+msgid "%d app(s) use unsupported update links"
+msgstr "%d rakendust kasutab toetamata uuenduslinke"
+
+#: src/windows/main_window.vala:1113
+#, c-format
+msgid "Update available for %s"
+msgstr "Uuendus saadaval rakendusele %s"
+
+#: src/windows/main_window.vala:1153
+msgid "General"
+msgstr "Üldine"
+
+#: src/windows/main_window.vala:1157
+msgid "Navigation"
+msgstr "Navigeerimine"
+
+#: src/windows/main_window.vala:1161
+msgid "Window"
+msgstr "Aken"
+
+#: src/windows/main_window.vala:1163
+msgid "Check for updates"
+msgstr "Kontrolli uuendusi"
+
+#: src/windows/main_window.vala:1164
+msgid "Show main menu"
+msgstr "Näita peamenüüd"
+
+#: src/windows/main_window.vala:1166
+msgid "Show shortcuts"
+msgstr "Näita otseteid"
+
+#: src/windows/main_window.vala:1168
+msgid "Close window"
+msgstr "Sulge aken"
+
+#: src/windows/main_window.vala:1169
+msgid "Quit AppManager"
+msgstr "Sulge AppManager"
+
+#: src/windows/main_window.vala:1186
+msgid "Credits"
+msgstr "Tänuavaldused"
+
+#: src/windows/details_window.vala:100
+msgid "⚠️ '~/.local/bin' is not in $PATH. App will not launch from the terminal"
+msgstr "⚠️ '~/.local/bin' pole $PATH-is. Rakendus ei käivitu terminalist"
+
+#: src/windows/details_window.vala:135 src/windows/drop_window.vala:358
+msgid "Version unknown"
+msgstr "Versioon teadmata"
+
+#: src/windows/details_window.vala:160
+msgid "Show in Files"
+msgstr "Näita failides"
+
+#: src/windows/details_window.vala:162
+msgid "Portable"
+msgstr "Kaasaskantav"
+
+#: src/windows/details_window.vala:162
+msgid "Extracted"
+msgstr "Ekstraheeritud"
+
+#: src/windows/details_window.vala:184
+msgid "Terminal"
+msgstr "Terminal"
+
+#: src/windows/details_window.vala:192
+msgid "This app supports efficient delta updates"
+msgstr "See rakendus toetab tõhusaid delta-uuendusi"
+
+#: src/windows/details_window.vala:199
+msgid "Hidden"
+msgstr "Peidetud"
+
+#: src/windows/details_window.vala:209
+msgid "Properties"
+msgstr "Omadused"
+
+#: src/windows/details_window.vala:214
+msgid "Command line arguments"
+msgstr "Käsurea argumendid"
+
+#: src/windows/details_window.vala:246
+msgid "Update info"
+msgstr "Uuenduse teave"
+
+#: src/windows/details_window.vala:252
+msgid "How update links work"
+msgstr "Kuidas uuenduslingid töötavad"
+
+#: src/windows/details_window.vala:271
+msgid "Update Link"
+msgstr "Uuenduslink"
+
+#: src/windows/details_window.vala:278
+msgid "Update link is managed by zsync and cannot be edited"
+msgstr "Uuenduslinki haldab zsync ja seda ei saa muuta"
+
+#: src/windows/details_window.vala:328
+msgid "Web Page"
+msgstr "Veebileht"
+
+#: src/windows/details_window.vala:357
+msgid "Open web page"
+msgstr "Ava veebileht"
+
+#: src/windows/details_window.vala:371
+msgid "Advanced"
+msgstr "Täpsemalt"
+
+#: src/windows/details_window.vala:398
+msgid "Environment Variables"
+msgstr "Keskkonnamuutujad"
+
+#: src/windows/details_window.vala:399
+msgid "Set custom environment variables for this app"
+msgstr "Määra sellele rakendusele kohandatud keskkonnamuutujad"
+
+#: src/windows/details_window.vala:452
+msgid "NAME"
+msgstr "NIMI"
+
+#: src/windows/details_window.vala:466
+msgid "value"
+msgstr "väärtus"
+
+#: src/windows/details_window.vala:478
+msgid "Remove variable"
+msgstr "Eemalda muutuja"
+
+#: src/windows/details_window.vala:555
+msgid "Keywords"
+msgstr "Võtmesõnad"
+
+#: src/windows/details_window.vala:586
+msgid "Icon name"
+msgstr "Ikooni nimi"
+
+#: src/windows/details_window.vala:617
+msgid "Startup WM Class"
+msgstr "Käivituse WM klass"
+
+#: src/windows/details_window.vala:648
+msgid "Version"
+msgstr "Versioon"
+
+#: src/windows/details_window.vala:660
+msgid "Hide from app drawer"
+msgstr "Peida rakenduste sahtlist"
+
+#: src/windows/details_window.vala:661
+msgid "Don't show in application menu"
+msgstr "Ära näita rakenduste menüüs"
+
+#: src/windows/details_window.vala:672
+msgid "Add to $PATH"
+msgstr "Lisa $PATH-i"
+
+#: src/windows/details_window.vala:673
+msgid "Create a launcher in ~/.local/bin so you can run it from the terminal"
+msgstr ""
+"Loo käivitaja ~/.local/bin kausta, et saaksid seda terminalist käivitada"
+
+#: src/windows/details_window.vala:734
+msgid "Actions"
+msgstr "Toimingud"
+
+#: src/windows/details_window.vala:773
+msgid "Extract AppImage"
+msgstr "Ekstraheeri AppImage"
+
+#: src/windows/details_window.vala:794 src/core/installer.vala:593
+#: src/core/installer.vala:977
+msgid "Move to Trash"
+msgstr "Teisalda prügikasti"
+
+#: src/windows/details_window.vala:810
+msgid "Restore default"
+msgstr "Taasta vaikeväärtus"
+
+#: src/windows/details_window.vala:824
+msgid "Checking..."
+msgstr "Kontrollimine..."
+
+#: src/windows/details_window.vala:842
+msgid "Update"
+msgstr "Uuenda"
+
+#: src/windows/details_window.vala:846
+msgid "Check Update"
+msgstr "Kontrolli uuendust"
+
+#: src/windows/details_window.vala:912
+msgid ""
+"Update info lets AppManager fetch new builds for you. Paste the download "
+"link and AppManager will do the rest."
+msgstr ""
+"Uuenduse teave võimaldab AppManageril uusi versioone tuua. Kleebi "
+"allalaadimislink ja AppManager teeb ülejäänu."
+
+#: src/windows/details_window.vala:913
+msgid ""
+"Currently GitHub and GitLab URL formats are fully supported. Direct download "
+"links also work if the server provides Last-Modified or Content-Length "
+"headers."
+msgstr ""
+"Praegu on täielikult toetatud GitHub ja GitLab URL-i vormingud. Otselingid "
+"töötavad samuti, kui server pakub Last-Modified või Content-Length päiseid."
+
+#: src/windows/details_window.vala:914
+msgid "Update links"
+msgstr "Uuenduslingid"
+
+#: src/windows/details_window.vala:915
+msgid "Got it"
+msgstr "Selge"
+
+#: src/windows/details_window.vala:932
+msgid ""
+"Extracting will unpack the application so it opens faster, but it will "
+"consume more disk space. This action cannot be reversed automatically."
+msgstr ""
+"Ekstraheerimine pakib rakenduse lahti, et see kiiremini avaneks, kuid see "
+"võtab rohkem kettaruumi. Seda toimingut ei saa automaatselt tagasi võtta."
+
+#: src/windows/details_window.vala:933
+msgid "Extract application?"
+msgstr "Ekstraheerida rakendus?"
+
+#: src/windows/details_window.vala:934
+msgid "Cancel"
+msgstr "Tühista"
+
+#: src/windows/details_window.vala:935
+msgid "Extract"
+msgstr "Ekstraheeri"
+
+#: src/windows/preferences_window.vala:35
+msgid "Automatic updates"
+msgstr "Automaatsed uuendused"
+
+#: src/windows/preferences_window.vala:36
+msgid "Configure automatic update checking"
+msgstr "Seadista automaatne uuenduste kontrollimine"
+
+#: src/windows/preferences_window.vala:42
+msgid "Open update log"
+msgstr "Ava uuenduste logi"
+
+#: src/windows/preferences_window.vala:56
+msgid "Background update check"
+msgstr "Taustal uuenduste kontrollimine"
+
+#: src/windows/preferences_window.vala:57
+msgid "Will notify when new app updates are available"
+msgstr "Teavitab, kui uued rakenduste uuendused on saadaval"
+
+#: src/windows/preferences_window.vala:68
+msgid "Auto update apps"
+msgstr "Uuenda rakendusi automaatselt"
+
+#: src/windows/preferences_window.vala:69
+msgid "Will update apps automatically in background"
+msgstr "Uuendab rakendusi automaatselt taustal"
+
+#: src/windows/preferences_window.vala:75
+msgid "Check interval"
+msgstr "Kontrollimise intervall"
+
+#: src/windows/preferences_window.vala:77
+msgid "Daily"
+msgstr "Iga päev"
+
+#: src/windows/preferences_window.vala:78
+msgid "Weekly"
+msgstr "Iga nädal"
+
+#: src/windows/preferences_window.vala:79
+msgid "Monthly"
+msgstr "Iga kuu"
+
+#: src/windows/preferences_window.vala:104
+msgid "Thumbnails"
+msgstr "Pisipildid"
+
+#: src/windows/preferences_window.vala:107
+msgid "AppImage Thumbnailer"
+msgstr "AppImage pisipildistaja"
+
+#: src/windows/preferences_window.vala:108
+msgid "Install appimage-thumbnailer to generate thumbnails for AppImages"
+msgstr "Paigalda appimage-thumbnailer AppImage'ide pisipiltide loomiseks"
+
+#: src/windows/preferences_window.vala:117
+msgid "Hide Nautilus thumbnail background"
+msgstr "Peida Nautiluse pisipildi taust"
+
+#: src/windows/preferences_window.vala:118
+msgid "Remove the alpha checkerboard behind thumbnails and icons"
+msgstr "Eemalda alfa-ruudustik pisipiltide ja ikoonide tagant"
+
+#: src/windows/dialog_window.vala:86
+msgid "App removed"
+msgstr "Rakendus eemaldatud"
+
+#: src/windows/dialog_window.vala:94
+msgid "The application was uninstalled successfully."
+msgstr "Rakendus desinstalliti edukalt."
+
+#: src/windows/dialog_window.vala:95
+msgid "Close"
+msgstr "Sulge"
+
+#: src/application.vala:358
+msgid "Uninstall failed"
+msgstr "Desinstallimine ebaõnnestus"
+
+#: src/application.vala:359
+#, c-format
+msgid "%s could not be removed: %s"
+msgstr "%s ei saanud eemaldada: %s"
+
+#: src/application.vala:366
+msgid "Moved to Trash"
+msgstr "Teisaldati prügikasti"
+
+#: src/application.vala:374
+msgid "Extraction is only available for portable installations."
+msgstr "Ekstraheerimine on saadaval ainult kaasaskantavate paigalduste jaoks."
+
+#: src/application.vala:410
+msgid "Extracted for faster launch"
+msgstr "Ekstraheeritud kiiremaks käivitamiseks"
+
+#: src/application.vala:413
+msgid "Extraction complete"
+msgstr "Ekstraheerimine lõpetatud"
+
+#: src/application.vala:414
+#, c-format
+msgid "%s was extracted and will open faster."
+msgstr "%s ekstraheeriti ja avaneb nüüd kiiremini."
+
+#: src/application.vala:425
+msgid "Extraction failed"
+msgstr "Ekstraheerimine ebaõnnestus"
+
+#: src/application.vala:426
+#, c-format
+msgid "%s could not be extracted: %s"
+msgstr "%s ei saanud ekstraheerida: %s"
+
+#: src/windows/drop_window.vala:51 src/windows/drop_window.vala:75
+msgid "AppImage Installer"
+msgstr "AppImage paigaldaja"
+
+#: src/windows/drop_window.vala:86
+msgid "Verify"
+msgstr "Kinnita"
+
+#: src/windows/drop_window.vala:87
+msgid "Verify AppImage with SHA256 hash"
+msgstr "Kinnita AppImage SHA256 räsiga"
+
+#: src/windows/drop_window.vala:103
+msgid "SHA256 hash does not match. Verification failed."
+msgstr "SHA256 räsi ei kattu. Kinnitamine ebaõnnestus."
+
+#: src/windows/drop_window.vala:119
+msgid "Drag and drop to install into Applications"
+msgstr "Lohista rakendustesse paigaldamiseks"
+
+#: src/windows/drop_window.vala:174
+msgid "Applications"
+msgstr "Rakendused"
+
+#: src/windows/drop_window.vala:210
+#, c-format
+msgid "Open %s?"
+msgstr "Avada %s?"
+
+#: src/windows/drop_window.vala:213
+#, c-format
+msgid ""
+"Origins of %s application can not be verified. Are you sure you want to open "
+"it?"
+msgstr ""
+"Rakenduse %s päritolu ei saa kinnitada. Kas oled kindel, et soovid seda "
+"avada?"
+
+#: src/windows/drop_window.vala:218
+msgid "This is a terminal application and will be installed in portable mode."
+msgstr "See on terminalirakendus ja paigaldatakse kaasaskantavas režiimis."
+
+#: src/windows/drop_window.vala:220
+msgid "Install the AppImage to add it to your applications."
+msgstr "Paigalda AppImage, et lisada see oma rakendustesse."
+
+#: src/windows/drop_window.vala:223
+msgid "Install"
+msgstr "Paigalda"
+
+#: src/windows/drop_window.vala:296
+msgid "This AppImage is incompatible or corrupted"
+msgstr "See AppImage on ühildumatu või rikutud"
+
+#: src/windows/drop_window.vala:298
+msgid "Missing required files (AppRun, .desktop, or icon)"
+msgstr "Puuduvad vajalikud failid (AppRun, .desktop või ikoon)"
+
+#: src/windows/drop_window.vala:365 src/windows/drop_window.vala:522
+msgid "Unknown version"
+msgstr "Tundmatu versioon"
+
+#: src/windows/drop_window.vala:366
+#, c-format
+msgid "Will update to version %s"
+msgstr "Uuendatakse versioonile %s"
+
+#: src/windows/drop_window.vala:382
+#, c-format
+msgid "Update %s?"
+msgstr "Uuendada %s?"
+
+#: src/windows/drop_window.vala:412
+#, c-format
+msgid "Replace %s?"
+msgstr "Asendada %s?"
+
+#: src/windows/drop_window.vala:416
+#, c-format
+msgid ""
+"A newer item named %s already exists in this location. Do you want to "
+"replace it with the older one you're copying?"
+msgstr ""
+"Uuem fail nimega %s on selles asukohas juba olemas. Kas soovid selle "
+"asendada vanema versiooniga, mida kopeerid?"
+
+#: src/windows/drop_window.vala:418
+#, c-format
+msgid "Installed: %s | Incoming: %s"
+msgstr "Paigaldatud: %s | Sissetulev: %s"
+
+#: src/windows/drop_window.vala:422
+#, c-format
+msgid ""
+"An item named %s already exists in this location. Do you want to replace it "
+"with one you're copying?"
+msgstr ""
+"Fail nimega %s on selles asukohas juba olemas. Kas soovid selle asendada "
+"sellega, mida kopeerid?"
+
+#: src/windows/drop_window.vala:426
+msgid "Stop"
+msgstr "Peata"
+
+#: src/windows/drop_window.vala:427
+msgid "Replace"
+msgstr "Asenda"
+
+#: src/windows/drop_window.vala:462
+msgid "Unable to prepare AppImage for installation"
+msgstr "AppImage't ei saa paigaldamiseks ette valmistada"
+
+#: src/windows/drop_window.vala:503
+msgid "Successfully Installed"
+msgstr "Edukalt paigaldatud"
+
+#: src/windows/drop_window.vala:505
+msgid "Successfully Updated"
+msgstr "Edukalt uuendatud"
+
+#: src/windows/drop_window.vala:505
+msgid "Successfully Replaced"
+msgstr "Edukalt asendatud"
+
+#: src/windows/drop_window.vala:523
+#, c-format
+msgid "Version %s"
+msgstr "Versioon %s"
+
+#: src/windows/drop_window.vala:527
+msgid "Open"
+msgstr "Ava"
+
+#: src/windows/drop_window.vala:528
+msgid "Done"
+msgstr "Valmis"
+
+#: src/windows/drop_window.vala:554
+msgid "Installation failed"
+msgstr "Paigaldamine ebaõnnestus"
+
+#: src/windows/drop_window.vala:564
+msgid "Dismiss"
+msgstr "Lõpeta"
+
+#: src/windows/drop_window.vala:909
+msgid "Verify AppImage"
+msgstr "Kinnita AppImage"
+
+#: src/windows/drop_window.vala:927
+msgid "Verify the authenticity of this AppImage."
+msgstr "Kinnita selle AppImage'i autentsus."
+
+#: src/windows/drop_window.vala:933
+msgid "Enter the SHA256 hash "
+msgstr "Sisesta SHA256 räsi "
+
+#: src/core/background_update_service.vala:247
+msgid "App updates available"
+msgstr "Rakenduste uuendused saadaval"
+
+#: src/core/background_update_service.vala:249
+#, c-format
+msgid "%d app update(s) available"
+msgstr "%d rakenduse uuendust saadaval"
+
+#: src/core/background_update_service.vala:258
+msgid "Open AppManager"
+msgstr "Ava AppManager"
+
+#: src/core/updater.vala:570 src/core/updater.vala:635
+msgid "No update address configured"
+msgstr "Uuenduse aadressi pole seadistatud"
+
+#: src/core/updater.vala:575 src/core/updater.vala:644
+msgid "Update source not supported"
+msgstr "Uuenduse allikas pole toetatud"
+
+#: src/core/updater.vala:591 src/core/updater.vala:662
+msgid "Unable to read releases"
+msgstr "Väljalaskeid ei saa lugeda"
+
+#: src/core/updater.vala:596 src/core/updater.vala:688
+#, c-format
+msgid "No matching AppImage found for %s"
+msgstr "Ühtegi sobivat AppImage't ei leitud %s jaoks"
+
+#: src/core/updater.vala:604 src/core/updater.vala:610
+#: src/core/updater.vala:672 src/core/updater.vala:680
+msgid "Already up to date"
+msgstr "Juba ajakohane"

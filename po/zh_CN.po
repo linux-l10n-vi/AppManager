@@ -1,0 +1,555 @@
+# Simplified Chinese translation for app-manager
+# Copyright (C) 2026 AppManager Contributors
+# This file is distributed under the same license as the app-manager package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: app-manager\n"
+"Report-Msgid-Bugs-To: https://github.com/kem-a/AppManager/issues\n"
+"POT-Creation-Date: 2026-01-27 12:00+0000\n"
+"PO-Revision-Date: 2026-01-27 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "AppManager"
+msgstr "AppManager"
+
+msgid "My Apps"
+msgstr "我的应用"
+
+msgid "Get more ..."
+msgstr "获取更多..."
+
+msgid "Find more AppImages"
+msgstr "发现更多 AppImage"
+
+msgid "Browse these sources to discover and download AppImages"
+msgstr "浏览这些来源以发现和下载 AppImage"
+
+msgid "No AppImage apps installed"
+msgstr "没有已安装的 AppImage 应用"
+
+msgid "Download AppImage and double click to install with AppManager"
+msgstr "下载 AppImage 并双击使用 AppManager 安装"
+
+msgid "No results found"
+msgstr "未找到结果"
+
+msgid "Updating..."
+msgstr "正在更新..."
+
+msgid "Update available"
+msgstr "有可用更新"
+
+msgid "extracted"
+msgstr "已解压"
+
+msgid "Updated just now"
+msgstr "刚刚更新"
+
+msgid "Installed just now"
+msgstr "刚刚安装"
+
+#, c-format
+msgid "Updated %d min ago"
+msgstr "%d 分钟前更新"
+
+#, c-format
+msgid "Installed %d min ago"
+msgstr "%d 分钟前安装"
+
+#, c-format
+msgid "Updated %d hours ago"
+msgstr "%d 小时前更新"
+
+#, c-format
+msgid "Installed %d hours ago"
+msgstr "%d 小时前安装"
+
+#, c-format
+msgid "Updated %d days ago"
+msgstr "%d 天前更新"
+
+#, c-format
+msgid "Installed %d days ago"
+msgstr "%d 天前安装"
+
+msgid "Preferences"
+msgstr "首选项"
+
+msgid "Keyboard shortcuts"
+msgstr "键盘快捷键"
+
+msgid "About AppManager"
+msgstr "关于 AppManager"
+
+msgid "Quit"
+msgstr "退出"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "More actions"
+msgstr "更多操作"
+
+msgid "Search apps..."
+msgstr "搜索应用..."
+
+msgid "FUSE is not installed. Some AppImages may fail to run"
+msgstr "FUSE 未安装。某些 AppImage 可能无法运行"
+
+msgid "Learn More"
+msgstr "了解更多"
+
+msgid "Updates already running"
+msgstr "更新已在运行中"
+
+msgid "Cancel update"
+msgstr "取消更新"
+
+msgid "Cancelling..."
+msgstr "正在取消..."
+
+msgid "Update check cancelled"
+msgstr "更新检查已取消"
+
+#, c-format
+msgid "%d app(s) have updates"
+msgstr "%d 个应用有更新"
+
+msgid "No updates available right now"
+msgstr "目前没有可用更新"
+
+msgid "Nothing queued for updating"
+msgstr "没有等待更新的项目"
+
+msgid "Update cancelled"
+msgstr "更新已取消"
+
+msgid "Checking updates"
+msgstr "正在检查更新"
+
+msgid "Update Apps"
+msgstr "更新应用"
+
+msgid "Updating apps"
+msgstr "正在更新应用"
+
+msgid "Check updates"
+msgstr "检查更新"
+
+msgid "No installed apps to update"
+msgstr "没有已安装的应用需要更新"
+
+#, c-format
+msgid "Updated %d app(s)"
+msgstr "已更新 %d 个应用"
+
+#, c-format
+msgid "%d update(s) failed"
+msgstr "%d 个更新失败"
+
+msgid "Add update addresses in Details to enable updates"
+msgstr "在详情中添加更新地址以启用更新"
+
+msgid "All supported apps are already up to date"
+msgstr "所有支持的应用都已是最新版本"
+
+#, c-format
+msgid "%d app(s) use unsupported update links"
+msgstr "%d 个应用使用不支持的更新链接"
+
+#, c-format
+msgid "Update available for %s"
+msgstr "%s 有可用更新"
+
+msgid "General"
+msgstr "常规"
+
+msgid "Navigation"
+msgstr "导航"
+
+msgid "Window"
+msgstr "窗口"
+
+msgid "Check for updates"
+msgstr "检查更新"
+
+msgid "Show main menu"
+msgstr "显示主菜单"
+
+msgid "Show shortcuts"
+msgstr "显示快捷键"
+
+msgid "Close window"
+msgstr "关闭窗口"
+
+msgid "Quit AppManager"
+msgstr "退出 AppManager"
+
+msgid "Credits"
+msgstr "致谢"
+
+msgid "⚠️ '~/.local/bin' is not in $PATH. App will not launch from the terminal"
+msgstr "⚠️ '~/.local/bin' 不在 $PATH 中。应用无法从终端启动"
+
+msgid "Version unknown"
+msgstr "版本未知"
+
+msgid "Show in Files"
+msgstr "在文件管理器中显示"
+
+msgid "Portable"
+msgstr "便携"
+
+msgid "Extracted"
+msgstr "已解压"
+
+msgid "Terminal"
+msgstr "终端"
+
+msgid "This app supports efficient delta updates"
+msgstr "此应用支持高效的增量更新"
+
+msgid "Hidden"
+msgstr "已隐藏"
+
+msgid "Properties"
+msgstr "属性"
+
+msgid "Command line arguments"
+msgstr "命令行参数"
+
+msgid "Update info"
+msgstr "更新信息"
+
+msgid "How update links work"
+msgstr "更新链接如何工作"
+
+msgid "Update Link"
+msgstr "更新链接"
+
+msgid "Update link is managed by zsync and cannot be edited"
+msgstr "更新链接由 zsync 管理，无法编辑"
+
+msgid "Web Page"
+msgstr "网页"
+
+msgid "Open web page"
+msgstr "打开网页"
+
+msgid "Advanced"
+msgstr "高级"
+
+msgid "Environment Variables"
+msgstr "环境变量"
+
+msgid "Set custom environment variables for this app"
+msgstr "为此应用设置自定义环境变量"
+
+msgid "NAME"
+msgstr "名称"
+
+msgid "value"
+msgstr "值"
+
+msgid "Remove variable"
+msgstr "删除变量"
+
+msgid "Keywords"
+msgstr "关键词"
+
+msgid "Icon name"
+msgstr "图标名称"
+
+msgid "Startup WM Class"
+msgstr "启动窗口类"
+
+msgid "Version"
+msgstr "版本"
+
+msgid "Hide from app drawer"
+msgstr "从应用列表中隐藏"
+
+msgid "Don't show in application menu"
+msgstr "不在应用程序菜单中显示"
+
+msgid "Add to $PATH"
+msgstr "添加到 $PATH"
+
+msgid "Create a launcher in ~/.local/bin so you can run it from the terminal"
+msgstr "在 ~/.local/bin 创建启动器以便从终端运行"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "Extract AppImage"
+msgstr "解压 AppImage"
+
+msgid "Move to Trash"
+msgstr "移到回收站"
+
+msgid "Restore default"
+msgstr "恢复默认"
+
+msgid "Checking..."
+msgstr "正在检查..."
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Check Update"
+msgstr "检查更新"
+
+msgid "Update info lets AppManager fetch new builds for you. Paste the download link and AppManager will do the rest."
+msgstr "更新信息让 AppManager 能够为您获取新版本。粘贴下载链接，AppManager 会完成剩余工作。"
+
+msgid "Currently GitHub and GitLab URL formats are fully supported. Direct download links also work if the server provides Last-Modified or Content-Length headers."
+msgstr "目前完全支持 GitHub 和 GitLab URL 格式。如果服务器提供 Last-Modified 或 Content-Length 头，直接下载链接也可以使用。"
+
+msgid "Update links"
+msgstr "更新链接"
+
+msgid "Got it"
+msgstr "明白了"
+
+msgid "Extracting will unpack the application so it opens faster, but it will consume more disk space. This action cannot be reversed automatically."
+msgstr "解压将展开应用程序以便更快打开，但会占用更多磁盘空间。此操作无法自动撤销。"
+
+msgid "Extract application?"
+msgstr "解压应用程序？"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Extract"
+msgstr "解压"
+
+msgid "Automatic updates"
+msgstr "自动更新"
+
+msgid "Configure automatic update checking"
+msgstr "配置自动更新检查"
+
+msgid "Open update log"
+msgstr "打开更新日志"
+
+msgid "Background update check"
+msgstr "后台更新检查"
+
+msgid "Will notify when new app updates are available"
+msgstr "有新的应用更新时会通知您"
+
+msgid "Auto update apps"
+msgstr "自动更新应用"
+
+msgid "Will update apps automatically in background"
+msgstr "将在后台自动更新应用"
+
+msgid "Check interval"
+msgstr "检查间隔"
+
+msgid "Daily"
+msgstr "每天"
+
+msgid "Weekly"
+msgstr "每周"
+
+msgid "Monthly"
+msgstr "每月"
+
+msgid "Thumbnails"
+msgstr "缩略图"
+
+msgid "AppImage Thumbnailer"
+msgstr "AppImage 缩略图生成器"
+
+msgid "Install appimage-thumbnailer to generate thumbnails for AppImages"
+msgstr "安装 appimage-thumbnailer 以生成 AppImage 缩略图"
+
+msgid "Hide Nautilus thumbnail background"
+msgstr "隐藏 Nautilus 缩略图背景"
+
+msgid "Remove the alpha checkerboard behind thumbnails and icons"
+msgstr "移除缩略图和图标后面的透明棋盘格"
+
+msgid "App removed"
+msgstr "应用已删除"
+
+msgid "The application was uninstalled successfully."
+msgstr "应用程序已成功卸载。"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Uninstall failed"
+msgstr "卸载失败"
+
+#, c-format
+msgid "%s could not be removed: %s"
+msgstr "无法删除 %s：%s"
+
+msgid "Moved to Trash"
+msgstr "已移至回收站"
+
+msgid "Extraction is only available for portable installations."
+msgstr "解压仅适用于便携安装。"
+
+msgid "Extracted for faster launch"
+msgstr "已解压以加快启动速度"
+
+msgid "Extraction complete"
+msgstr "解压完成"
+
+#, c-format
+msgid "%s was extracted and will open faster."
+msgstr "%s 已解压，将更快打开。"
+
+msgid "Extraction failed"
+msgstr "解压失败"
+
+#, c-format
+msgid "%s could not be extracted: %s"
+msgstr "无法解压 %s：%s"
+
+msgid "AppImage Installer"
+msgstr "AppImage 安装器"
+
+msgid "Verify"
+msgstr "验证"
+
+msgid "Verify AppImage with SHA256 hash"
+msgstr "使用 SHA256 哈希验证 AppImage"
+
+msgid "SHA256 hash does not match. Verification failed."
+msgstr "SHA256 哈希不匹配。验证失败。"
+
+msgid "Drag and drop to install into Applications"
+msgstr "拖放以安装到应用程序"
+
+msgid "Applications"
+msgstr "应用程序"
+
+#, c-format
+msgid "Open %s?"
+msgstr "打开 %s？"
+
+#, c-format
+msgid "Origins of %s application can not be verified. Are you sure you want to open it?"
+msgstr "无法验证应用程序 %s 的来源。确定要打开它吗？"
+
+msgid "This is a terminal application and will be installed in portable mode."
+msgstr "这是一个终端应用程序，将以便携模式安装。"
+
+msgid "Install the AppImage to add it to your applications."
+msgstr "安装 AppImage 以将其添加到您的应用程序。"
+
+msgid "Install"
+msgstr "安装"
+
+msgid "This AppImage is incompatible or corrupted"
+msgstr "此 AppImage 不兼容或已损坏"
+
+msgid "Missing required files (AppRun, .desktop, or icon)"
+msgstr "缺少必需文件（AppRun、.desktop 或图标）"
+
+msgid "Unknown version"
+msgstr "未知版本"
+
+#, c-format
+msgid "Will update to version %s"
+msgstr "将更新到版本 %s"
+
+#, c-format
+msgid "Update %s?"
+msgstr "更新 %s？"
+
+#, c-format
+msgid "Replace %s?"
+msgstr "替换 %s？"
+
+#, c-format
+msgid "A newer item named %s already exists in this location. Do you want to replace it with the older one you're copying?"
+msgstr "此位置已存在名为 %s 的较新项目。要用正在复制的旧版本替换它吗？"
+
+#, c-format
+msgid "Installed: %s | Incoming: %s"
+msgstr "已安装：%s | 传入：%s"
+
+#, c-format
+msgid "An item named %s already exists in this location. Do you want to replace it with one you're copying?"
+msgstr "此位置已存在名为 %s 的项目。要用正在复制的版本替换它吗？"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Replace"
+msgstr "替换"
+
+msgid "Unable to prepare AppImage for installation"
+msgstr "无法准备 AppImage 进行安装"
+
+msgid "Successfully Installed"
+msgstr "安装成功"
+
+msgid "Successfully Updated"
+msgstr "更新成功"
+
+msgid "Successfully Replaced"
+msgstr "替换成功"
+
+#, c-format
+msgid "Version %s"
+msgstr "版本 %s"
+
+msgid "Open"
+msgstr "打开"
+
+msgid "Done"
+msgstr "完成"
+
+msgid "Installation failed"
+msgstr "安装失败"
+
+msgid "Dismiss"
+msgstr "关闭"
+
+msgid "Verify AppImage"
+msgstr "验证 AppImage"
+
+msgid "Verify the authenticity of this AppImage."
+msgstr "验证此 AppImage 的真实性。"
+
+msgid "Enter the SHA256 hash "
+msgstr "输入 SHA256 哈希值 "
+
+msgid "App updates available"
+msgstr "有应用更新"
+
+#, c-format
+msgid "%d app update(s) available"
+msgstr "%d 个应用更新可用"
+
+msgid "Open AppManager"
+msgstr "打开 AppManager"
+
+msgid "No update address configured"
+msgstr "未配置更新地址"
+
+msgid "Update source not supported"
+msgstr "不支持的更新源"
+
+msgid "Unable to read releases"
+msgstr "无法读取版本信息"
+
+#, c-format
+msgid "No matching AppImage found for %s"
+msgstr "找不到 %s 的匹配 AppImage"
+
+msgid "Already up to date"
+msgstr "已是最新版本"

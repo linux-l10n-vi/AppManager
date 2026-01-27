@@ -13,8 +13,6 @@ AppManager is a GTK/Libadwaita developed desktop utility in Vala that makes inst
 
 <img width="1600" height="1237" alt="Screenshot From 2026-01-11 00-24-35" src="https://github.com/user-attachments/assets/acc7d1b8-6e07-4540-af6c-cf3167345252" />
 
-
-
 ## Features
 
 - **Drag-and-drop installer**: Mimics the familiar macOS Applications install flow.
@@ -57,14 +55,17 @@ sudo dnf install vala meson ninja-build gtk4-devel libadwaita-devel glib2-devel 
 ```bash
 sudo pacman -S vala meson ninja gtk4 libadwaita glib2 json-glib gee libsoup p7zip cmake desktop-file-utils jq
 ```
+
 </details>
 
 Default setup
+
 ```bash
 meson setup build --prefix=$HOME/.local
 ```
 
 Build and install
+
 ```bash
 meson compile -C build
 meson install -C build
@@ -78,5 +79,12 @@ meson install -C build
 - Run a background update check: `app-manager --background-update`
 - Show version or help: `app-manager --version` / `app-manager --help`
 
+## Translations
+
+AppManager supports multiple languages. Want to help translate to your language? See the [translation guide](po/README.md) for instructions.
+
+Currently supported: German, Spanish, Estonian, Finnish, French, Italian, Japanese, Lithuanian, Latvian, Norwegian, Portuguese (Brazil), Swedish, Chinese (Simplified).
+
 ## License
+
 GPL-3.0-or-later. See [LICENSE](./LICENSE).
