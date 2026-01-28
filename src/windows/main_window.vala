@@ -61,6 +61,7 @@ namespace AppManager {
             this.set_default_size(settings.get_int("window-width"), settings.get_int("window-height"));
             build_ui();
             setup_window_actions();
+            setup_drag_drop();
             load_staged_updates();
             refresh_installations();
             registry.changed.connect(on_registry_changed);
@@ -149,6 +150,35 @@ namespace AppManager {
                 settings.set_int("window-height", this.get_height());
                 return false;
             });
+        }
+
+        /**
+         * Sets up drag and drop support to install AppImages by dropping them on the main window.
+         */
+        private void setup_drag_drop() {
+            var drop_target = new Gtk.DropTarget(typeof(Gdk.FileList), Gdk.DragAction.COPY);
+            
+            drop_target.drop.connect((value, x, y) => {
+                var file_list = (Gdk.FileList)value;
+                var files = file_list.get_files();
+                bool handled = false;
+                
+                foreach (var file in files) {
+                    var path = file.get_path();
+                    if (path != null && (path.down().has_suffix(".appimage") || path.down().contains(".appimage"))) {
+                        app_ref.open_drop_window(file);
+                        handled = true;
+                    }
+                }
+                
+                if (!handled && files.length() > 0) {
+                    add_toast(_("Only AppImage files can be installed"));
+                }
+                
+                return handled;
+            });
+            
+            toast_overlay.add_controller(drop_target);
         }
 
         public void add_toast(string message) {

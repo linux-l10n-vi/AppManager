@@ -222,6 +222,14 @@ Examples:
         }
 
         /**
+         * Opens a drop window for the given file.
+         * Public method to allow MainWindow to trigger installs via drag & drop.
+         */
+        public void open_drop_window(GLib.File file) {
+            show_drop_window(file);
+        }
+
+        /**
          * Checks if AppManager itself is installed (when running as AppImage).
          */
         private bool is_self_installed() {
