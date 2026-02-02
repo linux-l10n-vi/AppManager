@@ -319,7 +319,8 @@ namespace AppManager {
                 filtered_list.add(record);
             }
             
-            prune_pending_keys(filtered_list);
+            // Prune based on all records (not filtered) to avoid removing staged updates during search
+            prune_pending_keys_and_staged_updates(all_records);
             prune_size_cache(filtered_list);
             update_apps_group_title(filtered_list.size);
             update_update_button_sensitive();
@@ -338,19 +339,43 @@ namespace AppManager {
             populate_group(apps_group, sorted);
         }
 
-        private void prune_pending_keys(Gee.Collection<InstallationRecord> records) {
-            var valid = new Gee.HashSet<string>();
+        private void prune_pending_keys_and_staged_updates(InstallationRecord[] records) {
+            var valid_keys = new Gee.HashSet<string>();
+            var valid_ids = new Gee.HashSet<string>();
             foreach (var record in records) {
-                valid.add(record_state_key(record));
+                valid_keys.add(record_state_key(record));
+                valid_ids.add(record.id);
             }
-            var to_remove = new Gee.ArrayList<string>();
+            
+            // Prune pending_update_keys
+            var keys_to_remove = new Gee.ArrayList<string>();
             foreach (var key in pending_update_keys) {
-                if (!valid.contains(key)) {
-                    to_remove.add(key);
+                if (!valid_keys.contains(key)) {
+                    keys_to_remove.add(key);
                 }
             }
-            foreach (var key in to_remove) {
+            foreach (var key in keys_to_remove) {
                 pending_update_keys.remove(key);
+            }
+            
+            // Prune staged updates for uninstalled apps
+            var staged_ids = staged_updates.get_record_ids();
+            var ids_to_remove = new Gee.ArrayList<string>();
+            foreach (var id in staged_ids) {
+                if (!valid_ids.contains(id)) {
+                    ids_to_remove.add(id);
+                }
+            }
+            if (ids_to_remove.size > 0) {
+                foreach (var id in ids_to_remove) {
+                    staged_updates.remove(id);
+                }
+                staged_updates.save();
+            }
+            
+            // Update button state after pruning
+            if (keys_to_remove.size > 0) {
+                update_global_update_state_from_pending();
             }
         }
 
