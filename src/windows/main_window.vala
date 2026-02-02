@@ -574,13 +574,99 @@ namespace AppManager {
             return menu;
         }
 
-        private GLib.MenuModel build_sponsor_menu_model() {
-            var menu = new GLib.Menu();
-            menu.append(_("GitHub Sponsors"), "app.sponsor_github");
-            menu.append(_("Ko-fi"), "app.sponsor_kofi");
-            menu.append(_("Buy Me a Coffee"), "app.sponsor_bmac");
-            menu.append(_("Revolut"), "app.sponsor_revolut");
-            return menu;
+        private void present_sponsor_dialog() {
+            var dialog = new Adw.Dialog();
+            dialog.set_content_width(360);
+            dialog.set_content_height(480);
+
+            var toolbar_view = new Adw.ToolbarView();
+            var header_bar = new Adw.HeaderBar();
+            header_bar.set_show_title(true);
+            header_bar.set_title_widget(new Adw.WindowTitle(_("Support AppManager"), ""));
+            toolbar_view.add_top_bar(header_bar);
+
+            var content_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 16);
+            content_box.set_margin_top(24);
+            content_box.set_margin_bottom(24);
+            content_box.set_margin_start(24);
+            content_box.set_margin_end(24);
+            content_box.set_halign(Gtk.Align.CENTER);
+            content_box.set_valign(Gtk.Align.CENTER);
+
+            // QR code button linking to Buy Me a Coffee
+            var qr_button = new Gtk.Button();
+            qr_button.add_css_class("flat");
+            qr_button.set_halign(Gtk.Align.CENTER);
+            qr_button.set_tooltip_text(_("Buy Me a Coffee"));
+            var qr_image = new Gtk.Image.from_icon_name("qrcode-symbolic");
+            qr_image.set_pixel_size(160);
+            qr_button.set_child(qr_image);
+            qr_button.clicked.connect(() => {
+                var launcher = new Gtk.UriLauncher("https://buymeacoffee.com/arnisk");
+                launcher.launch.begin(this, null);
+            });
+            content_box.append(qr_button);
+
+            // Button box with homogeneous sizing
+            var buttons_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 12);
+            buttons_box.set_homogeneous(true);
+            buttons_box.set_halign(Gtk.Align.CENTER);
+
+            // Sponsor button with GitHub icon
+            var sponsor_btn = new Gtk.Button();
+            sponsor_btn.add_css_class("pill");
+            sponsor_btn.add_css_class("suggested-action");
+            sponsor_btn.set_tooltip_text(_("Become a sponsor on GitHub"));
+            var sponsor_content = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 8);
+            sponsor_content.set_halign(Gtk.Align.CENTER);
+            var github_icon = new Gtk.Image.from_icon_name("github-symbolic");
+            sponsor_content.append(github_icon);
+            sponsor_content.append(new Gtk.Label(_("Sponsor Me ♡")));
+            sponsor_btn.set_child(sponsor_content);
+            sponsor_btn.clicked.connect(() => {
+                var launcher = new Gtk.UriLauncher("https://github.com/sponsors/kem-a");
+                launcher.launch.begin(this, null);
+            });
+            buttons_box.append(sponsor_btn);
+
+            // Star on GitHub button
+            var star_btn = new Gtk.Button();
+            star_btn.add_css_class("pill");
+            star_btn.set_tooltip_text(_("Star AppManager on GitHub"));
+            var star_content = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 8);
+            star_content.set_halign(Gtk.Align.CENTER);
+            var star_icon = new Gtk.Image.from_icon_name("starred-symbolic");
+            star_content.append(star_icon);
+            star_content.append(new Gtk.Label(_("Star AppManager")));
+            star_btn.set_child(star_content);
+            star_btn.clicked.connect(() => {
+                var launcher = new Gtk.UriLauncher("https://github.com/kem-a/AppManager");
+                launcher.launch.begin(this, null);
+            });
+            buttons_box.append(star_btn);
+
+            // Contributors button
+            var contributors_btn = new Gtk.Button();
+            contributors_btn.add_css_class("pill");
+            contributors_btn.set_tooltip_text(_("View contributors on GitHub"));
+            var contributors_content = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 8);
+            contributors_content.set_halign(Gtk.Align.CENTER);
+            var contributors_icon = new Gtk.Image.from_icon_name("system-users-symbolic");
+            contributors_content.append(contributors_icon);
+            contributors_content.append(new Gtk.Label(_("Contributors")));
+            contributors_btn.set_child(contributors_content);
+            contributors_btn.clicked.connect(() => {
+                var launcher = new Gtk.UriLauncher("https://github.com/kem-a/AppManager/graphs/contributors");
+                launcher.launch.begin(this, null);
+            });
+            buttons_box.append(contributors_btn);
+
+            content_box.append(buttons_box);
+
+            toolbar_view.set_content(content_box);
+            dialog.set_child(toolbar_view);
+
+            dialog.present(this);
         }
 
         private Adw.ToolbarView create_toolbar_with_header(Gtk.Widget content, bool include_menu_button) {
@@ -593,12 +679,14 @@ namespace AppManager {
                 search_button.tooltip_text = _("Search");
                 header.pack_start(search_button);
 
-                // Sponsor button with popover menu
-                var sponsor_button = new Gtk.MenuButton();
+                // Sponsor button opens dialog
+                var sponsor_button = new Gtk.Button();
                 sponsor_button.icon_name = "emblem-favorite-symbolic";
                 sponsor_button.tooltip_text = _("Support this project");
                 sponsor_button.add_css_class("flat");
-                sponsor_button.menu_model = build_sponsor_menu_model();
+                sponsor_button.clicked.connect(() => {
+                    present_sponsor_dialog();
+                });
                 header.pack_start(sponsor_button);
 
                 main_menu_button = new Gtk.MenuButton();
