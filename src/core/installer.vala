@@ -469,6 +469,11 @@ namespace AppManager.Core {
                     File.new_for_path(record.bin_symlink).delete(null);
                 }
                 
+                // Remove symbolic icon when uninstalling AppManager itself
+                if (record.original_startup_wm_class == Core.APPLICATION_ID) {
+                    uninstall_symbolic_icon();
+                }
+                
                 // Update MIME database after removing desktop file
                 update_desktop_database();
             } catch (Error e) {
@@ -969,6 +974,43 @@ namespace AppManager.Core {
             } catch (Error e) {
                 // update-desktop-database may not be available on all systems
                 debug("Failed to run update-desktop-database: %s", e.message);
+            }
+        }
+
+        /**
+         * Installs AppManager's symbolic icon from GResource to the hicolor theme.
+         * Called on startup and when installing AppManager itself.
+         */
+        public static void install_symbolic_icon() {
+            var dest = AppPaths.symbolic_icon_path;
+            if (GLib.FileUtils.test(dest, FileTest.EXISTS)) return;
+            try {
+                var bytes = resources_lookup_data(
+                    "/com/github/AppManager/icons/hicolor/symbolic/apps/com.github.AppManager-symbolic.svg",
+                    ResourceLookupFlags.NONE);
+                DirUtils.create_with_parents(Path.get_dirname(dest), 0755);
+                GLib.FileUtils.set_data(dest, bytes.get_data());
+                Process.spawn_command_line_async("gtk4-update-icon-cache -f -t " +
+                    Path.build_filename(Environment.get_user_data_dir(), "icons", "hicolor"));
+            } catch (Error e) {
+                debug("Symbolic icon install: %s", e.message);
+            }
+        }
+
+        /**
+         * Removes AppManager's symbolic icon from the hicolor theme.
+         * Called when uninstalling AppManager itself.
+         */
+        public static void uninstall_symbolic_icon() {
+            var path = AppPaths.symbolic_icon_path;
+            if (GLib.FileUtils.test(path, FileTest.EXISTS)) {
+                try {
+                    File.new_for_path(path).delete(null);
+                    Process.spawn_command_line_async("gtk4-update-icon-cache -f -t " +
+                        Path.build_filename(Environment.get_user_data_dir(), "icons", "hicolor"));
+                } catch (Error e) {
+                    debug("Symbolic icon uninstall: %s", e.message);
+                }
             }
         }
     }

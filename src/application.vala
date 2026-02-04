@@ -87,6 +87,9 @@ Examples:
                 theme.add_resource_path("/com/github/AppManager/icons/hicolor");
             }
 
+            // Install symbolic icon to filesystem for external processes (notifications, panel)
+            Installer.install_symbolic_icon();
+
             // Apply shared UI styles (cards/badges) once per app lifecycle.
             UiUtils.ensure_app_card_styles();
 
