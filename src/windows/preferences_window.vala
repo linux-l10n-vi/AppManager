@@ -13,6 +13,8 @@ namespace AppManager {
         private Adw.EntryRow? install_dir_row = null;
         private Gtk.Button? browse_button = null;
         private Gtk.Button? reset_button = null;
+        private Gtk.Button? apply_button = null;
+        private Adw.ActionRow? thumbnailer_row = null;
         private const string GTK_CONFIG_SUBDIR = "gtk-4.0";
         private const string APP_CSS_FILENAME = "AppManager.css";
         private const string APP_CSS_IMPORT_LINE = "@import url(\"AppManager.css\");";
@@ -32,6 +34,21 @@ namespace AppManager {
             this.set_title(_("Preferences"));
             this.content_height = 550;
             build_ui();
+            
+            // Remove focus from entry row when dialog is shown
+            this.map.connect(() => {
+                GLib.Timeout.add(50, () => {
+                    // First deselect text in the entry
+                    if (this.install_dir_row != null) {
+                        this.install_dir_row.select_region(0, 0);
+                    }
+                    // Then move focus to apply button
+                    if (this.apply_button != null) {
+                        this.apply_button.grab_focus();
+                    }
+                    return GLib.Source.REMOVE;
+                });
+            });
         }
 
         private void build_ui() {
@@ -72,7 +89,7 @@ namespace AppManager {
             this.reset_button = reset_button;
 
             // Apply button
-            var apply_button = new Gtk.Button.from_icon_name("object-select-symbolic");
+            apply_button = new Gtk.Button.from_icon_name("object-select-symbolic");
             apply_button.valign = Gtk.Align.CENTER;
             apply_button.add_css_class("flat");
             apply_button.add_css_class("success");
@@ -162,7 +179,7 @@ namespace AppManager {
             var thumbnails_group = new Adw.PreferencesGroup();
             thumbnails_group.title = _("Thumbnails");
 
-            var thumbnailer_row = new Adw.ActionRow();
+            thumbnailer_row = new Adw.ActionRow();
             thumbnailer_row.title = _("AppImage Thumbnailer");
             thumbnailer_row.subtitle = _("Install appimage-thumbnailer to generate thumbnails for AppImages");
             thumbnailer_row.activatable = true;
