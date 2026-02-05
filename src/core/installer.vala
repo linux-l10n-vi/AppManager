@@ -372,13 +372,19 @@ namespace AppManager.Core {
                 // Derive icon name without path and extension
                 var icon_name_for_desktop = derive_icon_name(original_icon_name, final_slug);
                 
-                // Install icon to flat ~/.local/share/icons directory
-                var icon_extension = detect_icon_extension(icon_path);
-                var stored_icon = Path.build_filename(AppPaths.icons_dir, "%s%s".printf(icon_name_for_desktop, icon_extension));
-                Utils.FileUtils.file_copy(icon_path, stored_icon);
-                
                 // Derive fallback StartupWMClass from bundled desktop file name (without .desktop extension)
                 var fallback_startup_wm_class = derive_fallback_wmclass(desktop_path);
+                
+                // Check if this is AppManager self-installation
+                var is_self_install = (original_startup_wm_class == Core.APPLICATION_ID);
+                
+                // Install icon to flat ~/.local/share/icons directory
+                // Skip for AppManager self-install since install_symbolic_icon() handles it in hicolor theme
+                var icon_extension = detect_icon_extension(icon_path);
+                var stored_icon = Path.build_filename(AppPaths.icons_dir, "%s%s".printf(icon_name_for_desktop, icon_extension));
+                if (!is_self_install) {
+                    Utils.FileUtils.file_copy(icon_path, stored_icon);
+                }
                 
                 // Store original values temporarily in record for get_effective_* methods to work
                 record.original_icon_name = icon_name_for_desktop;
@@ -410,7 +416,8 @@ namespace AppManager.Core {
                     throw new InstallerError.UNKNOWN("Unable to write desktop file");
                 }
                 record.desktop_file = desktop_destination;
-                record.icon_path = stored_icon;
+                // For self-install, use hicolor path; otherwise use flat icons directory
+                record.icon_path = is_self_install ? AppPaths.main_icon_path : stored_icon;
                 
                 if (resolved_entry_exec != null && resolved_entry_exec.strip() != "") {
                     var stored_exec = resolved_entry_exec.strip();
