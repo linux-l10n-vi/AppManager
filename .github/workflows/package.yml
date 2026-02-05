@@ -107,8 +107,9 @@ jobs:
           # Remove rpath if present
           chrpath -d "$APPDIR/usr/bin/app-manager" 2>/dev/null || true
 
-          # Build AppImage
-          ARCH=x86_64 appimagetool "$APPDIR" "$PACKAGE_DIR/AppManager-${VERSION}-x86_64.AppImage"
+          # Build AppImage with embedded update information for zsync delta updates
+          UPDATE_INFO="gh-releases-zsync|kem-a|AppManager|latest|AppManager-*-x86_64.AppImage.zsync"
+          ARCH=x86_64 appimagetool --updateinformation "$UPDATE_INFO" "$APPDIR" "$PACKAGE_DIR/AppManager-${VERSION}-x86_64.AppImage"
 
           # Generate zsync file for delta updates
           cd "$PACKAGE_DIR"
@@ -229,8 +230,9 @@ jobs:
           # Remove rpath if present
           chrpath -d "$APPDIR/usr/bin/app-manager" 2>/dev/null || true
 
-          # Build AppImage
-          ARCH=aarch64 appimagetool "$APPDIR" "$PACKAGE_DIR/AppManager-${VERSION}-aarch64.AppImage"
+          # Build AppImage with embedded update information for zsync delta updates
+          UPDATE_INFO="gh-releases-zsync|kem-a|AppManager|latest|AppManager-*-aarch64.AppImage.zsync"
+          ARCH=aarch64 appimagetool --updateinformation "$UPDATE_INFO" "$APPDIR" "$PACKAGE_DIR/AppManager-${VERSION}-aarch64.AppImage"
 
           # Generate zsync file for delta updates
           cd "$PACKAGE_DIR"

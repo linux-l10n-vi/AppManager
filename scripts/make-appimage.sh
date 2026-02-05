@@ -126,7 +126,26 @@ find "$APPDIR" -type f | head -20
 
 # Build AppImage
 echo "Creating AppImage..."
-ARCH=$ARCH "$APPIMAGETOOL" "$APPDIR" "$PACKAGE_DIR/$APPIMAGE_NAME"
+
+# Build update information for zsync delta updates
+# Format: gh-releases-zsync|owner|repo|latest|pattern.zsync
+# The pattern must match the zsync file uploaded to GitHub releases
+UPDATE_INFO="gh-releases-zsync|kem-a|AppManager|latest|AppManager-*-${ARCH}.AppImage.zsync"
+
+echo "Update information: $UPDATE_INFO"
+
+# Create AppImage with embedded update information
+ARCH=$ARCH "$APPIMAGETOOL" --updateinformation "$UPDATE_INFO" "$APPDIR" "$PACKAGE_DIR/$APPIMAGE_NAME"
+
+# Generate .zsync file for delta updates
+# This file should be uploaded alongside the AppImage to GitHub releases
+if command -v zsyncmake &>/dev/null; then
+    echo "Generating zsync file..."
+    zsyncmake -u "$APPIMAGE_NAME" -o "$PACKAGE_DIR/$APPIMAGE_NAME.zsync" "$PACKAGE_DIR/$APPIMAGE_NAME"
+    echo "Zsync file: $PACKAGE_DIR/$APPIMAGE_NAME.zsync"
+else
+    echo "Note: zsyncmake not found. Install zsync to generate .zsync file for delta updates."
+fi
 
 # Get file size
 SIZE=$(du -h "$PACKAGE_DIR/$APPIMAGE_NAME" | cut -f1)
@@ -135,5 +154,10 @@ echo ""
 echo "=== AppImage created successfully ==="
 echo "Output: $PACKAGE_DIR/$APPIMAGE_NAME"
 echo "Size: $SIZE"
+echo "Update info: $UPDATE_INFO"
+echo ""
+echo "To enable zsync delta updates, upload both files to GitHub releases:"
+echo "  - $APPIMAGE_NAME"
+echo "  - $APPIMAGE_NAME.zsync (if generated)"
 echo ""
 echo "To run: ./$APPIMAGE_NAME"
