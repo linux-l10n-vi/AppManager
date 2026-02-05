@@ -600,17 +600,28 @@ namespace AppManager.Core {
             entry.remove_key("DBusActivatable");
             
             // Add Uninstall action block
-            var uninstall_exec = build_uninstall_exec(record.installed_path);
+            // Check if this is a self-install (AppManager installing itself)
+            var is_self_install = (entry.startup_wm_class == Core.APPLICATION_ID);
+            var uninstall_exec = build_uninstall_exec(record.installed_path, is_self_install);
             entry.set_action_group("Uninstall", _("Move to Trash"), uninstall_exec, "user-trash");
             
             return entry.to_data();
         }
 
-        private string build_uninstall_exec(string installed_path) {
+        private string build_uninstall_exec(string installed_path, bool is_self_install) {
             var parts = new Gee.ArrayList<string>();
-            foreach (var token in uninstall_prefix) {
-                parts.add(Utils.FileUtils.quote_exec_token(token));
+            
+            if (is_self_install) {
+                // For self-install, use the installed path as the executable
+                // This ensures the uninstall action uses the destination location
+                parts.add(Utils.FileUtils.quote_exec_token(installed_path));
+            } else {
+                // For other apps, use the normal uninstall prefix (AppManager executable)
+                foreach (var token in uninstall_prefix) {
+                    parts.add(Utils.FileUtils.quote_exec_token(token));
+                }
             }
+            
             parts.add("--uninstall");
             parts.add("\"%s\"".printf(Utils.FileUtils.escape_exec_arg(installed_path)));
             var builder = new StringBuilder();
