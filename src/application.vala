@@ -592,7 +592,7 @@ Examples:
          * Returns the path to the lock directory for drop window locks.
          */
         private string get_lock_dir() {
-            var dir = Path.build_filename(Environment.get_tmp_dir(), "app-manager-locks");
+            var dir = Path.build_filename(Environment.get_user_runtime_dir(), "app-manager-locks");
             DirUtils.create_with_parents(dir, 0755);
             return dir;
         }
