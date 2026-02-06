@@ -161,21 +161,12 @@ namespace AppManager {
             drop_target.drop.connect((value, x, y) => {
                 var file_list = (Gdk.FileList)value;
                 var files = file_list.get_files();
-                bool handled = false;
                 
                 foreach (var file in files) {
-                    var path = file.get_path();
-                    if (path != null && (path.down().has_suffix(".appimage") || path.down().contains(".appimage"))) {
-                        app_ref.open_drop_window(file);
-                        handled = true;
-                    }
+                    app_ref.open_drop_window(file);
                 }
                 
-                if (!handled && files.length() > 0) {
-                    add_toast(_("Only AppImage files can be installed"));
-                }
-                
-                return handled;
+                return files.length() > 0;
             });
             
             toast_overlay.add_controller(drop_target);
