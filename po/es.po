@@ -205,7 +205,7 @@ msgstr "Tipo de fuente zsync desconocida"
 
 #: src/core/updater.vala:1290
 msgid "Unknown zsync source"
-msgstr "Funete zsync desconocida"
+msgstr "Fuente zsync desconocida"
 
 #: src/core/updater.vala:1419
 msgid "Cannot determine download URL from zsync URL"
