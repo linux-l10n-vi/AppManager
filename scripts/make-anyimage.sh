@@ -139,7 +139,7 @@ echo "---------------------------------------------------------------"
 # app invokes them as child processes, not via dynamic linking.
 #
 # Additional notes:
-#   - /usr/bin/7z on Arch is a shell wrapper; pass the real binary from /usr/lib/7zip/7z
+#   - 7z is a static binary installed by meson to /usr/bin/7z (bundled, not the Arch system package)
 #   - /usr/share/vala is needed for Vala runtime data (may be required by some Vala apps)
 #   - GIO modules for TLS and proxy are needed since the app uses libsoup3 for networking
 "$QS" \
@@ -147,17 +147,11 @@ echo "---------------------------------------------------------------"
     /usr/bin/dwarfsextract \
     /usr/bin/dwarfsck \
     /usr/bin/zsync2 \
-    /usr/lib/7zip/7z \
+    /usr/bin/7z \
     /usr/share/vala \
     /usr/lib/gio/modules/libgiognomeproxy.so \
     /usr/lib/gio/modules/libgiognutls.so \
     /usr/lib/gio/modules/libgiolibproxy.so
-
-# quick-sharun strips the /usr prefix, so the real 7z binary ends up
-# at AppDir/lib/7zip/7z. The app looks for "7z" in /usr/bin (compiled
-# SEVENZIP_BUNDLE_DIR), but sharun maps that to AppDir/bin/ at runtime.
-# Create a symlink so the app can find 7z alongside the other binaries.
-ln -sf ../lib/7zip/7z "$APPDIR"/bin/7z
 
 # ── Create AppImage ─────────────────────────────────────────────────
 "$QS" --make-appimage
