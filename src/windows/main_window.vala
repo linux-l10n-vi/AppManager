@@ -891,7 +891,7 @@ namespace AppManager {
                 apps_title_bar.add_css_class("apps-title-bar");
 
                 apps_title_label = new Gtk.Label(_("My Apps"));
-                apps_title_label.add_css_class("title-4");
+                apps_title_label.add_css_class("heading");
                 apps_title_label.set_hexpand(true);
                 apps_title_label.set_halign(Gtk.Align.START);
 
