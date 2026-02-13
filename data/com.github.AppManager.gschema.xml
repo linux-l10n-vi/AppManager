@@ -56,5 +56,10 @@
       <summary>App list view mode</summary>
       <description>The layout mode for the app list. Either 'list' for a traditional list view or 'grid' for an icon grid view.</description>
     </key>
+    <key name="github-token" type="s">
+      <default>''</default>
+      <summary>GitHub personal access token</summary>
+      <description>A GitHub personal access token used to authenticate API requests. This raises the rate limit from 60 to 5,000 requests per hour. Only needs read-only access to public repositories.</description>
+    </key>
   </schema>
 </schemalist>

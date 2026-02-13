@@ -65,6 +65,7 @@ namespace AppManager.Core {
         private string update_log_path;
         private const int MAX_PARALLEL_JOBS = 5;
         private static string? _system_arch = null;
+        private GLib.Settings? app_settings = null;
 
         public Updater(InstallationRegistry registry, Installer installer) {
             this.registry = registry;
@@ -74,6 +75,45 @@ namespace AppManager.Core {
             session.user_agent = user_agent;
             session.timeout = 60;
             update_log_path = Path.build_filename(AppPaths.data_dir, "updates.log");
+            app_settings = new GLib.Settings(Core.APPLICATION_ID);
+        }
+
+        /**
+         * Get the GitHub token from GSettings, falling back to
+         * GITHUB_TOKEN or GH_TOKEN environment variables.
+         */
+        private string? get_github_token() {
+            if (app_settings != null) {
+                var token = app_settings.get_string("github-token");
+                if (token != null && token.strip() != "") {
+                    return token.strip();
+                }
+            }
+            var env_token = GLib.Environment.get_variable("GITHUB_TOKEN");
+            if (env_token != null && env_token.strip() != "") {
+                return env_token.strip();
+            }
+            env_token = GLib.Environment.get_variable("GH_TOKEN");
+            if (env_token != null && env_token.strip() != "") {
+                return env_token.strip();
+            }
+            return null;
+        }
+
+        /**
+         * Add GitHub authorization header to a request if the URL
+         * targets api.github.com or github.com and a token is available.
+         */
+        private void apply_github_auth(Soup.Message message) {
+            var uri = message.get_uri();
+            var host = uri.get_host();
+            if (host == null) return;
+            if (host == "api.github.com" || host == "github.com" || host.has_suffix(".github.com")) {
+                var token = get_github_token();
+                if (token != null) {
+                    message.request_headers.replace("Authorization", "Bearer %s".printf(token));
+                }
+            }
         }
 
         public ArrayList<UpdateProbeResult> probe_updates(GLib.Cancellable? cancellable = null) {
@@ -914,9 +954,20 @@ namespace AppManager.Core {
             var message = new Soup.Message("GET", url);
             message.request_headers.replace("Accept", accept_header);
             message.request_headers.replace("User-Agent", user_agent);
+            apply_github_auth(message);
             
             var bytes = session.send_and_read(message, cancellable);
             var status = message.get_status();
+            if (status == 401) {
+                throw new GLib.IOError.FAILED(_("GitHub authentication failed (401). Check your token in Preferences → GitHub."));
+            }
+            if (status == 403) {
+                var remaining = message.response_headers.get_one("X-RateLimit-Remaining");
+                if (remaining != null && remaining == "0") {
+                    throw new GLib.IOError.FAILED(_("GitHub API rate limit exceeded. Add a token in Preferences → GitHub to increase your limit."));
+                }
+                throw new GLib.IOError.FAILED(_("GitHub access forbidden (403). Your token may lack the required permissions."));
+            }
             if (status < 200 || status >= 300) {
                 throw new GLib.IOError.FAILED("API error (%u)".printf(status));
             }
@@ -1070,6 +1121,7 @@ namespace AppManager.Core {
                 var message = new Soup.Message("GET", url);
                 message.request_headers.replace("Accept", "application/octet-stream");
                 message.request_headers.replace("User-Agent", user_agent);
+                apply_github_auth(message);
                 
                 var input = session.send(message, cancellable);
                 var status = message.get_status();
@@ -1096,6 +1148,7 @@ namespace AppManager.Core {
         private Soup.Message send_head(string url, GLib.Cancellable? cancellable) throws Error {
             var message = new Soup.Message("HEAD", url);
             message.request_headers.replace("User-Agent", user_agent);
+            apply_github_auth(message);
             session.send_and_read(message, cancellable);
             var status = message.get_status();
             if (status < 200 || status >= 300) {

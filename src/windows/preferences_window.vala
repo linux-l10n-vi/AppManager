@@ -206,7 +206,92 @@ namespace AppManager {
 
             thumbnails_group.add(thumbnail_background_row);
 
+            // GitHub authentication group
+            var github_group = new Adw.PreferencesGroup();
+            github_group.title = _( "GitHub");
+            github_group.description = _( "Authenticate with GitHub to raise the API rate limit from 60 to 5,000 requests per hour");
+
+            var token_row = new Adw.PasswordEntryRow();
+            token_row.title = _( "Personal access token");
+
+            var current_token = settings.get_string("github-token");
+            if (current_token != null && current_token.strip() != "") {
+                token_row.text = current_token;
+            }
+
+            var token_apply_button = new Gtk.Button.from_icon_name("object-select-symbolic");
+            token_apply_button.valign = Gtk.Align.CENTER;
+            token_apply_button.add_css_class("flat");
+            token_apply_button.add_css_class("success");
+            token_apply_button.tooltip_text = _( "Apply token");
+            token_apply_button.clicked.connect(() => {
+                settings.set_string("github-token", token_row.text.strip());
+                show_info_toast(_( "GitHub token saved"));
+            });
+
+            var token_clear_button = new Gtk.Button.from_icon_name("edit-clear-symbolic");
+            token_clear_button.valign = Gtk.Align.CENTER;
+            token_clear_button.add_css_class("flat");
+            token_clear_button.tooltip_text = _( "Clear token");
+            token_clear_button.clicked.connect(() => {
+                token_row.text = "";
+                settings.set_string("github-token", "");
+                show_info_toast(_( "GitHub token cleared"));
+            });
+
+            token_row.add_suffix(token_apply_button);
+            token_row.add_suffix(token_clear_button);
+
+            // Allow Enter key to apply
+            token_row.entry_activated.connect(() => {
+                settings.set_string("github-token", token_row.text.strip());
+                show_info_toast(_( "GitHub token saved"));
+            });
+
+            github_group.add(token_row);
+
+            // Test token row
+            var token_test_row = new Adw.ActionRow();
+            token_test_row.title = _( "Test token");
+            token_test_row.subtitle = _( "Verify your token works and check rate limit status");
+
+            var test_spinner = new Gtk.Spinner();
+            test_spinner.visible = false;
+            var test_button = new Gtk.Button.with_label(_( "Test"));
+            test_button.valign = Gtk.Align.CENTER;
+            test_button.add_css_class("flat");
+            test_button.clicked.connect(() => {
+                // Save the current token first
+                settings.set_string("github-token", token_row.text.strip());
+                test_button.sensitive = false;
+                test_spinner.visible = true;
+                test_spinner.spinning = true;
+                token_test_row.subtitle = _( "Testing…");
+                test_github_token.begin(token_row.text.strip(), (obj, res) => {
+                    var result = test_github_token.end(res);
+                    token_test_row.subtitle = result;
+                    test_button.sensitive = true;
+                    test_spinner.spinning = false;
+                    test_spinner.visible = false;
+                });
+            });
+
+            token_test_row.add_suffix(test_spinner);
+            token_test_row.add_suffix(test_button);
+            github_group.add(token_test_row);
+
+            var token_help_row = new Adw.ActionRow();
+            token_help_row.title = _( "Create a token on GitHub");
+            token_help_row.subtitle = _( "Fine-grained token with read-only public repo access is sufficient");
+            token_help_row.activatable = true;
+            token_help_row.add_suffix(new Gtk.Image.from_icon_name("external-link-symbolic"));
+            token_help_row.activated.connect(() => {
+                UiUtils.open_url("https://github.com/settings/tokens?type=beta");
+            });
+            github_group.add(token_help_row);
+
             page.add(updates_group);
+            page.add(github_group);
             page.add(thumbnails_group);
 
             this.add(page);
@@ -446,6 +531,56 @@ namespace AppManager {
                 // For now, just log it - the UI will update visually
                 debug("Info: %s", message);
             }
+        }
+
+        /**
+         * Test a GitHub token by calling the rate_limit API endpoint.
+         * Returns a human-readable result string.
+         */
+        private async string test_github_token(string token) {
+            SourceFunc callback = test_github_token.callback;
+            string result = "";
+
+            new Thread<void>("test-github-token", () => {
+                try {
+                    var session = new Soup.Session();
+                    session.user_agent = "AppManager/%s".printf(Core.APPLICATION_VERSION);
+                    session.timeout = 15;
+
+                    var message = new Soup.Message("GET", "https://api.github.com/rate_limit");
+                    message.request_headers.replace("Accept", "application/vnd.github+json");
+                    if (token != "") {
+                        message.request_headers.replace("Authorization", "Bearer %s".printf(token));
+                    }
+
+                    session.send_and_read(message, null);
+                    var status = message.get_status();
+
+                    if (status == 401) {
+                        result = _( "Authentication failed — token is invalid or expired");
+                    } else if (status == 403) {
+                        result = _( "Access forbidden — token lacks required permissions");
+                    } else if (status >= 200 && status < 300) {
+                        // Parse rate limit info from response
+                        var remaining = message.response_headers.get_one("X-RateLimit-Remaining");
+                        var limit = message.response_headers.get_one("X-RateLimit-Limit");
+                        if (remaining != null && limit != null) {
+                            result = _( "Token is valid — %s / %s requests remaining").printf(remaining, limit);
+                        } else {
+                            result = _( "Token is valid");
+                        }
+                    } else {
+                        result = _("Unexpected response (%u)").printf(status);
+                    }
+                } catch (Error e) {
+                    result = _( "Connection error: %s").printf(e.message);
+                }
+
+                Idle.add((owned) callback);
+            });
+
+            yield;
+            return result;
         }
 
     }
