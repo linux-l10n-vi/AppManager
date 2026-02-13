@@ -588,7 +588,7 @@ Examples:
             }
             // If the AppImage file no longer exists at the original path,
             // it was likely moved during installation — treat as installed
-            if (!FileUtils.test(appimage, FileTest.EXISTS)) {
+            if (!GLib.FileUtils.test(appimage, FileTest.EXISTS)) {
                 debug("AppImage no longer at original path %s, assuming installed", appimage);
                 return true;
             }
